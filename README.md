@@ -1,0 +1,16 @@
+
+2026.01.06
+
+you can use Xcode to build.
+
+GitHub in Xcode is completely broken.<br>
+use "GitHub Desktop".
+
+[ Support ]
+
+feel free to report or to complain<br>
+https://github.com/cheznonnon/Forum/discussions
+
+[ Screenshot ]
+
+![screenshot](https://cheznonnon.github.io/Nonnon_for_Mac/Screenshot/Nonnon%20Paint.png)

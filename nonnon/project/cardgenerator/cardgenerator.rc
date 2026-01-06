@@ -1,0 +1,40 @@
+// Nonnon Freecell
+// copyright (c) nonnon all rights reserved
+// License : GPL http://www.gnu.org/copyleft/gpl.html
+
+
+
+
+#ifndef _H_NONNON_PROJECT_CARDGENERATOR
+#define _H_NONNON_PROJECT_CARDGENERATOR
+
+
+NCARDGENERATOR_BMP_NEKO      DATA  "../nonnon/project/cardgenerator/rc/180/neko.bmp"
+NCARDGENERATOR_BMP_D         DATA  "../nonnon/project/cardgenerator/rc/180/digit.bmp"
+NCARDGENERATOR_BMP_S_0       DATA  "../nonnon/project/cardgenerator/rc/180/suit/hearts.bmp"
+NCARDGENERATOR_BMP_S_1       DATA  "../nonnon/project/cardgenerator/rc/180/suit/diamonds.bmp"
+NCARDGENERATOR_BMP_S_2       DATA  "../nonnon/project/cardgenerator/rc/180/suit/spades.bmp"
+NCARDGENERATOR_BMP_S_3       DATA  "../nonnon/project/cardgenerator/rc/180/suit/clubs.bmp"
+NCARDGENERATOR_BMP_S_B_0     DATA  "../nonnon/project/cardgenerator/rc/180/suit_big/hearts.bmp"
+NCARDGENERATOR_BMP_S_B_1     DATA  "../nonnon/project/cardgenerator/rc/180/suit_big/diamonds.bmp"
+NCARDGENERATOR_BMP_S_B_2     DATA  "../nonnon/project/cardgenerator/rc/180/suit_big/spades.bmp"
+NCARDGENERATOR_BMP_S_B_3     DATA  "../nonnon/project/cardgenerator/rc/180/suit_big/clubs.bmp"
+NCARDGENERATOR_BMP_C_K       DATA  "../nonnon/project/cardgenerator/rc/180/crown_k.bmp"
+NCARDGENERATOR_BMP_C_Q       DATA  "../nonnon/project/cardgenerator/rc/180/crown_q.bmp"
+
+NCARDGENERATOR_BMP_90_NEKO   DATA  "../nonnon/project/cardgenerator/rc/90/neko.bmp"
+NCARDGENERATOR_BMP_90_D      DATA  "../nonnon/project/cardgenerator/rc/90/digit.bmp"
+NCARDGENERATOR_BMP_90_S_0    DATA  "../nonnon/project/cardgenerator/rc/90/suit/hearts.bmp"
+NCARDGENERATOR_BMP_90_S_1    DATA  "../nonnon/project/cardgenerator/rc/90/suit/diamonds.bmp"
+NCARDGENERATOR_BMP_90_S_2    DATA  "../nonnon/project/cardgenerator/rc/90/suit/spades.bmp"
+NCARDGENERATOR_BMP_90_S_3    DATA  "../nonnon/project/cardgenerator/rc/90/suit/clubs.bmp"
+NCARDGENERATOR_BMP_90_S_B_0  DATA  "../nonnon/project/cardgenerator/rc/90/suit_big/hearts.bmp"
+NCARDGENERATOR_BMP_90_S_B_1  DATA  "../nonnon/project/cardgenerator/rc/90/suit_big/diamonds.bmp"
+NCARDGENERATOR_BMP_90_S_B_2  DATA  "../nonnon/project/cardgenerator/rc/90/suit_big/spades.bmp"
+NCARDGENERATOR_BMP_90_S_B_3  DATA  "../nonnon/project/cardgenerator/rc/90/suit_big/clubs.bmp"
+NCARDGENERATOR_BMP_90_C_K    DATA  "../nonnon/project/cardgenerator/rc/90/crown_k.bmp"
+NCARDGENERATOR_BMP_90_C_Q    DATA  "../nonnon/project/cardgenerator/rc/90/crown_q.bmp"
+
+
+#endif // _H_NONNON_PROJECT_CARDGENERATOR
+
