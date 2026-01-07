@@ -71,6 +71,9 @@ typedef struct {
 
 
 
+#define n_fft_encode( b, n ) n_fft_engine( b, n, 0 )
+#define n_fft_decode( b, n ) n_fft_engine( b, n, 1 )
+
 void
 n_fft_engine( n_fft_complex *buffer, int n, int inverse )
 {
@@ -81,18 +84,21 @@ n_fft_engine( n_fft_complex *buffer, int n, int inverse )
 	if ( n <= 1 ) { return; }
 
 
-	n_fft_complex *even = (n_fft_complex*) malloc( n/2 * sizeof( n_fft_complex ) );
-	n_fft_complex * odd = (n_fft_complex*) malloc( n/2 * sizeof( n_fft_complex ) );
+	int half = n / 2;
 
-	for( int i = 0; i < n/2; i++ )
+
+	n_fft_complex *even = (n_fft_complex*) malloc( half * sizeof( n_fft_complex ) );
+	n_fft_complex * odd = (n_fft_complex*) malloc( half * sizeof( n_fft_complex ) );
+
+	for( int i = 0; i < half; i++ )
 	{
-		even[ i ] = buffer[ i * 2 + 0 ];
-		 odd[ i ] = buffer[ i * 2 + 1 ];
+		even[ i ] = buffer[ ( i * 2 ) + 0 ];
+		 odd[ i ] = buffer[ ( i * 2 ) + 1 ];
 	}
 
 
-	n_fft_engine( even, n/2, inverse );
-	n_fft_engine(  odd, n/2, inverse );
+	n_fft_engine( even, half, inverse );
+	n_fft_engine(  odd, half, inverse );
 
 
 	for( int k = 0; k < n/2; k++ )
@@ -100,13 +106,13 @@ n_fft_engine( n_fft_complex *buffer, int n, int inverse )
 		double        angle = 2 * M_PI * k / n * ( inverse ? -1 : 1 );
 		n_fft_complex     t = cexp( I * angle ) * odd[ k ];
 
-		buffer[ k       ] = even[ k ] + t;
-		buffer[ k + n/2 ] = even[ k ] - t;
+		buffer[ k        ] = even[ k ] + t;
+		buffer[ k + half ] = even[ k ] - t;
 
 		if ( inverse )
 		{
-			buffer[ k       ] /= 2;
-			buffer[ k + n/2 ] /= 2;
+			buffer[ k        ] /= 2;
+			buffer[ k + half ] /= 2;
 		}
 	}
 
@@ -114,15 +120,6 @@ n_fft_engine( n_fft_complex *buffer, int n, int inverse )
 	free( even );
 	free(  odd );
 
-
-	return;
-}
-
-void
-n_fft_ifft( n_fft_complex* buffer, int n )
-{
-
-	n_fft_engine( buffer, n, 1 );
 
 	return;
 }
@@ -315,7 +312,7 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int ch )
 #endif
 		}
 
-		n_fft_engine( buffer, N_FFT_SIZE, 0 );
+		n_fft_encode( buffer, N_FFT_SIZE );
 
 #ifdef N_FFT_VERSION_2
 
@@ -353,7 +350,7 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int ch )
 
 		if ( modified )
 		{
-			n_fft_ifft( buffer, N_FFT_SIZE );
+			n_fft_decode( buffer, N_FFT_SIZE );
 
 			for( int i = 0; i < N_FFT_SIZE; i++ )
 			{

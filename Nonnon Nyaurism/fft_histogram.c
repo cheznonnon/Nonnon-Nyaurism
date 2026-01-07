@@ -49,7 +49,7 @@ n_fft_histogram_channel_process( n_fft_equalizer *eq, float *data, int ch )
 			}
 		}
 
-		n_fft_engine( buffer, N_FFT_SIZE, 0 );
+		n_fft_encode( buffer, N_FFT_SIZE );
 	}
 
 
@@ -125,7 +125,7 @@ n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, BOOL d
 		n_wav_resizer( &wav_copy, 1000, N_WAV_RESIZER_CENTER );
 	}
 
-	n_wav_normalize( wav, 0, 1.0, 1.0 );
+	n_wav_normalize( &wav_copy, 0, 1.0, 1.0 );
 
 	float *ptr = (float*) N_WAV_PTR( &wav_copy );
 
