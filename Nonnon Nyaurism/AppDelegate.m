@@ -34,7 +34,7 @@
 
 
 #include "stub.c"
-//#include "fft_histogram.c"
+#include "fft_histogram.c"
 
 
 
@@ -157,6 +157,9 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 
 @interface AppDelegate ()
 
+@property (strong) IBOutlet NonnonStub *n_window_main_stub;
+@property (strong) IBOutlet NonnonStub *n_window_eq_stub;
+
 @property (strong) IBOutlet NSWindow *window;
 
 @property (strong) IBOutlet NonnonStub  *n_stub;
@@ -276,12 +279,20 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 
 	// [Needed] : DnD Support
 
-	_n_stub = [[NonnonStub alloc] init];
+	_n_window_main_stub = [[NonnonStub alloc] init];
 
-	[_n_stub setFrame:[[NSScreen mainScreen] frame]];
-	[[_window contentView] addSubview:_n_stub];
+	[_n_window_main_stub setFrame:[[NSScreen mainScreen] frame]];
+	[[_window contentView] addSubview:_n_window_main_stub];
 
-	_n_stub.delegate = self;
+	_n_window_main_stub.delegate = self;
+
+
+	_n_window_eq_stub = [[NonnonStub alloc] init];
+
+	[_n_window_eq_stub setFrame:[[NSScreen mainScreen] frame]];
+	[[_n_eq_window contentView] addSubview:_n_window_eq_stub];
+
+	_n_window_eq_stub.delegate = self;
 
 
 	{
@@ -1265,6 +1276,39 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 	[_n_eq_7 setIntValue:0]; _n_eq_label_7.stringValue = @"0";
 	[_n_eq_8 setIntValue:0]; _n_eq_label_8.stringValue = @"0";
 	[_n_eq_9 setIntValue:0]; _n_eq_label_9.stringValue = @"0";
+
+}
+
+- (void)n_eq_button_analyze_value_set:(NSSlider*) slider label:(NSTextField*) label value:(int)value
+{
+	[slider setIntValue:value];
+	label.stringValue = [NSString stringWithFormat:@"%d", value];
+}
+
+- (IBAction)n_eq_button_analyze:(id)sender {
+
+	double histogram[ 10 ];
+
+	n_fft_histogram_main( &n_nyaurism_wav, histogram, 10, NO );
+
+	for( int i = 0; i < 10; i++ )
+	{
+		histogram[ i ]  = n_wav_sample_clamp_normalized( histogram[ i ] );
+		histogram[ i ] -=  1.0;
+		histogram[ i ] *= 10;
+	}
+
+
+	[self n_eq_button_analyze_value_set:_n_eq_0 label:_n_eq_label_0 value:(int) histogram[ 0 ]];
+	[self n_eq_button_analyze_value_set:_n_eq_1 label:_n_eq_label_1 value:(int) histogram[ 1 ]];
+	[self n_eq_button_analyze_value_set:_n_eq_2 label:_n_eq_label_2 value:(int) histogram[ 2 ]];
+	[self n_eq_button_analyze_value_set:_n_eq_3 label:_n_eq_label_3 value:(int) histogram[ 3 ]];
+	[self n_eq_button_analyze_value_set:_n_eq_4 label:_n_eq_label_4 value:(int) histogram[ 4 ]];
+	[self n_eq_button_analyze_value_set:_n_eq_5 label:_n_eq_label_5 value:(int) histogram[ 5 ]];
+	[self n_eq_button_analyze_value_set:_n_eq_6 label:_n_eq_label_6 value:(int) histogram[ 6 ]];
+	[self n_eq_button_analyze_value_set:_n_eq_7 label:_n_eq_label_7 value:(int) histogram[ 7 ]];
+	[self n_eq_button_analyze_value_set:_n_eq_8 label:_n_eq_label_8 value:(int) histogram[ 8 ]];
+	[self n_eq_button_analyze_value_set:_n_eq_9 label:_n_eq_label_9 value:(int) histogram[ 9 ]];
 
 }
 

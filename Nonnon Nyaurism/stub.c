@@ -17,7 +17,11 @@
 
 @implementation NonnonStub
 
+
 @synthesize delegate;
+
+
+
 
 - init
 {
@@ -28,6 +32,53 @@
 	}
 
 	return self;
+}
+
+
+
+
+- (void) updateTrackingAreas
+{
+//return;
+
+	int options = (
+		NSTrackingMouseEnteredAndExited |
+		NSTrackingMouseMoved            |
+		NSTrackingActiveAlways          |
+		NSTrackingActiveInActiveApp
+	);
+
+	NSTrackingArea *trackingArea = [
+		[NSTrackingArea alloc]
+			initWithRect:[self bounds]
+			     options:options
+			       owner:self
+			    userInfo:nil
+	];
+
+	[self addTrackingArea:trackingArea];
+
+}
+
+- (void) mouseEntered:(NSEvent *)theEvent
+{
+//NSLog(@"mouseEntered");
+
+	// [Needed] : NSTrackingMouseEnteredAndExited
+
+	if ( FALSE == n_mac_window_is_keywindow( self.window ) )
+	{
+		[self.window makeKeyWindow];
+	}
+
+}
+
+- (void) mouseExited:(NSEvent *)theEvent
+{
+//NSLog(@"mouseExited");
+
+	// [Needed] : NSTrackingMouseEnteredAndExited
+
 }
 
 

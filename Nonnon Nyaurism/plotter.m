@@ -985,11 +985,20 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 #ifdef DEBUG
 	case N_MAC_KEYCODE_F1:
+	{
+		int count = 10;
 
-		//n_fft_histogram( &n_nyaurism_wav );
+		double histogram[ count ];
+
+		n_fft_histogram_main( &n_nyaurism_wav, histogram, count, YES );
+
+		for( int i = 0; i < count; i++ )
+		{
+			NSLog( @"%f", histogram[ i ] );
+		}
 
 		[self display];
-
+	}
 	break;
 #endif
 

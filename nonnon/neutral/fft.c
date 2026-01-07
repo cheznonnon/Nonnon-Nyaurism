@@ -37,6 +37,13 @@
 
 
 
+#define N_FFT_RATE    ( 44100 )
+#define N_FFT_SIZE    ( 2048 )
+#define N_FFT_NYQUIST ( N_FFT_RATE / 2.0 )
+
+
+
+
 typedef double complex n_fft_complex;
 
 
@@ -44,11 +51,9 @@ typedef double complex n_fft_complex;
 
 typedef struct {
 
-	int            sample_rate;
-	int            num_bands;
-	double        *gains;		// [!] : not db
+	int            band_count;
+	double        *band_gains;		// [!] : not db
 	double        *band_freqs;
-	int            fft_size;
 	n_fft_complex *fft_buffer_l;
 	n_fft_complex *fft_buffer_r;
 	double        *window;
@@ -57,6 +62,9 @@ typedef struct {
 	double        *gains_db;
 	n_posix_bool   is_bypass;
 #endif
+
+	int            channel_count;
+	int            sample_count;
 
 } n_fft_equalizer;
 
@@ -76,7 +84,7 @@ n_fft_engine( n_fft_complex *buffer, int n, int inverse )
 	n_fft_complex *even = (n_fft_complex*) malloc( n/2 * sizeof( n_fft_complex ) );
 	n_fft_complex * odd = (n_fft_complex*) malloc( n/2 * sizeof( n_fft_complex ) );
 
-	for ( int i = 0; i < n/2; i++ )
+	for( int i = 0; i < n/2; i++ )
 	{
 		even[ i ] = buffer[ i * 2 + 0 ];
 		 odd[ i ] = buffer[ i * 2 + 1 ];
@@ -124,56 +132,57 @@ n_fft_ifft( n_fft_complex* buffer, int n )
 
 // internal
 n_fft_equalizer*
-n_fft_equalizer_init( int sample_rate, int num_bands, int fft_size )
+n_fft_equalizer_init( int band_count, int channel_count, int sample_count )
 {
 
 	n_fft_equalizer *eq = (n_fft_equalizer*) malloc( sizeof( n_fft_equalizer ) );
 
-	eq->sample_rate = sample_rate;
-	eq->num_bands   = num_bands;
-	eq->fft_size    = fft_size;
-	eq->gains       = (double*) malloc( num_bands * sizeof( double ) );
+	eq->band_count = band_count;
+	eq->band_gains = (double*) malloc( band_count * sizeof( double ) );
+
+	eq->channel_count = channel_count;
+	eq->sample_count  = sample_count;
 
 
 #ifdef N_FFT_VERSION_2
 	eq->is_bypass = n_posix_true;
-	eq->gains_db  = (double*) malloc( num_bands * sizeof( double ) );
+	eq->gains_db  = (double*) malloc( band_count * sizeof( double ) );
 #endif
 
-	for ( int i = 0; i < num_bands; i++ )
+	for( int i = 0; i < band_count; i++ )
 	{
-		eq->gains   [ i ] = 1.0; // [!] : 1.0 = 0dB
+		eq->band_gains[ i ] = 1.0; // [!] : 1.0 = 0dB
 #ifdef N_FFT_VERSION_2
 		eq->gains_db[ i ] = 0.0;
 #endif
 	}
 
 
-	eq->band_freqs = (double*) malloc( ( num_bands + 1 ) * sizeof( double ) );
+	eq->band_freqs = (double*) malloc( ( band_count + 1 ) * sizeof( double ) );
 
 	double min_freq = 20.0;			// [!] : 20Hz : hard to implement under 20Hz
-	double max_freq = sample_rate / 2.0;	// [!] : nyquist freq.
+	double max_freq = N_FFT_NYQUIST;
 	double log_min  = log10( min_freq );
 	double log_max  = log10( max_freq );
-	double step     = ( log_max - log_min ) / num_bands;
+	double step     = ( log_max - log_min ) / band_count;
 
-	for ( int i = 0; i <= num_bands; i++ )
+	for( int i = 0; i <= band_count; i++ )
 	{
 		eq->band_freqs[ i ] = pow( 10.0, log_min + i * step );
 	}
 
 
-	eq->fft_buffer_l = (n_fft_complex*) malloc( fft_size * sizeof( n_fft_complex ) );
-	eq->fft_buffer_r = (n_fft_complex*) malloc( fft_size * sizeof( n_fft_complex ) );
+	eq->fft_buffer_l = (n_fft_complex*) malloc( N_FFT_SIZE * sizeof( n_fft_complex ) );
+	eq->fft_buffer_r = (n_fft_complex*) malloc( N_FFT_SIZE * sizeof( n_fft_complex ) );
 
 
 	// window function
 
-	eq->window = (double*) malloc( fft_size * sizeof( double ) );
+	eq->window = (double*) malloc( N_FFT_SIZE * sizeof( double ) );
 
-	for ( int i = 0; i < fft_size; i++ )
+	for( int i = 0; i < N_FFT_SIZE; i++ )
 	{
-		eq->window[ i ] = 0.5 * ( 1.0 - cos( 2.0 * M_PI * i / ( fft_size - 1 ) ) );
+		eq->window[ i ] = 0.5 * ( 1.0 - cos( 2.0 * M_PI * i / ( N_FFT_SIZE - 1 ) ) );
 	}
 
 
@@ -185,7 +194,7 @@ void
 n_fft_equalizer_exit( n_fft_equalizer *eq )
 {
 
-	free( eq->gains );
+	free( eq->band_gains );
 	free( eq->band_freqs );
 	free( eq->fft_buffer_l );
 	free( eq->fft_buffer_r );
@@ -209,15 +218,16 @@ n_fft_equalizer_db2linear( double db )
 void
 n_fft_equalizer_gain_db_set( n_fft_equalizer *eq, int band, double gain_db )
 {
-	if ( ( band >= 0 )&&( band < eq->num_bands ) )
+
+	if ( ( band >= 0 )&&( band < eq->band_count ) )
 	{
-		eq->gains[ band ] = n_fft_equalizer_db2linear( gain_db );
+		eq->band_gains[ band ] = n_fft_equalizer_db2linear( gain_db );
 
 #ifdef N_FFT_VERSION_2
 		eq->gains_db[ band ] = gain_db;
 
 		eq->is_bypass = n_posix_true;
-		for ( int i = 0; i < eq->num_bands; i++ )
+		for( int i = 0; i < eq->band_count; i++ )
 		{
 			if ( fabs( eq->gains_db[ i ]) > 0.1 )
 			{
@@ -234,16 +244,16 @@ n_fft_equalizer_gain_db_set( n_fft_equalizer *eq, int band, double gain_db )
 
 // internal
 void
-n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int count, int ch )
+n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int ch )
 {
 
 #ifdef N_FFT_VERSION_2
 	if ( eq->is_bypass ) { return; }
 
 	n_posix_bool all_unity = n_posix_true;
-	for ( int i = 0; i < eq->num_bands; i++ )
+	for( int i = 0; i < eq->band_count; i++ )
 	{
-		if ( fabs( eq->gains[ i ] - 1.0 ) > 1e-6 )
+		if ( fabs( eq->band_gains[ i ] - 1.0 ) > 1e-6 )
 		{
 			all_unity = n_posix_false;
 			break;
@@ -257,36 +267,35 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int count, 
 	if ( ch == 0 ) { buffer = eq->fft_buffer_l; } else { buffer = eq->fft_buffer_r; }
 
 
-	int fft_size = eq->fft_size;
-	int hop_size = fft_size / 4;	// [!] : 75%
+	int hop_size = N_FFT_SIZE / 4; // [!] : 75%
 
 
-	double *output = (double*) calloc( count, sizeof( double ) );
+	double *output = (double*) calloc( eq->sample_count, sizeof( double ) );
 
 #ifdef N_FFT_VERSION_2
-	double *window_sum = (double*) calloc( count, sizeof( double ) );
+	double *window_sum = (double*) calloc( eq->sample_count, sizeof( double ) );
 
-	int     padded_size       = count + ( fft_size * 2 );
+	int     padded_size       = eq->sample_count + ( N_FFT_SIZE * 2 );
 	double *padded_input      = (double*) calloc( padded_size, sizeof( double ) );
 	double *padded_output     = (double*) calloc( padded_size, sizeof( double ) );
 	double *padded_window_sum = (double*) calloc( padded_size, sizeof( double ) );
 
-	memcpy( padded_input + fft_size, audio, count * sizeof( double ) );
+	memcpy( padded_input + N_FFT_SIZE, audio, eq->sample_count * sizeof( double ) );
 
-	int padded_blocks = ( ( padded_size - fft_size ) / hop_size ) + 1;
+	int padded_blocks = ( ( padded_size - N_FFT_SIZE ) / hop_size ) + 1;
 #endif
 
 #ifdef N_FFT_VERSION_2
-	for ( int block = 0; block < padded_blocks; block++ )
+	for( int block = 0; block < padded_blocks; block++ )
 #else
-	int num_blocks = ( count - fft_size ) / hop_size + 1;
+	int num_blocks = ( eq->sample_count - N_FFT_SIZE ) / hop_size + 1;
 
-	for ( int block = 0; block <    num_blocks; block++ )
+	for( int block = 0; block <    num_blocks; block++ )
 #endif
 	{
 		int start_idx = block * hop_size;
 
-		for ( int i = 0; i < fft_size; i++ )
+		for( int i = 0; i < N_FFT_SIZE; i++ )
 		{
 			int idx = start_idx + i;
 #ifdef N_FFT_VERSION_2
@@ -306,21 +315,21 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int count, 
 #endif
 		}
 
-		n_fft_engine( buffer, fft_size, 0 );
+		n_fft_engine( buffer, N_FFT_SIZE, 0 );
 
 #ifdef N_FFT_VERSION_2
 
 		n_posix_bool modified = n_posix_false;
 
-		double freq_resolution = (double) eq->sample_rate / fft_size;
+		double freq_resolution = (double) N_FFT_RATE / N_FFT_SIZE;
 
-		for( int i = 0; i <= fft_size / 2; i++ )
+		for( int i = 0; i <= N_FFT_SIZE / 2; i++ )
 		{
 			double freq = i * freq_resolution;
-			if ( freq > ( eq->sample_rate / 2 ) ) { break; }
+			if ( freq > ( N_FFT_RATE / 2 ) ) { break; }
 
 			int band_idx = 0;
-			for ( int b = 0; b < eq->num_bands; b++ )
+			for( int b = 0; b < eq->band_count; b++ )
 			{
 				if ( ( freq >= eq->band_freqs[ b ] )&&( freq < eq->band_freqs[ b + 1 ] ) )
 				{
@@ -329,14 +338,14 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int count, 
 				}
 			}
 
-			if ( fabs( eq->gains[ band_idx ] - 1.0 ) > 1e-6 )
+			if ( fabs( eq->band_gains[ band_idx ] - 1.0 ) > 1e-6 )
 			{
 				modified = n_posix_true;
 
-				buffer[ i ] *= eq->gains[ band_idx ];
-				if ( ( i > 0 )&&( i < ( fft_size / 2 ) ) )
+				buffer[ i ] *= eq->band_gains[ band_idx ];
+				if ( ( i > 0 )&&( i < ( N_FFT_SIZE / 2 ) ) )
 				{
-					buffer[ fft_size - i ] *= eq->gains[ band_idx ];
+					buffer[ N_FFT_SIZE - i ] *= eq->band_gains[ band_idx ];
 				}
 			}
 		}
@@ -344,9 +353,9 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int count, 
 
 		if ( modified )
 		{
-			n_fft_ifft( buffer, fft_size );
+			n_fft_ifft( buffer, N_FFT_SIZE );
 
-			for ( int i = 0; i < fft_size; i++ )
+			for( int i = 0; i < N_FFT_SIZE; i++ )
 			{
 				int idx = start_idx + i;
 				if ( idx < padded_size )
@@ -357,7 +366,7 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int count, 
 				}
 			}
 		} else {
-			for ( int i = 0; i < fft_size; i++ )
+			for( int i = 0; i < N_FFT_SIZE; i++ )
 			{
 				int idx = start_idx + i;
 				if ( idx < padded_size )
@@ -371,35 +380,35 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int count, 
 
 #else
 
-		double freq_resolution = (double) eq->sample_rate / fft_size;
+		double freq_resolution = (double) eq->sample_rate / N_FFT_SIZE;
 
-		for ( int i = 0; i < fft_size / 2; i++ )
+		for( int i = 0; i < N_FFT_SIZE/2; i++ )
 		{
 			double freq = i * freq_resolution;
 
 			int band_idx = 0;
-			for ( int b = 0; b < eq->num_bands; b++ )
+			for( int b = 0; b < eq->band_count; b++ )
 			{
-				if ( ( freq >= eq->band_freqs[ b ] )&&( freq <= eq->band_freqs[ b + 1] ) )
+				if ( ( freq >= eq->band_freqs[ b ] )&&( freq <= eq->band_freqs[ b + 1 ] ) )
 				{
 					band_idx = b;
 					break;
 				}
 			}
 
-			double gain = eq->gains[ band_idx ];
+			double gain = eq->band_gains[ band_idx ];
 			buffer[ i ] *= gain;
 
-			if ( ( i > 0 )&&( i < fft_size / 2 ) )
+			if ( ( i > 0 )&&( i < N_FFT_SIZE/2 ) )
 			{
-				buffer[ fft_size - i ] *= gain;
+				buffer[ N_FFT_SIZE - i ] *= gain;
 			}
 
 		}
 
-		n_fft_ifft( buffer, fft_size );
+		n_fft_ifft( buffer, N_FFT_SIZE );
 
-		for ( int i = 0; i < fft_size; i++ )
+		for( int i = 0; i < N_FFT_SIZE; i++ )
 		{
 			int idx = start_idx + i;
 			if ( idx < count )
@@ -415,7 +424,7 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int count, 
 
 #ifdef N_FFT_VERSION_2
 
-	for ( int i = 0; i < padded_size; i++ )
+	for( int i = 0; i < padded_size; i++ )
 	{
 		if ( padded_window_sum[ i ] > 1e-6 )
 		{
@@ -423,7 +432,7 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int count, 
 		}
 	}
 
-	memcpy( audio, padded_output + fft_size, count * sizeof( double ) );
+	memcpy( audio, padded_output + N_FFT_SIZE, eq->sample_count * sizeof( double ) );
 
 	free( output     );
 	free( window_sum );
@@ -434,7 +443,7 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int count, 
 
 #else
 
-	for ( int i = 0; i < count; i++ )
+	for( int i = 0; i < eq->sample_count; i++ )
 	{
 		audio[ i ] = output[ i ];
 	}
@@ -452,25 +461,23 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int count, 
 
 // internal
 void
-n_fft_equalizer_apply_channel( n_fft_equalizer *eq, float *data32, int num_channels, int num_samples, int ch )
+n_fft_equalizer_apply_channel( n_fft_equalizer *eq, float *data, int ch )
 {
 
-	double *audio = (double*) malloc( num_samples * sizeof( double ) );
+	double *audio = (double*) malloc( eq->sample_count * sizeof( double ) );
 
-	for ( int i = 0; i < num_samples; i++ )
+	for( int i = 0; i < eq->sample_count; i++ )
 	{
-		audio[ i ] = (double) data32[ ( i * num_channels ) + ch ];
+		audio[ i ] = (double) data[ ( i * eq->channel_count ) + ch ];
 	}
 
-	n_fft_equalizer_channel_process( eq, audio, num_samples, ch );
+	n_fft_equalizer_channel_process( eq, audio, ch );
 
-	for ( int i = 0; i < num_samples; i++ )
+	for( int i = 0; i < eq->sample_count; i++ )
 	{
-		double sample = audio[ i ];
-		if ( sample >  1.0 ) { sample =  1.0; } else
-		if ( sample < -1.0 ) { sample = -1.0; }
+		double sample = n_wav_sample_clamp_normalized( audio[ i ] );
 
-		data32[ ( i * num_channels ) + ch ] = (float) sample;
+		data[ ( i * eq->channel_count ) + ch ] = (float) sample;
 	}
 
 	free( audio );
@@ -480,36 +487,32 @@ n_fft_equalizer_apply_channel( n_fft_equalizer *eq, float *data32, int num_chann
 }
 
 void
-n_fft_equalizer_apply( n_wav *wav, double gains_db[], int num_bands )
+n_fft_equalizer_apply( n_wav *wav, double band[], int band_count )
 {
 
 	// [!] : do nothing
 
 	int check = 0;
-	for ( int i = 0; i < num_bands; i++ )
+	for( int i = 0; i < band_count; i++ )
 	{
-		if ( gains_db[ i ] == 0 ) { check++; }
+		if ( band[ i ] == 0 ) { check++; }
 	}
-	if ( num_bands == check ) { return; }
+	if ( band_count == check ) { return; }
 
 
-	int num_channels    = N_WAV_STEREO( wav );
-	//int bits_per_sample = N_WAV_BIT( wav );
-	int sample_rate     = N_WAV_RATE( wav );
-	int num_samples     = N_WAV_COUNT( wav );
+	int channels = N_WAV_STEREO( wav );
+	int samples  = N_WAV_COUNT( wav );
+
+	n_fft_equalizer *eq = n_fft_equalizer_init( band_count, channels, samples );
 
 
-	int fft_size = 2048;
-	n_fft_equalizer *eq = n_fft_equalizer_init( sample_rate, num_bands, fft_size );
-
-
-	for ( int i = 0; i < num_bands; i++ )
+	for( int i = 0; i < band_count; i++ )
 	{
-		n_fft_equalizer_gain_db_set( eq, i, gains_db[ i ] );
+		n_fft_equalizer_gain_db_set( eq, i, band[ i ] );
 	}
 
 
-	float *data32 = (float*) N_WAV_PTR( wav );
+	float *data = (float*) N_WAV_PTR( wav );
 
 
 #ifdef N_POSIX_PLATFORM_MAC
@@ -519,7 +522,7 @@ n_fft_equalizer_apply( n_wav *wav, double gains_db[], int num_bands )
 	{
 		NSOperation *o = [NSBlockOperation blockOperationWithBlock:^{
 
-			n_fft_equalizer_apply_channel( eq, data32, num_channels, num_samples, 0 );
+			n_fft_equalizer_apply_channel( eq, data, 0 );
 
 		}];
 		[n_wav_queue addOperation:o];
@@ -528,7 +531,7 @@ n_fft_equalizer_apply( n_wav *wav, double gains_db[], int num_bands )
 	{
 		NSOperation *o = [NSBlockOperation blockOperationWithBlock:^{
 
-			n_fft_equalizer_apply_channel( eq, data32, num_channels, num_samples, 1 );
+			n_fft_equalizer_apply_channel( eq, data, 1 );
 
 		}];
 		[n_wav_queue addOperation:o];
@@ -538,8 +541,8 @@ n_fft_equalizer_apply( n_wav *wav, double gains_db[], int num_bands )
 
 #else
 
-	n_fft_equalizer_apply_channel( eq, data32, num_channels, num_samples, 0 );
-	n_fft_equalizer_apply_channel( eq, data32, num_channels, num_samples, 1 );
+	n_fft_equalizer_apply_channel( eq, data, 0 );
+	n_fft_equalizer_apply_channel( eq, data, 1 );
 
 #endif
 
@@ -557,24 +560,24 @@ void
 n_fft_test( n_wav *wav )
 {
 
-	int num_bands = 10;
+	int band_count = 10;
 
-	double gains_db[] = {
+	double band[] = {
 
-		6.0,	// 20-50Hz
-		3.0,	// 50-125Hz
-		0.0,	// 125-315Hz
-		0.0,	// 315-800Hz
-		0.0,	// 800-2000Hz
-		0.0,	// 2000-5000Hz
-		0.0,	// 5000-12500Hz
-		0.0,	// 12500-20000Hz
+		 6.0,	// 20-50Hz
+		 3.0,	// 50-125Hz
+		 0.0,	// 125-315Hz
+		 0.0,	// 315-800Hz
+		 0.0,	// 800-2000Hz
+		 0.0,	// 2000-5000Hz
+		 0.0,	// 5000-12500Hz
+		 0.0,	// 12500-20000Hz
 		-3.0,	// high freq
 		-6.0	// highest freq
 
 	};
 
-	n_fft_equalizer_apply( wav, gains_db, num_bands );
+	n_fft_equalizer_apply( wav, band, band_count );
 
 
 	return;
@@ -582,3 +585,4 @@ n_fft_test( n_wav *wav )
 
 
 #endif // _H_NONNON_NEUTRAL_FFT
+
