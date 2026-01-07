@@ -168,7 +168,7 @@ n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, BOOL d
 
 	// 1.2 Apply Hann Window Function
 
-	double window_correction = 1.0;
+	double window_correction = 0.0;
 
 	for( int i = 0; i < N; i++ )
 	{
@@ -212,17 +212,13 @@ n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, BOOL d
 
 	if ( debug )
 	{
-		printf( "\n[ Phase 3 ] Calculate Power Spectrum\n" );
+		printf( "\n[ Phase 3 ] Calculate Spectrum\n" );
 		printf( "----------------------------------------\n" );
 	}
 
 	int     spectrum_size      = N / 2 + 1;
 	double *amplitude_spectrum = malloc( spectrum_size * sizeof( double ) );
-
-	if ( debug )
-	{
-		printf( "3.1 Amplitude Spectrum\n" );
-	}
+	double *    power_spectrum = malloc( spectrum_size * sizeof( double ) );
 
 	for( int i = 0; i < spectrum_size; i++ )
 	{
@@ -230,7 +226,9 @@ n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, BOOL d
 		double imag = cimag( freq_domain[ i ] );
 
 		double amplitude = sqrt( real * real + imag * imag ) * window_correction;
+
 		amplitude_spectrum[ i ] = amplitude;
+		    power_spectrum[ i ] = amplitude;//( amplitude * amplitude ) / N;
 
 		if ( debug )
 		{
@@ -241,6 +239,8 @@ n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, BOOL d
 			);
 		}
 	}
+
+	free( amplitude_spectrum );
 
 	free( freq_domain );
 
@@ -273,13 +273,13 @@ n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, BOOL d
 
 				if ( ( bin_idx >= 0 )&&( bin_idx < histogram_count ) )
 				{
-					histogram[ bin_idx ] += amplitude_spectrum[ i ];
+					histogram[ bin_idx ] += power_spectrum[ i ];
 				}
 			}
 		}
 	}
 
-	free( amplitude_spectrum );
+	free( power_spectrum );
 
 
 	double peak = 0.0;
