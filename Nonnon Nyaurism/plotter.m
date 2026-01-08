@@ -990,7 +990,7 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 		double histogram[ count ];
 
-		n_fft_histogram_main( &n_nyaurism_wav, histogram, count, YES );
+		n_fft_histogram_main( &n_nyaurism_wav, histogram, count, 2048, YES );
 
 		for( int i = 0; i < count; i++ )
 		{
@@ -1001,6 +1001,15 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 	}
 	break;
 #endif
+
+	case N_MAC_KEYCODE_F2:
+	{
+		n_nyaurism_fname = n_mac_fork_rename( n_nyaurism_fname );
+
+		NSString *title = [NSString stringWithFormat:@"%@ - Nyaurism", n_nyaurism_fname];
+		[n_mac_image_window setTitle:title];
+	}
+	break;
 
 	case N_MAC_KEYCODE_UNDO: // [!] : 'Z'
 

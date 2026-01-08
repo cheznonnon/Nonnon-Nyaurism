@@ -15,26 +15,30 @@
 
 #define N_WAV_FORMAT_FLOAT_ON
 
-#include "../nonnon/neutral/wav.c"
-#include "../nonnon/neutral/wav/all.c"
-#include "../nonnon/neutral/fft.c"
+#include "../../nonnon/neutral/wav.c"
+#include "../../nonnon/neutral/wav/all.c"
+#include "../../nonnon/neutral/fft.c"
 
 
-#include "../nonnon/win32/gdi.c"
+#include "../../nonnon/win32/gdi.c"
 
 
-#include "../nonnon/mac/window.c"
-#include "../nonnon/mac/image.c"
-#include "../nonnon/mac/sound.c"
+#include "../../nonnon/mac/window.c"
+#include "../../nonnon/mac/image.c"
+#include "../../nonnon/mac/sound.c"
 
-#include "../nonnon/mac/n_button.c"
+#include "../../nonnon/mac/n_button.c"
 
 
-#include "../nonnon/neutral/filer.c"
+#include "../../nonnon/neutral/filer.c"
 
 
 #include "stub.c"
-#include "fft_histogram.c"
+
+
+
+
+#define N_NYAURISM_FFT_RESOLUTION pow( 2, 14 ) // [!] : higher is better but heavy
 
 
 
@@ -54,6 +58,8 @@ static float n_nyaurism_playback_msec_sx = 0;
 
 
 // [!] : plotter.m uses these variables and n_nyaurism_slider_redraw()
+
+static NSString *n_nyaurism_fname;
 
 static n_bmp n_nyaurism_bmp;
 static n_wav n_nyaurism_wav;
@@ -119,7 +125,7 @@ n_nyaurism_slider_redraw( n_wav *wav )
 
 
 BOOL
-n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
+n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 {
 
 	if ( n_posix_false == n_wav_load( wav, path ) ) { return FALSE; }
@@ -147,6 +153,12 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 
 
 	n_string_free ( tmp_path );
+
+
+	if ( ret == FALSE )
+	{
+		if ( rename_needed != NULL ) { *rename_needed = TRUE; }
+	}
 
 
 	return ret;
@@ -217,8 +229,6 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 @property (weak) IBOutlet NSButton *n_eq_button_apply;
 @property (weak) IBOutlet NSButton *n_eq_button_undo;
 
-@property NSString *n_fname;
-
 @end
 
 
@@ -230,9 +240,6 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 	u32  n_slider_timeout;
 
 }
-
-
-@synthesize n_fname;
 
 
 
@@ -258,7 +265,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 
 -(void)NonnonNyaurismTitle
 {
-	NSString *title = [NSString stringWithFormat:@"%@ - Nyaurism", n_fname];
+	NSString *title = [NSString stringWithFormat:@"%@ - Nyaurism", n_nyaurism_fname];
 	[_window setTitle:title];
 }
 
@@ -300,7 +307,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 		NSString     *desktop = [paths objectAtIndex:0];
 		n_posix_char  tmpname[ 100 ]; n_string_path_tmpname( tmpname );
 
-		n_fname = [NSString stringWithFormat:@"%@/%s.wav", desktop, tmpname];
+		n_nyaurism_fname = [NSString stringWithFormat:@"%@/%s.wav", desktop, tmpname];
 		//[self NonnonNyaurismTitle];
 		[_window setTitle:@"Nonnon Nyaurism"];
 	}
@@ -466,15 +473,17 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 //NSLog( @"%@", nsstr );
 
 
-	n_fname = nsstr;
+	n_nyaurism_fname = nsstr;
 
 
-	n_posix_char *str = n_mac_nsstring2str( n_fname );
+	n_posix_char *str = n_mac_nsstring2str( n_nyaurism_fname );
 
 
 	n_wav wav_local; n_wav_zero( &wav_local );
 
-	if ( n_nyaurism_wav_load( &wav_local, str ) )
+	BOOL rename_needed = FALSE;
+
+	if ( n_nyaurism_wav_load( &wav_local, str, &rename_needed ) )
 	{
 //NSLog( @"n_wav : load error" );
 
@@ -496,6 +505,13 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 
 			[_n_plotter display];
 		} else {
+			if ( rename_needed )
+			{
+				n_nyaurism_fname = [n_nyaurism_fname stringByDeletingPathExtension];
+				n_nyaurism_fname = [n_nyaurism_fname stringByAppendingPathExtension:@"wav"];
+//NSLog( @"%@", n_nyaurism_fname );
+			}
+
 			n_wav_free( &n_nyaurism_wav );
 			n_wav_alias( &wav_local, &n_nyaurism_wav );
 
@@ -1032,7 +1048,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 	}
 //n_wav_save_literal( &save, "./result.wav" );
 
-	n_posix_char *str = n_mac_nsstring2str( n_fname );
+	n_posix_char *str = n_mac_nsstring2str( n_nyaurism_fname );
 
 	if ( n_posix_stat_is_exist( str ) )
 	{
@@ -1044,7 +1060,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 		if ( n_wav_save( &save, str ) )
 		{
 //NSLog( @"Save Error" );
-			NSString *name = [n_fname lastPathComponent];
+			NSString *name = [n_nyaurism_fname lastPathComponent];
 
 			NSSavePanel *panel = [NSSavePanel savePanel];
 
@@ -1227,11 +1243,11 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 
 	if ( ( x == 0 )&&( sx == N_WAV_COUNT( &n_nyaurism_wav ) )&&( n_nyaurism_mix_onoff == n_posix_false ) )
 	{
-		n_fft_equalizer_apply( &n_nyaurism_wav, gains_db, num_bands );
+		n_fft_equalizer_apply( &n_nyaurism_wav, gains_db, num_bands, N_NYAURISM_FFT_RESOLUTION );
 	} else {
 		n_wav tmp; n_wav_carboncopy( &n_nyaurism_wav, &tmp );
 
-		n_fft_equalizer_apply( &tmp, gains_db, num_bands );
+		n_fft_equalizer_apply( &tmp, gains_db, num_bands, N_NYAURISM_FFT_RESOLUTION );
 
 		if ( n_nyaurism_mix_onoff )
 		{
@@ -1289,7 +1305,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path )
 
 	double histogram[ 10 ];
 
-	n_fft_histogram_main( &n_nyaurism_wav, histogram, 10, NO );
+	n_fft_histogram_main( &n_nyaurism_wav, histogram, 10, N_NYAURISM_FFT_RESOLUTION, NO );
 
 	for( int i = 0; i < 10; i++ )
 	{
