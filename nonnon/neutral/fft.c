@@ -11,6 +11,11 @@
 //	usage is written in n_fft_test()
 
 
+// [!] : n_fft_histogram_main()
+//
+//	usage is written in n_fft_histogram_test()
+
+
 
 
 #ifndef _H_NONNON_NEUTRAL_FFT
@@ -458,14 +463,21 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int ch )
 
 // internal
 void
-n_fft_equalizer_apply_channel( n_fft_equalizer *eq, float *data, int ch )
+n_fft_equalizer_apply_channel( n_fft_equalizer *eq, void *data, int ch )
 {
 
 	double *audio = (double*) malloc( eq->sample_count * sizeof( double ) );
 
 	for( int i = 0; i < eq->sample_count; i++ )
 	{
-		audio[ i ] = (double) data[ ( i * eq->channel_count ) + ch ];
+		if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+		{
+			s16 *ptr = (s16*) data;
+			audio[ i ] = (double) ptr[ ( i * eq->channel_count ) + ch ] / SHRT_MAX;
+		} else {
+			float *ptr = (float*) data;
+			audio[ i ] = (double) ptr[ ( i * eq->channel_count ) + ch ];
+		}
 	}
 
 	n_fft_equalizer_channel_process( eq, audio, ch );
@@ -474,7 +486,14 @@ n_fft_equalizer_apply_channel( n_fft_equalizer *eq, float *data, int ch )
 	{
 		double sample = n_wav_sample_clamp_normalized( audio[ i ] );
 
-		data[ ( i * eq->channel_count ) + ch ] = (float) sample;
+		if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+		{
+			s16 *ptr = (s16*) data;
+			ptr[ ( i * eq->channel_count ) + ch ] = sample * SHRT_MAX;
+		} else {
+			float *ptr = (float*) data;
+			ptr[ ( i * eq->channel_count ) + ch ] = (float) sample;
+		}
 	}
 
 	free( audio );
@@ -588,6 +607,8 @@ void
 n_fft_histogram_channel_process( n_fft_equalizer *eq, float *data, int ch )
 {
 
+	// [!] : IEEE_FLOAT only
+
 	double *audio = (double*) malloc( eq->sample_count * sizeof( double ) );
 
 	for( int i = 0; i < eq->sample_count; i++ )
@@ -636,6 +657,8 @@ n_fft_equalizer*
 n_fft_histogram_make( n_wav *wav, int band_count, int resolution )
 {
 
+	// [!] : IEEE_FLOAT only
+
 	float *data = (float*) N_WAV_PTR( wav );
 
 	int channels = N_WAV_STEREO( wav );
@@ -680,7 +703,7 @@ n_fft_histogram_make( n_wav *wav, int band_count, int resolution )
 }
 
 void
-n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, int resolution, BOOL debug )
+n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, int resolution, n_posix_bool debug )
 {
 
 	int    N  = resolution;
@@ -701,6 +724,11 @@ n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, int re
 	}
 
 	n_wav_normalize( &wav_copy, 0, 1.0, 1.0 );
+
+	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+	{
+		n_wav_s16_to_float( &wav_copy );
+	}
 
 	float *ptr = (float*) N_WAV_PTR( &wav_copy );
 
@@ -873,6 +901,22 @@ n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, int re
 
 
 	return;
+}
+
+void
+n_fft_histogram_test( n_wav *wav )
+{
+	int count = 10;
+
+	double histogram[ count ];
+
+	n_fft_histogram_main( wav, histogram, count, 2048, YES );
+
+	for( int i = 0; i < count; i++ )
+	{
+		NSLog( @"%f", histogram[ i ] );
+	}
+
 }
 
 

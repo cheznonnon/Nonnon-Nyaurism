@@ -13,25 +13,65 @@ n_nyaurism_shiftcopy( n_wav *f, n_wav *t, u32 tx, BOOL l_onoff, BOOL r_onoff )
 	if ( n_wav_error_format( t ) ) { return; }
 
 
+	if ( tx == 0 ) { return; }
+
+
 	u32 count_f = N_WAV_COUNT( f );
 	//u32 count_t = N_WAV_COUNT( t );
 
 
-	n_type_real l, r;
+	if ( n_nyaurism_mix_onoff )
+	{
 
+		// [!] : Feedbacker
 
-	u32 x = 0;
-	n_posix_loop
-	{//break;
+		n_wav_mute( t, 0, N_WAV_COUNT( t ) );
 
-		if ( n_wav_sample_is_accessible( t, tx + x ) )
-		{
-			n_wav_sample_get( f,      x, &l, &r );
-			n_wav_sample_set( t, tx + x,  l,  r );
+		n_wav tmp; n_wav_carboncopy( f, &tmp );
+
+		u32 x = 0;
+		n_posix_loop
+		{//break;
+
+			if ( n_wav_sample_is_accessible( t, tx + x ) )
+			{
+				n_type_real l_1, r_1; n_wav_sample_get(    f,      x, &l_1, &r_1 );
+				n_type_real l_2, r_2; n_wav_sample_get( &tmp, tx + x, &l_2, &r_2 );
+
+				n_type_real l = ( l_1 + l_2 ) / 2;
+				n_type_real r = ( r_1 + r_2 ) / 2;
+
+				n_wav_sample_set( t, tx + x, l, r );
+			}
+
+			x++;
+			if ( x >= count_f ) { break; }
 		}
 
-		x++;
-		if ( x >= count_f ) { break; }
+		//n_wav_normalize( t, 0, n_slider_value_l_global, n_slider_value_r_global );
+
+		n_wav_free( &tmp );
+
+	} else {
+
+		n_wav_mute( t, 0, N_WAV_COUNT( t ) );
+
+		n_type_real l, r;
+
+		u32 x = 0;
+		n_posix_loop
+		{//break;
+
+			if ( n_wav_sample_is_accessible( t, tx + x ) )
+			{
+				n_wav_sample_get( f,      x, &l, &r );
+				n_wav_sample_set( t, tx + x,  l,  r );
+			}
+
+			x++;
+			if ( x >= count_f ) { break; }
+		}
+
 	}
 
 
@@ -39,11 +79,13 @@ n_nyaurism_shiftcopy( n_wav *f, n_wav *t, u32 tx, BOOL l_onoff, BOOL r_onoff )
 
 	if ( ( l_onoff )&&( r_onoff ) ) { return; }
 
-	x = 0;
+	u32 x = 0;
 	n_posix_loop
 	{
 		if ( n_wav_sample_is_accessible( t, x ) )
 		{
+			n_type_real l, r;
+
 			n_wav_sample_get( f, x, &l, &r );
 
 			if ( l_onoff ) { n_wav_sample_get( t, x, NULL, &r ); }
@@ -55,6 +97,105 @@ n_nyaurism_shiftcopy( n_wav *f, n_wav *t, u32 tx, BOOL l_onoff, BOOL r_onoff )
 		x++;
 		if ( x >= count_f ) { break; }
 	}
+
+
+	return;
+}
+
+
+
+
+// internal
+void
+n_wav_filter_overdrive_channel( double *audio, int count, int factor, double drive )
+{
+
+	int     oversampled_len = count * factor;
+	double *oversampled     = malloc( oversampled_len * sizeof( double ) );
+
+
+	for( int i = 0; i < oversampled_len; i++ )
+	{
+		double pos = (double) i / factor;
+
+		int     idx = (int) pos;
+		double frac = pos - idx;
+
+		if ( ( idx + 1 ) < count )
+		{
+			oversampled[ i ] = audio[ idx ] * ( 1.0 - frac ) + audio[ idx + 1 ] * frac;
+		} else {
+			oversampled[ i ] = audio[ count - 1 ];
+		}
+	}
+
+
+	for( int i = 0; i < oversampled_len; i++ )
+	{
+		double x = oversampled[ i ] * drive;
+ 
+		if ( x >  1.0 ) { x =  drive - x; }
+		if ( x < -1.0 ) { x = -drive - x; }
+
+		x = tanh( x * 3.0 ) / 3.0;
+
+		//oversampled[ i ] = x * 0.5;
+	}
+
+
+	for ( int i = 0; i < count; i++ )
+	{
+		double sum = 0.0;
+
+		for( int j = 0; j < factor; j++ )
+		{
+			sum += oversampled[ i * factor + j ];
+		}
+
+		audio[ i ] = sum / factor;
+	}
+
+
+	free( oversampled );
+
+
+	return;
+}
+
+void
+n_wav_filter_overdrive( n_wav *wav, int factor, double drive )
+{
+
+	float  *ptr   = (float*) N_WAV_PTR( wav );
+	int     count = N_WAV_COUNT( wav );
+
+
+	double *audio_l = (double*) n_memory_new_closed( count * sizeof( double ) );
+	double *audio_r = (double*) n_memory_new_closed( count * sizeof( double ) );
+
+	for( int i = 0; i < count; i++ )
+	{
+		audio_l[ i ] = (double) ptr[ ( i * 2 ) + 0 ];
+		audio_r[ i ] = (double) ptr[ ( i * 2 ) + 1 ];
+	}
+
+
+factor = 4;
+drive  = 1.5;
+
+	n_wav_filter_overdrive_channel( audio_l, count, factor, drive );
+	n_wav_filter_overdrive_channel( audio_r, count, factor, drive );
+
+
+	for( int i = 0; i < count; i++ )
+	{
+		ptr[ ( i * 2 ) + 0 ] = (float) audio_l[ i ];
+		ptr[ ( i * 2 ) + 1 ] = (float) audio_r[ i ];
+	}
+
+
+	n_memory_free_closed( audio_l );
+	n_memory_free_closed( audio_r );
 
 
 	return;
@@ -986,16 +1127,9 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 #ifdef DEBUG
 	case N_MAC_KEYCODE_F1:
 	{
-		int count = 10;
 
-		double histogram[ count ];
-
-		n_fft_histogram_main( &n_nyaurism_wav, histogram, count, 2048, YES );
-
-		for( int i = 0; i < count; i++ )
-		{
-			NSLog( @"%f", histogram[ i ] );
-		}
+		//n_fft_histogram_test( &n_nyaurism_wav );
+		n_wav_filter_overdrive( &n_nyaurism_wav, 1000, 2.0 );
 
 		[self display];
 	}
@@ -1210,8 +1344,6 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 		BOOL l = TRUE; if ( n_nyaurism_plotter_selection_shift_ch == 2 ) { l = FALSE; }
 		BOOL r = TRUE; if ( n_nyaurism_plotter_selection_shift_ch == 1 ) { r = FALSE; }
-
-		n_wav_mute( &n_nyaurism_wav, 0, N_WAV_COUNT( &n_nyaurism_wav ) );
 
 		n_nyaurism_shiftcopy( &n_nyaurism_wav_slider_orig, &n_nyaurism_wav, x, l, r );
 	} else

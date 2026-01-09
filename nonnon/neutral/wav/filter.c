@@ -939,7 +939,6 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 
 	u32 count = sx;
 
-	float *p = (float*) N_WAV_PTR( wav );
 
 	double *input_l = (double*) n_memory_new_closed( count * sizeof( double ) );
 	double *input_r = (double*) n_memory_new_closed( count * sizeof( double ) );
@@ -947,8 +946,18 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 	u32 j = x * 2;
 	for ( int i = 0; i < count; i++ )
 	{
-		input_l[ i ] = (double) p[ j + 0 ];
-		input_r[ i ] = (double) p[ j + 1 ];
+		if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+		{
+			s16 *p = (s16*) N_WAV_PTR( wav );
+
+			input_l[ i ] = (double) p[ j + 0 ] / SHRT_MAX;
+			input_r[ i ] = (double) p[ j + 1 ] / SHRT_MAX;
+		} else {
+			float *p = (float*) N_WAV_PTR( wav );
+
+			input_l[ i ] = (double) p[ j + 0 ];
+			input_r[ i ] = (double) p[ j + 1 ];
+		}
 		j += 2;
 	}
 
@@ -982,8 +991,18 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 	j = x * 2;
 	for ( int i = 0; i < count; i++ )
 	{
-		p[ j + 0 ] = (float) output_l[ i ];
-		p[ j + 1 ] = (float) output_r[ i ];
+		if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+		{
+			s16 *p = (s16*) N_WAV_PTR( wav );
+
+			p[ j + 0 ] = output_l[ i ] * SHRT_MAX;
+			p[ j + 1 ] = output_r[ i ] * SHRT_MAX;
+		} else {
+			float *p = (float*) N_WAV_PTR( wav );
+
+			p[ j + 0 ] = (float) output_l[ i ];
+			p[ j + 1 ] = (float) output_r[ i ];
+		}
 		j += 2;
 	}
 

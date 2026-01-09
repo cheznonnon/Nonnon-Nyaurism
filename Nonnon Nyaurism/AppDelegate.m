@@ -15,22 +15,22 @@
 
 #define N_WAV_FORMAT_FLOAT_ON
 
-#include "../../nonnon/neutral/wav.c"
-#include "../../nonnon/neutral/wav/all.c"
-#include "../../nonnon/neutral/fft.c"
+#include "../nonnon/neutral/wav.c"
+#include "../nonnon/neutral/wav/all.c"
+#include "../nonnon/neutral/fft.c"
 
 
-#include "../../nonnon/win32/gdi.c"
+#include "../nonnon/win32/gdi.c"
 
 
-#include "../../nonnon/mac/window.c"
-#include "../../nonnon/mac/image.c"
-#include "../../nonnon/mac/sound.c"
+#include "../nonnon/mac/window.c"
+#include "../nonnon/mac/image.c"
+#include "../nonnon/mac/sound.c"
 
-#include "../../nonnon/mac/n_button.c"
+#include "../nonnon/mac/n_button.c"
 
 
-#include "../../nonnon/neutral/filer.c"
+#include "../nonnon/neutral/filer.c"
 
 
 #include "stub.c"
@@ -274,6 +274,13 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 	return [NSString stringWithFormat:@"%0.0f%%", value * 100];
 }
 
+-(NSString*)NonnonNyaurismMsecNSString
+{
+	int msec = N_WAV_MSEC( &n_nyaurism_wav );
+
+	return [NSString stringWithFormat:@"%d", msec];
+}
+
 
 
 
@@ -497,7 +504,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 			n_wav_free( &n_nyaurism_plotter_selection_clip );
 			n_wav_alias( &wav_local, &n_nyaurism_plotter_selection_clip );
 
-			n_nyaurism_tooltip_calc( N_WAV_COUNT( &wav_local ) );
+			//n_nyaurism_tooltip_calc( N_WAV_COUNT( &wav_local ) );
 
 			n_nyaurism_plotter_paste( &n_nyaurism_wav );
 
@@ -826,7 +833,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 	{
 //NSLog( @"_n_button_resizer" );
 
-		_n_resizer_label.stringValue = [NSString stringWithFormat:@"%0.0f", N_WAV_MSEC( &n_nyaurism_wav )];
+		_n_resizer_label.stringValue = [self NonnonNyaurismMsecNSString];
 
 		n_mac_window_all_controls_onoff( [_n_eq_window contentView], NO );
 
@@ -1126,7 +1133,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 	if ( [originalString length] == 0 )
 	{
-		_n_resizer_label.stringValue = [NSString stringWithFormat:@"%0.0f", N_WAV_MSEC( &n_nyaurism_wav )];
+		_n_resizer_label.stringValue = [self NonnonNyaurismMsecNSString];
 		return;
 	}
 
@@ -1148,7 +1155,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 	if ( [text length] == 0 )
 	{
-		_n_resizer_label.stringValue = [NSString stringWithFormat:@"%0.0f", N_WAV_MSEC( &n_nyaurism_wav )];
+		_n_resizer_label.stringValue = [self NonnonNyaurismMsecNSString];
 		return NO;
 	}
 
@@ -1303,11 +1310,12 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 - (IBAction)n_eq_button_analyze:(id)sender {
 
-	double histogram[ 10 ];
+	int    histogram_count = 10;
+	double histogram[ histogram_count ];
 
-	n_fft_histogram_main( &n_nyaurism_wav, histogram, 10, N_NYAURISM_FFT_RESOLUTION, NO );
+	n_fft_histogram_main( &n_nyaurism_wav, histogram, histogram_count, N_NYAURISM_FFT_RESOLUTION, NO );
 
-	for( int i = 0; i < 10; i++ )
+	for( int i = 0; i < histogram_count; i++ )
 	{
 		histogram[ i ]  = n_wav_sample_clamp_normalized( histogram[ i ] );
 		histogram[ i ] -=  1.0;
