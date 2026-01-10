@@ -98,7 +98,7 @@
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
             <rect key="contentRect" x="335" y="390" width="512" height="400"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1920" height="1055"/>
-            <view key="contentView" id="EiT-Mj-1SZ">
+            <view key="contentView" id="EiT-Mj-1SZ" customClass="NonnonNSView">
                 <rect key="frame" x="0.0" y="0.0" width="512" height="400"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
@@ -139,7 +139,7 @@
                     <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0X4-rE-v5C">
                         <rect key="frame" x="100" y="51" width="400" height="28"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <sliderCell key="cell" continuous="YES" refusesFirstResponder="YES" state="on" alignment="left" maxValue="100" doubleValue="100" tickMarkPosition="above" numberOfTickMarks="100" allowsTickMarkValuesOnly="YES" sliderType="linear" id="FKr-xT-vUs">
+                        <sliderCell key="cell" continuous="YES" refusesFirstResponder="YES" state="on" alignment="left" maxValue="100" doubleValue="100" tickMarkPosition="above" numberOfTickMarks="100" allowsTickMarkValuesOnly="YES" sliderType="linear" id="FKr-xT-vUs" customClass="CustomSliderCell">
                             <font key="font" metaFont="cellTitle"/>
                         </sliderCell>
                         <connections>
@@ -149,7 +149,7 @@
                     <slider verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nqO-O4-iG6">
                         <rect key="frame" x="100" y="23" width="400" height="28"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <sliderCell key="cell" continuous="YES" refusesFirstResponder="YES" state="on" alignment="left" maxValue="100" doubleValue="100" tickMarkPosition="above" numberOfTickMarks="100" allowsTickMarkValuesOnly="YES" sliderType="linear" id="VpS-DN-GvS">
+                        <sliderCell key="cell" continuous="YES" refusesFirstResponder="YES" state="on" alignment="left" maxValue="100" doubleValue="100" tickMarkPosition="above" numberOfTickMarks="100" allowsTickMarkValuesOnly="YES" sliderType="linear" id="VpS-DN-GvS" customClass="CustomSliderCell">
                             <font key="font" metaFont="cellTitle"/>
                         </sliderCell>
                         <connections>
@@ -266,6 +266,12 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="n_plotter_menu_smoother:" target="Voe-Tx-rLC" id="bGT-k7-4Dv"/>
+                    </connections>
+                </menuItem>
+                <menuItem title="Overdrive" id="suS-je-b7x">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="n_plotter_menu_overdrive:" target="Voe-Tx-rLC" id="8aM-wo-JaI"/>
                     </connections>
                 </menuItem>
             </items>

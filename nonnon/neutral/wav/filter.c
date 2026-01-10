@@ -1019,6 +1019,131 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 
 
 
+// internal
+void
+n_wav_overdrive_channel( double *audio, int count )
+{
+
+	const int    factor = 1;
+	const double drive  = 1.5;
+
+
+	int     oversampled_len = count * factor;
+	double *oversampled     = n_memory_new_closed( oversampled_len * sizeof( double ) );
+
+
+	for( int i = 0; i < oversampled_len; i++ )
+	{
+		double pos = (double) i / factor;
+
+		int     idx = (int) pos;
+		double frac = pos - idx;
+
+		if ( ( idx + 1 ) < count )
+		{
+			oversampled[ i ] = audio[ idx ] * ( 1.0 - frac ) + audio[ idx + 1 ] * frac;
+		} else {
+			oversampled[ i ] = audio[ count - 1 ];
+		}
+	}
+
+
+	for( int i = 0; i < oversampled_len; i++ )
+	{
+		double x = oversampled[ i ] * drive;
+ 
+		if ( x >  1.0 ) { x =  drive - x; }
+		if ( x < -1.0 ) { x = -drive - x; }
+
+		x = tanh( x * 3.0 ) / 3.0;
+
+		oversampled[ i ] = x;
+	}
+
+
+	for ( int i = 0; i < count; i++ )
+	{
+		double sum = 0.0;
+
+		for( int j = 0; j < factor; j++ )
+		{
+			sum += oversampled[ i * factor + j ];
+		}
+
+		audio[ i ] = sum / factor;
+	}
+
+
+	n_memory_free_closed( oversampled );
+
+
+	return;
+}
+
+#define n_wav_overdrive( w ) n_wav_overdrive_partial( w, 0, N_WAV_COUNT( w ) )
+
+void
+n_wav_overdrive_partial( n_wav *wav, u32 x, u32 sx )
+{
+
+	int count = sx;
+	int end   = x + sx;
+
+
+	double *audio_l = (double*) n_memory_new_closed( count * sizeof( double ) );
+	double *audio_r = (double*) n_memory_new_closed( count * sizeof( double ) );
+
+
+	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+	{
+		s16 *ptr = (s16*) N_WAV_PTR( wav );
+		for( int i = x; i < end; i++ )
+		{
+			audio_l[ i ] = (double) ptr[ ( i * 2 ) + 0 ] / SHRT_MAX;
+			audio_r[ i ] = (double) ptr[ ( i * 2 ) + 1 ] / SHRT_MAX;
+		}
+	} else {
+		float *ptr = (float*) N_WAV_PTR( wav );
+		for( int i = x; i < end; i++ )
+		{
+			audio_l[ i ] = (double) ptr[ ( i * 2 ) + 0 ];
+			audio_r[ i ] = (double) ptr[ ( i * 2 ) + 1 ];
+		}
+	}
+
+
+	n_wav_overdrive_channel( audio_l, count );
+	n_wav_overdrive_channel( audio_r, count );
+
+
+	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+	{
+		s16 *ptr = (s16*) N_WAV_PTR( wav );
+		for( int i = x; i < end; i++ )
+		{
+			ptr[ ( i * 2 ) + 0 ] = (float) audio_l[ i ] * SHRT_MAX;
+			ptr[ ( i * 2 ) + 1 ] = (float) audio_r[ i ] * SHRT_MAX;
+		}
+	} else {
+		float *ptr = (float*) N_WAV_PTR( wav );
+		for( int i = x; i < end; i++ )
+		{
+			ptr[ ( i * 2 ) + 0 ] = (float) audio_l[ i ];
+			ptr[ ( i * 2 ) + 1 ] = (float) audio_r[ i ];
+		}
+	}
+
+
+	n_memory_free_closed( audio_l );
+	n_memory_free_closed( audio_r );
+
+
+	return;
+}
+
+
+
+
 void
 n_wav_mute( n_wav *wav, u32 x, u32 sx )
 {

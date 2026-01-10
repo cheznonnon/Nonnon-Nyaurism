@@ -468,30 +468,39 @@ n_fft_equalizer_apply_channel( n_fft_equalizer *eq, void *data, int ch )
 
 	double *audio = (double*) malloc( eq->sample_count * sizeof( double ) );
 
-	for( int i = 0; i < eq->sample_count; i++ )
+
+	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
 	{
-		if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+		s16 *ptr = (s16*) data;
+		for( int i = 0; i < eq->sample_count; i++ )
 		{
-			s16 *ptr = (s16*) data;
 			audio[ i ] = (double) ptr[ ( i * eq->channel_count ) + ch ] / SHRT_MAX;
-		} else {
-			float *ptr = (float*) data;
+		}
+	} else {
+		float *ptr = (float*) data;
+		for( int i = 0; i < eq->sample_count; i++ )
+		{
 			audio[ i ] = (double) ptr[ ( i * eq->channel_count ) + ch ];
 		}
 	}
 
 	n_fft_equalizer_channel_process( eq, audio, ch );
 
-	for( int i = 0; i < eq->sample_count; i++ )
-	{
-		double sample = n_wav_sample_clamp_normalized( audio[ i ] );
 
-		if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+
+	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+	{
+		s16 *ptr = (s16*) data;
+		for( int i = 0; i < eq->sample_count; i++ )
 		{
-			s16 *ptr = (s16*) data;
+			double sample = n_wav_sample_clamp_normalized( audio[ i ] );
 			ptr[ ( i * eq->channel_count ) + ch ] = sample * SHRT_MAX;
-		} else {
-			float *ptr = (float*) data;
+		}
+	} else {
+		float *ptr = (float*) data;
+		for( int i = 0; i < eq->sample_count; i++ )
+		{
+			double sample = n_wav_sample_clamp_normalized( audio[ i ] );
 			ptr[ ( i * eq->channel_count ) + ch ] = (float) sample;
 		}
 	}

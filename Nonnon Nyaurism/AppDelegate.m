@@ -33,9 +33,6 @@
 #include "../nonnon/neutral/filer.c"
 
 
-#include "stub.c"
-
-
 
 
 #define N_NYAURISM_FFT_RESOLUTION pow( 2, 14 ) // [!] : higher is better but heavy
@@ -89,6 +86,8 @@ n_nyaurism_slider_redraw( n_wav *wav )
 
 	extern void n_nyaurism_plotter_selection_pixel2sample( n_wav *wav, n_type_gfx *ret_x, n_type_gfx *ret_sx );
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( wav, &x, &sx );
+
+
 	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
 
 //x = 0; sx = N_WAV_COUNT( wav );
@@ -120,6 +119,45 @@ n_nyaurism_slider_redraw( n_wav *wav )
 
 
 #import "plotter.m"
+
+
+static NonnonPlotter *n_plotter_global;
+
+
+#include "stub.c"
+
+
+@interface NonnonNSView : NSView
+
+@end
+
+
+@implementation NonnonNSView
+
+- init
+{
+	self = [super init];
+	if ( self )
+	{
+	}
+
+	return self;
+}
+
+- (void) mouseDown:(NSEvent*) theEvent
+{
+//NSLog(@"mouseDown");
+
+	if ( n_plotter_global != nil )
+	{
+		n_nyaurism_plotter_selection_off();
+		[n_plotter_global display];
+	}
+
+	[super mouseDown:theEvent];
+
+}
+@end
 
 
 
@@ -163,6 +201,32 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 	return ret;
 }
+
+
+
+
+@interface CustomSliderCell : NSSliderCell
+@end
+
+@implementation CustomSliderCell
+
+- (BOOL)startTrackingAt:(NSPoint)startPoint inView:(NSView *)controlView {
+//NSLog(@"startTrackingAt");
+
+	n_wav_free( &n_nyaurism_wav_undo );
+	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_undo );
+
+	return [super startTrackingAt:startPoint inView:controlView];
+}
+
+- (void)stopTracking:(NSPoint)lastPoint at:(NSPoint)stopPoint inView:(NSView *)controlView mouseIsUp:(BOOL)flag {
+//NSLog(@"stopTracking (mouseIsUp: %@)", flag ? @"YES" : @"NO");
+
+	[super stopTracking:lastPoint at:stopPoint inView:controlView mouseIsUp:flag];
+
+}
+
+@end
 
 
 
@@ -325,6 +389,8 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_undo );
 	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_slider_orig );
+
+	n_plotter_global = _n_plotter;
 
 	[_n_plotter display];
 
@@ -938,6 +1004,14 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 }
 
+- (IBAction)n_plotter_menu_overdrive:(id)sender {
+
+	n_nyaurism_plotter_overdrive( &n_nyaurism_wav );
+
+	[_n_plotter display];
+}
+
+
 
 
 - (IBAction)n_slider_l_method:(id)sender
@@ -960,6 +1034,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( &n_nyaurism_wav, &x, &sx );
 	if ( sx == 0 ) { sx = N_WAV_COUNT( &n_nyaurism_wav ); }
+	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
 //NSLog( @"%f %f", n_slider_value_l_global, n_slider_value_r_global );
 	n_wav_normalize_partial( &n_nyaurism_wav, 0, x, sx, n_slider_value_l_global, n_slider_value_r_global );
@@ -989,6 +1064,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( &n_nyaurism_wav, &x, &sx );
 	if ( sx == 0 ) { sx = N_WAV_COUNT( &n_nyaurism_wav ); }
+	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
 	n_wav_normalize_partial( &n_nyaurism_wav, 0, x, sx, n_slider_value_l_global, n_slider_value_r_global );
 
@@ -1245,6 +1321,8 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( &n_nyaurism_wav, &x, &sx );
 	if ( sx == 0 ) { sx = N_WAV_COUNT( &n_nyaurism_wav ); }
+	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
+
 //NSLog( @"%d %d", x, sx );
 
 

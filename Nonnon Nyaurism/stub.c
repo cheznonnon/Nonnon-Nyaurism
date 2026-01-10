@@ -88,6 +88,9 @@
 {
 //NSLog( @"acceptsFirstMouse" );
 
+	if ( n_mac_window_is_hovered( n_plotter_global ) ) { return NO; }
+
+
 	return YES;
 }
 
