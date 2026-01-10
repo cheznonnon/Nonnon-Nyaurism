@@ -943,22 +943,27 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 	double *input_l = (double*) n_memory_new_closed( count * sizeof( double ) );
 	double *input_r = (double*) n_memory_new_closed( count * sizeof( double ) );
 
-	u32 j = x * 2;
-	for ( int i = 0; i < count; i++ )
+	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
 	{
-		if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
-		{
-			s16 *p = (s16*) N_WAV_PTR( wav );
+		s16 *p = (s16*) N_WAV_PTR( wav );
 
+		u32 j = x * 2;
+		for ( int i = 0; i < count; i++ )
+		{
 			input_l[ i ] = (double) p[ j + 0 ] / SHRT_MAX;
 			input_r[ i ] = (double) p[ j + 1 ] / SHRT_MAX;
-		} else {
-			float *p = (float*) N_WAV_PTR( wav );
+			j += 2;
+		}
+	} else {
+		float *p = (float*) N_WAV_PTR( wav );
 
+		u32 j = x * 2;
+		for ( int i = 0; i < count; i++ )
+		{
 			input_l[ i ] = (double) p[ j + 0 ];
 			input_r[ i ] = (double) p[ j + 1 ];
+			j += 2;
 		}
-		j += 2;
 	}
 
 
@@ -988,23 +993,30 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 	}
 
 
-	j = x * 2;
-	for ( int i = 0; i < count; i++ )
-	{
-		if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
-		{
-			s16 *p = (s16*) N_WAV_PTR( wav );
 
+	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+	{
+		s16 *p = (s16*) N_WAV_PTR( wav );
+
+		u32 j = x * 2;
+		for ( int i = 0; i < count; i++ )
+		{
 			p[ j + 0 ] = output_l[ i ] * SHRT_MAX;
 			p[ j + 1 ] = output_r[ i ] * SHRT_MAX;
-		} else {
-			float *p = (float*) N_WAV_PTR( wav );
+			j += 2;
+		}
+	} else {
+		float *p = (float*) N_WAV_PTR( wav );
 
+		u32 j = x * 2;
+		for ( int i = 0; i < count; i++ )
+		{
 			p[ j + 0 ] = (float) output_l[ i ];
 			p[ j + 1 ] = (float) output_r[ i ];
+			j += 2;
 		}
-		j += 2;
 	}
+
 
 	n_memory_free_closed( input_l );
 	n_memory_free_closed( input_r );
@@ -1087,27 +1099,31 @@ n_wav_overdrive_partial( n_wav *wav, u32 x, u32 sx )
 {
 
 	int count = sx;
-	int end   = x + sx;
 
 
 	double *audio_l = (double*) n_memory_new_closed( count * sizeof( double ) );
 	double *audio_r = (double*) n_memory_new_closed( count * sizeof( double ) );
 
-
 	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
 	{
 		s16 *ptr = (s16*) N_WAV_PTR( wav );
-		for( int i = x; i < end; i++ )
+
+		u32 j = x * 2;
+		for ( int i = 0; i < count; i++ )
 		{
-			audio_l[ i ] = (double) ptr[ ( i * 2 ) + 0 ] / SHRT_MAX;
-			audio_r[ i ] = (double) ptr[ ( i * 2 ) + 1 ] / SHRT_MAX;
+			audio_l[ i ] = (double) ptr[ j + 0 ] / SHRT_MAX;
+			audio_r[ i ] = (double) ptr[ j + 1 ] / SHRT_MAX;
+			j += 2;
 		}
 	} else {
 		float *ptr = (float*) N_WAV_PTR( wav );
-		for( int i = x; i < end; i++ )
+
+		u32 j = x * 2;
+		for ( int i = 0; i < count; i++ )
 		{
-			audio_l[ i ] = (double) ptr[ ( i * 2 ) + 0 ];
-			audio_r[ i ] = (double) ptr[ ( i * 2 ) + 1 ];
+			audio_l[ i ] = (double) ptr[ j + 0 ];
+			audio_r[ i ] = (double) ptr[ j + 1 ];
+			j += 2;
 		}
 	}
 
@@ -1119,20 +1135,25 @@ n_wav_overdrive_partial( n_wav *wav, u32 x, u32 sx )
 	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
 	{
 		s16 *ptr = (s16*) N_WAV_PTR( wav );
-		for( int i = x; i < end; i++ )
+
+		u32 j = x * 2;
+		for ( int i = 0; i < count; i++ )
 		{
-			ptr[ ( i * 2 ) + 0 ] = (float) audio_l[ i ] * SHRT_MAX;
-			ptr[ ( i * 2 ) + 1 ] = (float) audio_r[ i ] * SHRT_MAX;
+			ptr[ j + 0 ] = (float) audio_l[ i ] * SHRT_MAX;
+			ptr[ j + 1 ] = (float) audio_r[ i ] * SHRT_MAX;
+			j += 2;
 		}
 	} else {
 		float *ptr = (float*) N_WAV_PTR( wav );
-		for( int i = x; i < end; i++ )
+
+		u32 j = x * 2;
+		for ( int i = 0; i < count; i++ )
 		{
-			ptr[ ( i * 2 ) + 0 ] = (float) audio_l[ i ];
-			ptr[ ( i * 2 ) + 1 ] = (float) audio_r[ i ];
+			ptr[ j + 0 ] = (float) audio_l[ i ];
+			ptr[ j + 1 ] = (float) audio_r[ i ];
+			j += 2;
 		}
 	}
-
 
 	n_memory_free_closed( audio_l );
 	n_memory_free_closed( audio_r );
