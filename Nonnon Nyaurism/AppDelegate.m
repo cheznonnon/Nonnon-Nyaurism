@@ -216,6 +216,9 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 	n_wav_free( &n_nyaurism_wav_undo );
 	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_undo );
 
+	n_wav_free( &n_nyaurism_wav_slider_orig );
+	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_slider_orig );
+
 	return [super startTrackingAt:startPoint inView:controlView];
 }
 
@@ -299,9 +302,6 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 
 @implementation AppDelegate {
-
-	BOOL n_slider_dragging;
-	u32  n_slider_timeout;
 
 }
 
@@ -726,24 +726,6 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 		}
 	}
 
-
-	if ( n_slider_timeout < n_posix_tickcount() )
-	{
-		if ( n_slider_dragging )
-		{
-//NSLog( @"dragged" );
-
-			n_slider_dragging = FALSE;
-
-			n_wav_free( &n_nyaurism_wav_undo );
-			n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_undo );
-
-			n_wav_free( &n_nyaurism_wav_slider_orig );
-			n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_slider_orig );
-		}
-	}
-
-
 }
 
 - (void) mouseDown:(NSEvent*) theEvent
@@ -1018,10 +1000,6 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 {
 //NSLog( @"%d", (int) [sender integerValue] );
 
-	// [x] : slider : end of dragging : hard to implement
-	//n_slider_dragging = TRUE;
-	//n_slider_timeout  = n_posix_tickcount() + 200;
-
 
 	n_slider_value_l_global = (n_type_real) [sender integerValue] / 100.0;
 
@@ -1047,10 +1025,6 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 - (IBAction)n_slider_r_method:(id)sender
 {
 //NSLog( @"%d", (int) [sender integerValue] );
-
-	// [x] : slider : end of dragging : hard to implement
-	//n_slider_dragging = TRUE;
-	//n_slider_timeout  = n_posix_tickcount() + 200;
 
 
 	n_slider_value_r_global = (n_type_real) [sender integerValue] / 100.0;
@@ -1315,8 +1289,11 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 //NSLog( @"%f", gains_db[ 0 ] );
 
 
-	n_wav_free( &n_nyaurism_wav );
-	n_wav_carboncopy( &n_nyaurism_wav_slider_orig, &n_nyaurism_wav );
+	n_wav_free( &n_nyaurism_wav_undo );
+	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_undo );
+
+	n_wav_free( &n_nyaurism_wav_slider_orig );
+	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_slider_orig );
 
 
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( &n_nyaurism_wav, &x, &sx );
@@ -1343,9 +1320,6 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 		n_wav_free( &tmp );
 	}
-
-	n_wav_free( &n_nyaurism_wav_slider_orig );
-	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_slider_orig );
 
 	n_nyaurism_slider_redraw( &n_nyaurism_wav );
 
