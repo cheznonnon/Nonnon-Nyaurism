@@ -732,7 +732,7 @@ n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, int re
 		n_wav_resizer( &wav_copy, msec, N_WAV_RESIZER_CENTER );
 	}
 
-	n_wav_normalize( &wav_copy, 0, 1.0, 1.0 );
+	n_wav_normalize( &wav_copy, 1.0, 1.0 );
 
 	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
 	{

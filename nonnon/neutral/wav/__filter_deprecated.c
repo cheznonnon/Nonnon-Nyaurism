@@ -5,15 +5,6 @@
 
 
 
-#ifndef N_POSIX_PLATFORM_MAC
-
-
-#include "./__filter_deprecated.c"
-
-
-#else // #ifndef N_POSIX_PLATFORM_MAC
-
-
 #ifndef _H_NONNON_NEUTRAL_WAV_FILTER
 #define _H_NONNON_NEUTRAL_WAV_FILTER
 
@@ -200,7 +191,7 @@ n_wav_cosine_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real rat
 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
-			n_type_real d = n_wav_sample_cosine( wav, hz, xx );
+			n_type_real d = n_wav_sample_cosine( hz, xx );
 			n_wav_sample_mix( wav, xx, d, d, ratio_l, ratio_r );
 		}
 
@@ -234,7 +225,7 @@ n_wav_sine_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio
 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
-			n_type_real d = n_wav_sample_sine( wav, hz, xx );
+			n_type_real d = n_wav_sample_sine( hz, xx );
 			n_wav_sample_mix( wav, xx, d, d, ratio_l, ratio_r );
 		}
 
@@ -268,7 +259,7 @@ n_wav_sawtooth_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real r
 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
-			n_type_real d = n_wav_sample_sawtooth( wav, hz, xx );
+			n_type_real d = n_wav_sample_sawtooth( hz, xx );
 			n_wav_sample_mix( wav, xx, d, d, ratio_l, ratio_r );
 		}
 
@@ -302,7 +293,7 @@ n_wav_square_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real rat
 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
-			n_type_real d = n_wav_sample_square( wav, hz, xx );
+			n_type_real d = n_wav_sample_square( hz, xx );
 			n_wav_sample_mix( wav, xx, d, d, ratio_l, ratio_r );
 		}
 
@@ -317,13 +308,11 @@ n_wav_square_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real rat
 
 
 
-#define n_wav_whitenoise( w, hz, r_l, r_r ) n_wav_sandstorm_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
+#define n_wav_sandstorm( w, hz, r_l, r_r ) n_wav_sandstorm_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
 
 void
-n_wav_whitenoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+n_wav_sandstorm_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
 {
-
-	// [!] : hz : random parameter
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
@@ -344,11 +333,8 @@ n_wav_whitenoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real
 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
-			n_type_real d = n_wav_sample_whitenoise( wav, hz, xx );
-
-			d *= 0.025;
-
-			n_wav_sample_add( wav, xx, ratio_l * d, ratio_r * d );
+			n_type_real d = n_wav_sample_sandstorm( hz, xx );
+			n_wav_sample_mix( wav, xx, d, d, ratio_l, ratio_r );
 		}
 
 		f++;
@@ -365,8 +351,6 @@ void
 n_wav_pinknoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
 {
 
-	// [!] : "hz" is not used
-
 	if ( n_wav_error_format( wav ) ) { return; }
 
 	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
@@ -375,8 +359,9 @@ n_wav_pinknoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 	n_random_shuffle();
 
 
-	n_type_real buf0 = 1, buf1 = 1, buf2 = 1, buf3 = 1, buf4 = 1, buf5 = 1, buf6 = 1;
+	// [!] : this code comes from Audacity's source code
 
+	n_type_real buf0 = 1, buf1 = 1, buf2 = 1, buf3 = 1, buf4 = 1, buf5 = 1, buf6 = 1;
 
 	u32 f = 0;
 	u32 t = sx;
@@ -390,8 +375,6 @@ n_wav_pinknoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
 
-			// [!] : Voss-McCartney algorithm
-
 			n_type_real white = ( rand() / ( ( (n_type_real) RAND_MAX ) / 2.0 ) ) - 1.0;
 
 			buf0 = (  0.99886 * buf0 ) + ( 0.0555179 * white );
@@ -403,10 +386,10 @@ n_wav_pinknoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 
 			n_type_real d = buf0 + buf1 + buf2 + buf3 + buf4 + buf5 + buf6 + ( white * 0.5362 );
 
-			if ( N_WAV_FORMAT_PCM == N_WAV_FORMAT( wav ) ) { d *= SHRT_MAX; }
+			d *= SHRT_MAX;
 			d *= 0.025;
 
-			n_wav_sample_add( wav, xx, ratio_l * d, ratio_r * d );
+			n_wav_sample_mix( wav, xx, d, d, ratio_l, ratio_r );
 
 			buf6 = white * 0.115926;
 
@@ -424,10 +407,10 @@ n_wav_pinknoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 
 
 
-#define n_wav_mute( w, l, r ) n_wav_mute_partial( w, 0, N_WAV_COUNT( w ), l, r )
+#define n_wav_fade( w, hz, r_l, r_r ) n_wav_fade_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
 
 void
-n_wav_mute_partial( n_wav *wav, u32 x, u32 sx, n_posix_bool l_onoff, n_posix_bool r_onoff )
+n_wav_fade_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
 {
 
 	if ( n_wav_error_format( wav ) ) { return; }
@@ -436,31 +419,29 @@ n_wav_mute_partial( n_wav *wav, u32 x, u32 sx, n_posix_bool l_onoff, n_posix_boo
 
 
 	u32 f = 0;
+	u32 t = sx;
 	n_posix_loop
-	{//break;
+	{
+
+		if ( f >= t ) { break; }
 
 		u32 xx = x + f;
 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
-			if ( ( l_onoff )&&( r_onoff ) )
-			{
-				n_wav_sample_set( wav, xx, 0.0, 0.0 );
-			} else {
-				n_type_real l,r; n_wav_sample_get( wav, xx, &l, &r );
-				if ( l_onoff )
-				{
-					n_wav_sample_set( wav, xx, l, 0.0 );
-				} else
-				if ( r_onoff )
-				{
-					n_wav_sample_set( wav, xx, 0.0, r );
-				}
-			}
+			n_type_real l,r, d;
+			n_wav_sample_get( wav, xx, &l, &r );
+
+			d = (n_type_real) f / sx / 2;
+			l = l * fabs( sin( N_WAV_2PI * d ) );
+			r = r * fabs( sin( N_WAV_2PI * d ) );
+
+			n_wav_sample_mix( wav, xx, l, r, ratio_l, ratio_r );
 		}
 
+
 		f++;
-		if ( f >= sx ) { break; }
+
 	}
 
 
@@ -470,14 +451,13 @@ n_wav_mute_partial( n_wav *wav, u32 x, u32 sx, n_posix_bool l_onoff, n_posix_boo
 #define n_wav_fade_in( w, hz, r_l, r_r ) n_wav_fade_in_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
 
 void
-n_wav_fade_in_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+n_wav_fade_in_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
 {
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
 	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
-	sx *= 2;
 
 	u32 f = 0;
 	u32 t = sx / 2;
@@ -508,20 +488,19 @@ n_wav_fade_in_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_re
 	return;
 }
 
-#define n_wav_fade_out( w, r_l, r_r ) n_wav_fade_out_partial( w, 0, N_WAV_COUNT( w ), r_l, r_r )
+#define n_wav_fade_out( w, hz, r_l, r_r ) n_wav_fade_out_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
 
 void
-n_wav_fade_out_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+n_wav_fade_out_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
 {
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
 	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
-	sx *= 2;
 
-	u32 f = 0;
-	u32 t = sx / 2;
+	u32 f = sx / 2;
+	u32 t = sx;
 	n_posix_loop
 	{
 
@@ -535,8 +514,8 @@ n_wav_fade_out_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_r
 			n_wav_sample_get( wav, xx, &l, &r );
 
 			d = (n_type_real) f / sx / 2;
-			l = l * fabs( cos( N_WAV_2PI * d ) );
-			r = r * fabs( cos( N_WAV_2PI * d ) );
+			l = l * fabs( sin( N_WAV_2PI * d ) );
+			r = r * fabs( sin( N_WAV_2PI * d ) );
 
 			n_wav_sample_mix( wav, xx, l, r, ratio_l, ratio_r );
 		}
@@ -549,10 +528,163 @@ n_wav_fade_out_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_r
 	return;
 }
 
-#define n_wav_monaural( w, r_l, r_r ) n_wav_monaural_partial( w, 0, N_WAV_COUNT( w ), r_l, r_r )
+#define n_wav_delay( w, hz, r_l, r_r ) n_wav_delay_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
 
 void
-n_wav_monaural_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+n_wav_delay_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+{
+
+	if ( n_wav_error_format( wav ) ) { return; }
+
+	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	u32 offset = (u32) ( N_WAV_RATE( wav ) / hz );
+	if ( offset >= sx ) { return; }
+
+
+	n_wav w; n_wav_carboncopy( wav, &w );
+
+
+	u32 f = 0;
+	u32 t = sx;
+	n_posix_loop
+	{
+
+		if ( f >= t ) { break; }
+
+		u32 xx = x + f;
+
+		if ( n_wav_sample_is_accessible( wav, xx ) )
+		{
+			n_type_real l,r;
+			n_wav_sample_get( &w, xx, &l, &r );
+
+			if ( n_wav_sample_is_accessible( wav, xx + offset ) )
+			{
+				n_wav_sample_mix( wav, xx + offset, l, r, ratio_l, ratio_r );
+			}
+		}
+
+		f++;
+
+	}
+
+
+	n_wav_free( &w );
+
+
+	return;
+}
+
+#define n_wav_feedback_left( w, hz, r_l, r_r ) n_wav_feedback_left_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
+
+void
+n_wav_feedback_left_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+{
+
+	if ( n_wav_error_format( wav ) ) { return; }
+
+	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	u32 offset = (u32) ( N_WAV_RATE( wav ) / hz );
+	if ( offset >= sx ) { return; }
+
+
+	n_wav w; n_wav_carboncopy( wav, &w );
+
+
+	u32 f = 0;
+	u32 t = sx;
+	n_posix_loop
+	{
+
+		if ( f >= t ) { break; }
+
+		u32 xx = x + f;
+
+		if ( n_wav_sample_is_accessible( wav, xx ) )
+		{
+			n_type_real l,r;
+
+			if ( n_wav_sample_is_accessible( &w, xx + offset ) )
+			{
+				n_wav_sample_get( &w, xx + offset, &l, &r );
+			} else {
+				l = r = 0;
+			}
+
+			n_wav_sample_mix( wav, xx, l, r, ratio_l, ratio_r );
+		}
+
+		f++;
+
+	}
+
+
+	n_wav_free( &w );
+
+
+	return;
+}
+
+#define n_wav_feedback_right( w, hz, r_l, r_r ) n_wav_feedback_right_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
+
+void
+n_wav_feedback_right_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+{
+
+	if ( n_wav_error_format( wav ) ) { return; }
+
+	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	u32 offset = (u32) ( N_WAV_RATE( wav ) / hz );
+	if ( offset >= sx ) { return; }
+
+
+	n_wav w; n_wav_carboncopy( wav, &w );
+
+
+	u32 f = 0;
+	u32 t = sx;
+	n_posix_loop
+	{
+
+		if ( f >= t ) { break; }
+
+		u32 xx = x + f;
+
+		if ( n_wav_sample_is_accessible( wav, xx ) )
+		{
+			n_type_real l,r;
+
+			if ( n_wav_sample_is_accessible( &w, xx - offset ) )
+			{
+				n_wav_sample_get( &w, xx - offset, &l, &r );
+			} else {
+				l = r = 0;
+			}
+
+			n_wav_sample_mix( wav, xx, l, r, ratio_l, ratio_r );
+		}
+
+		f++;
+
+	}
+
+
+	n_wav_free( &w );
+
+
+	return;
+}
+
+#define n_wav_monaural( w, hz, r_l, r_r ) n_wav_monaural_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
+
+void
+n_wav_monaural_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
 {
 
 	if ( n_wav_error_format( wav ) ) { return; }
@@ -588,10 +720,10 @@ n_wav_monaural_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_r
 	return;
 }
 
-#define n_wav_L2R( w ) n_wav_L2R_partial( w, 0, N_WAV_COUNT( w ) )
+#define n_wav_tremolo( w, hz, r_l, r_r ) n_wav_tremolo_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
 
 void
-n_wav_L2R_partial( n_wav *wav, u32 x, u32 sx )
+n_wav_tremolo_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
 {
 
 	if ( n_wav_error_format( wav ) ) { return; }
@@ -610,11 +742,15 @@ n_wav_L2R_partial( n_wav *wav, u32 x, u32 sx )
 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
+			n_type_real d = n_wav_sample_sine_coeff( hz, xx );
+
 			n_type_real l,r;
+			n_wav_sample_get( wav, x + f, &l, &r );
 
-			n_wav_sample_get( wav, xx, &l, &r );
+			if ( ratio_l != 0 ) { l = d * l * ratio_l; }
+			if ( ratio_r != 0 ) { r = d * r * ratio_r; }
 
-			n_wav_sample_set( wav, xx,  l,  l );
+			n_wav_sample_set( wav, xx, l, r );
 		}
 
 		f++;
@@ -625,15 +761,18 @@ n_wav_L2R_partial( n_wav *wav, u32 x, u32 sx )
 	return;
 }
 
-#define n_wav_R2L( w ) n_wav_R2L_partial( w, 0, N_WAV_COUNT( w ) )
+#define n_wav_tone_up( w, hz, r_l, r_r ) n_wav_tone_up_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
 
 void
-n_wav_R2L_partial( n_wav *wav, u32 x, u32 sx )
+n_wav_tone_up_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
 {
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
 	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	const u32 turn = sx / 2;
 
 
 	u32 f = 0;
@@ -647,11 +786,205 @@ n_wav_R2L_partial( n_wav *wav, u32 x, u32 sx )
 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
-			n_type_real l,r;
+			n_type_real d = n_wav_sample_sine( n_wav_piano[ N_WAV_PIANO_MIDDLE + ( ( xx ) > turn ) ], xx );
 
-			n_wav_sample_get( wav, xx, &l, &r );
+			n_wav_sample_mix( wav, xx, d, d, ratio_l, ratio_r );
+		}
 
-			n_wav_sample_set( wav, xx,  r,  r );
+		f++;
+
+	}
+
+
+	return;
+}
+
+#define n_wav_tone_down( w, hz, r_l, r_r ) n_wav_tone_down_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
+
+void
+n_wav_tone_down_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+{
+
+	if ( n_wav_error_format( wav ) ) { return; }
+
+	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	const u32 turn = sx / 2;
+
+
+	u32 f = 0;
+	u32 t = sx;
+	n_posix_loop
+	{
+
+		if ( f >= t ) { break; }
+
+		u32 xx = x + f;
+
+		if ( n_wav_sample_is_accessible( wav, xx ) )
+		{
+			n_type_real d = n_wav_sample_sine( n_wav_piano[ N_WAV_PIANO_MIDDLE + ( ( xx ) < turn ) ], xx );
+
+			n_wav_sample_mix( wav, xx, d, d, ratio_l, ratio_r );
+		}
+
+		f++;
+
+	}
+
+
+	return;
+}
+
+#define n_wav_tone_updown( w, hz, r_l, r_r ) n_wav_tone_updown_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
+
+void
+n_wav_tone_updown_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+{
+
+	if ( n_wav_error_format( wav ) ) { return; }
+
+	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	const u32 quarter = sx / 4;
+
+
+	u32 f = 0;
+	u32 t = sx;
+	n_posix_loop
+	{
+
+		if ( f >= t ) { break; }
+
+		u32 p = x + f;
+		n_type_real d;
+
+		if ( ( p > quarter )&&( p < ( sx - quarter ) ) )
+		{
+			d = n_wav_sample_sine( n_wav_piano[ N_WAV_PIANO_MIDDLE + 1 ], p );
+		} else {
+			d = n_wav_sample_sine( n_wav_piano[ N_WAV_PIANO_MIDDLE + 0 ], p );
+		}
+
+		n_wav_sample_mix( wav, p, d, d, ratio_l, ratio_r );
+
+		f++;
+
+	}
+
+
+	return;
+}
+
+#define n_wav_tone_downup( w, hz, r_l, r_r ) n_wav_tone_downup_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
+
+void
+n_wav_tone_downup_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+{
+
+	if ( n_wav_error_format( wav ) ) { return; }
+
+	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	const u32 quarter = sx / 4;
+
+
+	u32 f = 0;
+	u32 t = sx;
+	n_posix_loop
+	{
+
+		if ( f >= t ) { break; }
+
+		u32 p = x + f;
+		n_type_real d;
+
+		if ( ( p > quarter )&&( p < ( sx - quarter ) ) )
+		{
+			d = n_wav_sample_sine( n_wav_piano[ N_WAV_PIANO_MIDDLE + 0 ], p );
+		} else {
+			d = n_wav_sample_sine( n_wav_piano[ N_WAV_PIANO_MIDDLE + 1 ], p );
+		}
+
+		n_wav_sample_mix( wav, p, d, d, ratio_l, ratio_r );
+
+		f++;
+
+	}
+
+
+	return;
+}
+
+#define n_wav_distortion( w, hz, r_l, r_r ) n_wav_distortion_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
+
+void
+n_wav_distortion_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+{
+
+	// [!] : "hz" is not used
+
+
+	if ( n_wav_error_format( wav ) ) { return; }
+
+	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	n_type_real hi_l = 0.0;
+	n_type_real hi_r = 0.0;
+
+
+	// Phase 1 : get peak value
+
+	u32 f = 0;
+	u32 t = sx;
+	n_posix_loop
+	{
+
+		if ( f >= t ) { break; }
+
+		u32 xx = x + f;
+
+		if ( n_wav_sample_is_accessible( wav, xx ) )
+		{
+			n_type_real l,r; n_wav_sample_get( wav, xx, &l, &r );
+
+			l = fabs( l );
+			r = fabs( r );
+
+			if ( hi_l < l ) { hi_l = l; }
+			if ( hi_r < r ) { hi_r = r; }
+		}
+
+		f++;
+
+	}
+
+
+	// Phase 2 : apply
+
+	hi_l *= 1.0 - ratio_l;
+	hi_r *= 1.0 - ratio_r;
+
+	f = 0;
+	n_posix_loop
+	{
+
+		if ( f >= t ) { break; }
+
+		u32 xx = x + f;
+
+		if ( n_wav_sample_is_accessible( wav, xx ) )
+		{
+			n_type_real l,r; n_wav_sample_get( wav, xx, &l, &r );
+
+			if ( fabs( l ) >= hi_l ) { if ( l > 0 ) { l = hi_l; } else { l = -hi_l; } }
+			if ( fabs( r ) >= hi_r ) { if ( r > 0 ) { r = hi_r; } else { r = -hi_r; } }
+
+			n_wav_sample_set( wav, xx, l, r );
 		}
 
 		f++;
@@ -783,16 +1116,14 @@ n_wav_normalize_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_
 	return;
 }
 
-
-
-
-#define n_wav_martian( w, r_l, r_r ) n_wav_martian_partial( w, 0, N_WAV_COUNT( w ), r_l, r_r )
+#define n_wav_marsian( w, hz, r_l, r_r ) n_wav_marsian_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
 
 void
-n_wav_martian_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+n_wav_marsian_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
 {
 
 	// [!] : extra-terrestrial chatter
+
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
@@ -818,7 +1149,7 @@ n_wav_martian_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_re
 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
-			n_type_real d = n_wav_sample_sine( wav, n_wav_piano[ i ], xx );
+			n_type_real d = n_wav_sample_sine( n_wav_piano[ i ], xx );
 
 			j++;
 			if ( j >= unit ) { i = n_random_range( N_WAV_PIANO_MAX ); j = 0; }
@@ -834,133 +1165,10 @@ n_wav_martian_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_re
 	return;
 }
 
-
-
-
-// internal
-void
-n_wav_smoother_channel( n_wav *wav, u32 x, u32 count, double *input, double *output, int ch )
-{
-
-	// [!] : Thx : DeepSeek AI
-
-	// [!] : Savitzky-Golay Filter
-
-	int window_size = 9;
-	int poly_order  = 3;
-/*
-	static const double coeffs_5_2[] = {
-		-3.0/35.0, 12.0/35.0, 17.0/35.0, 
-		12.0/35.0, -3.0/35.0
-	};
-
-	static const double coeffs_7_2[] = {
-		-2.0/21.0, 3.0/21.0, 6.0/21.0, 7.0/21.0,
-		6.0/21.0, 3.0/21.0, -2.0/21.0
-	};
-*/
-	static const double coeffs_9_3[] = {
-		-21.0/231.0, 14.0/231.0, 39.0/231.0, 
-		54.0/231.0, 59.0/231.0, 54.0/231.0,
-		39.0/231.0, 14.0/231.0, -21.0/231.0
-	};
-
-	const double *coeffs;
-	         int  half_window;
-/*
-	if ( ( window_size == 5 )&&( poly_order == 2 ) )
-	{
-		coeffs      = coeffs_5_2;
-		half_window = 2;
-	} else
-	if ( ( window_size == 7 )&&( poly_order == 2 ) )
-	{
-		coeffs      = coeffs_7_2;
-		half_window = 3;
-	} else
-*/
-	if ( ( window_size == 9 )&&( poly_order == 3 ) )
-	{
-		coeffs      = coeffs_9_3;
-		half_window = 4;
-	} else {
-		return;
-	}
-
-
-	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
-	{
-		s16 *p = (s16*) N_WAV_PTR( wav );
-
-		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
-		{
-			input[ i ] = (double) p[ j + ch ] / SHRT_MAX;
-			j += 2;
-		}
-	} else {
-		float *p = (float*) N_WAV_PTR( wav );
-
-		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
-		{
-			input[ i ] = (double) p[ j + ch ];
-			j += 2;
-		}
-	}
-
-
-	for ( int i = 0; i < count; i++ )
-	{
-		output[ i ] = 0.0;
-
-		for ( int j = -half_window; j <= half_window; j++ )
-		{
-			int idx = i + j;
-			if ( idx < 0 )
-			{
-				idx = -idx;
-			} else
-			if ( idx >= count )
-			{
-				idx = 2 * count - idx - 2;
-			}
-
-			output[ i ] += coeffs[ j + half_window ] * input[ idx ];
-		}
-	}
-
-
-
-	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
-	{
-		s16 *p = (s16*) N_WAV_PTR( wav );
-
-		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
-		{
-			p[ j + ch ] = output[ i ] * SHRT_MAX;
-			j += 2;
-		}
-	} else {
-		float *p = (float*) N_WAV_PTR( wav );
-
-		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
-		{
-			p[ j + ch ] = (float) output[ i ];
-			j += 2;
-		}
-	}
-
-
-	return;
-}
-
-#define n_wav_smoother( w, l, r ) n_wav_smoother_partial( w, 0, N_WAV_COUNT( w ), l, r )
+#define n_wav_smoother( w ) n_wav_smoother_partial( w, 0, N_WAV_COUNT( w ) )
 
 void
-n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx, n_posix_bool l_onoff, n_posix_bool r_onoff )
+n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 {
 
 	if ( n_wav_error_format( wav ) ) { return; }
@@ -968,55 +1176,69 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx, n_posix_bool l_onoff, n_posix
 	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
-	u32 count = sx;
+	u32 count = N_WAV_COUNT( wav );
 
 
-	double * input_l = (double*) n_memory_new_closed( count * sizeof( double ) );
-	double * input_r = (double*) n_memory_new_closed( count * sizeof( double ) );
-
-	double *output_l = (double*) n_memory_new_closed( count * sizeof( double ) );
-	double *output_r = (double*) n_memory_new_closed( count * sizeof( double ) );
-
-#ifdef N_POSIX_PLATFORM_MAC
-
-	if ( n_wav_queue == NULL ) { n_wav_queue = [[NSOperationQueue alloc] init]; }
+	const u32      samples = 5;
+	const u32 half_samples = samples / 2;
 
 
-	if ( l_onoff )
+	u32 f = 0;
+	u32 t = sx;
+	n_posix_loop
 	{
-		NSOperation *o = [NSBlockOperation blockOperationWithBlock:^{
 
-			n_wav_smoother_channel( wav, x, sx, input_l, output_l, 0 );
+		if ( f >= t ) { break; }
 
-		}];
-		[n_wav_queue addOperation:o];
+
+		n_type_real l = 0;
+		n_type_real r = 0;
+
+		u32 xx = x + f;
+
+		if (
+			( n_wav_sample_is_accessible( wav, xx ) )
+			&&
+			( ( xx ) >= half_samples )
+		)
+		{
+
+			u32 avr = 0;
+
+			u32 xxx = x + f - half_samples;
+			n_posix_loop
+			{
+
+				if ( ( xxx >= 0 )&&( xxx < count ) )
+				{
+
+					n_type_real ll, rr;
+					n_wav_sample_get( wav, xxx, &ll, &rr );
+
+					l += ll;
+					r += rr;
+
+					avr++;
+
+				}
+
+
+				xxx++;
+				if ( xxx > ( x + f + half_samples ) ) { break; }
+			}
+
+
+			l /= avr;
+			r /= avr;
+
+			n_wav_sample_set( wav, x + f, l, r );
+
+		}
+
+
+		f++;
+
 	}
-
-	if ( r_onoff )
-	{
-		NSOperation *o = [NSBlockOperation blockOperationWithBlock:^{
-
-			n_wav_smoother_channel( wav, x, sx, input_r, output_r, 1 );
-
-		}];
-		[n_wav_queue addOperation:o];
-	}
-
-
-	[n_wav_queue waitUntilAllOperationsAreFinished];
-
-#else
-
-	if ( l_onoff ) { n_wav_smoother_channel( wav, x, sx, input_l, output_l, 0 ); }
-	if ( r_onoff ) { n_wav_smoother_channel( wav, x, sx, input_r, output_r, 1 ); }
-
-#endif
-
-	n_memory_free_closed( input_l );
-	n_memory_free_closed( input_r );
-
-	n_memory_free_closed( output_l );
-	n_memory_free_closed( output_r );
 
 
 	return;
@@ -1199,6 +1421,34 @@ n_wav_overdrive_partial( n_wav *wav, u32 x, u32 sx, n_posix_bool l_onoff, n_posi
 
 
 
+
+void
+n_wav_mute( n_wav *wav, u32 x, u32 sx )
+{
+
+	if ( n_wav_error_format( wav ) ) { return; }
+
+	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	u32 f = 0;
+	n_posix_loop
+	{//break;
+
+		u32 xx = x + f;
+
+		if ( n_wav_sample_is_accessible( wav, xx ) )
+		{
+			n_wav_sample_set( wav, xx, 0, 0 );
+		}
+
+		f++;
+		if ( f >= sx ) { break; }
+	}
+
+
+	return;
+}
 
 void
 n_wav_delete( n_wav *wav, u32 x, u32 sx )
@@ -1439,7 +1689,4 @@ n_wav_copy( n_wav *f, n_wav *t, u32 fx, u32 sx, u32 tx, n_type_real ratio_l, n_t
 
 
 #endif // _H_NONNON_NEUTRAL_WAV_FILTER
-
-
-#endif // #ifndef N_POSIX_PLATFORM_MAC
 

@@ -13,24 +13,7 @@
 
 
 
-#define N_WAV_FORMAT_FLOAT_ON
-
-#include "../nonnon/neutral/wav.c"
-#include "../nonnon/neutral/wav/all.c"
-#include "../nonnon/neutral/fft.c"
-
-
-#include "../nonnon/win32/gdi.c"
-
-
-#include "../nonnon/mac/window.c"
-#include "../nonnon/mac/image.c"
-#include "../nonnon/mac/sound.c"
-
-#include "../nonnon/mac/n_button.c"
-
-
-#include "../nonnon/neutral/filer.c"
+#include "extern.h"
 
 
 
@@ -157,6 +140,7 @@ static NonnonPlotter *n_plotter_global;
 	[super mouseDown:theEvent];
 
 }
+
 @end
 
 
@@ -253,7 +237,11 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 @property (weak) IBOutlet NonnonButton *n_button_save;
 @property (weak) IBOutlet NonnonButton *n_button_resizer;
 
-@property (weak) IBOutlet NSMenu *n_popup_menu;
+@property (weak) IBOutlet NSMenu     *n_popup_menu;
+@property (weak) IBOutlet NSMenuItem *n_popup_menu_cut;
+@property (weak) IBOutlet NSMenuItem *n_popup_menu_copy;
+@property (weak) IBOutlet NSMenuItem *n_popup_menu_paste;
+@property (weak) IBOutlet NSMenuItem *n_popup_menu_overwrite;
 
 @property (weak) IBOutlet NSWindow   *n_save_window;
 @property (weak) IBOutlet NSComboBox *n_save_combo_channel;
@@ -302,6 +290,8 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 
 @implementation AppDelegate {
+
+	BOOL popup_menu_shift_onoff;
 
 }
 
@@ -385,7 +375,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 
 	n_wav_zero( &n_nyaurism_wav ); n_wav_new_by_sample( &n_nyaurism_wav, 44100 * 5 );
-	n_wav_marsian( &n_nyaurism_wav, 0, 0.25, 0.25 );
+	n_wav_martian( &n_nyaurism_wav, 0.25, 0.25 );
 
 	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_undo );
 	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_slider_orig );
@@ -474,6 +464,8 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 
 	_n_plotter.n_popup_menu = _n_popup_menu;
+
+	_n_popup_menu.delegate = self;
 
 
 	n_slider_body_l_global = _n_slider_body_l;
@@ -898,6 +890,85 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 
 
+-(void)menuWillOpen:(NSMenu*)menu
+{
+//NSLog( @"menuWillOpen" );
+
+	// [Needed] : menu.delegate = self;
+
+	NSUInteger flags = [NSEvent modifierFlags];
+
+	if ( flags & NSEventModifierFlagShift )
+	{
+		popup_menu_shift_onoff = TRUE;
+	}
+
+}
+
+-(void)menuDidClose:(NSMenu*)menu
+{
+//NSLog( @"menuDidClose" );
+
+	// [Needed] : menu.delegate = self;
+
+	NSUInteger flags = [NSEvent modifierFlags];
+
+	if ( flags & NSEventModifierFlagShift )
+	{
+		//
+	} else
+	if ( popup_menu_shift_onoff )
+	{
+		popup_menu_shift_onoff = FALSE;
+
+		n_nyaurism_plotter_selection_shift_onoff = n_posix_false;
+		[_n_plotter display];
+	}
+
+}
+
+-(BOOL)validateMenuItem:(NSMenuItem*)menuItem
+{
+//NSLog( @"validateMenuItem" );
+
+	// [x] : deprecated warning: set NSMenuItemValidation at AppDelegate.h
+
+	if ( n_nyaurism_plotter_selection_shift_onoff )
+	{
+//NSLog( @"%@ : %ld", menuItem.title, menuItem.tag );
+
+		// [!] : tag is set by right-pane of XIB
+
+		if ( menuItem.tag == 2 ) // "Cut"
+		{
+			return NO;
+		} else
+		if ( menuItem.tag == 3 ) // "Copy"
+		{
+			return NO;
+		} else
+		if ( menuItem.tag == 4 ) // "Paste"
+		{
+			return NO;
+		} else
+		if ( menuItem.tag == 5 ) // "Overwrite/Mix"
+		{
+			return NO;
+		}
+	}
+
+
+	return YES;
+}
+/*
+-(void)menuNeedsUpdate:(NSMenu*)menu
+{
+NSLog( @"menuNeedsUpdate" );
+
+	// [x] : not working : set NSMenuDelegate at AppDelegate.h
+
+}
+*/
 - (IBAction)n_plotter_menu_undo:(id)sender {
 
 	n_nyaurism_plotter_undo( &n_nyaurism_wav );
@@ -1040,7 +1111,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
 //NSLog( @"%f %f", n_slider_value_l_global, n_slider_value_r_global );
-	n_wav_normalize_partial( &n_nyaurism_wav, 0, x, sx, n_slider_value_l_global, n_slider_value_r_global );
+	n_wav_normalize_partial( &n_nyaurism_wav, x, sx, n_slider_value_l_global, n_slider_value_r_global );
 
 
 	[_n_plotter display];
@@ -1065,7 +1136,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 	if ( sx == 0 ) { sx = N_WAV_COUNT( &n_nyaurism_wav ); }
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
-	n_wav_normalize_partial( &n_nyaurism_wav, 0, x, sx, n_slider_value_l_global, n_slider_value_r_global );
+	n_wav_normalize_partial( &n_nyaurism_wav, x, sx, n_slider_value_l_global, n_slider_value_r_global );
 
 
 	[_n_plotter display];

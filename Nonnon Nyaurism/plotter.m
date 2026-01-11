@@ -25,7 +25,7 @@ n_nyaurism_shiftcopy( n_wav *f, n_wav *t, u32 tx, BOOL l_onoff, BOOL r_onoff )
 
 		// [!] : Feedbacker
 
-		n_wav_mute( t, 0, N_WAV_COUNT( t ) );
+		n_wav_mute( t, n_posix_true, n_posix_true );
 
 		n_wav tmp; n_wav_carboncopy( f, &tmp );
 
@@ -54,7 +54,7 @@ n_nyaurism_shiftcopy( n_wav *f, n_wav *t, u32 tx, BOOL l_onoff, BOOL r_onoff )
 
 	} else {
 
-		n_wav_mute( t, 0, N_WAV_COUNT( t ) );
+		n_wav_mute( t, n_posix_true, n_posix_true );
 
 		n_type_real l, r;
 
@@ -292,7 +292,23 @@ n_nyaurism_plotter_mute( n_wav *wav )
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
 
-	n_wav_mute( wav, x, sx );
+	BOOL l = TRUE;
+	BOOL r = TRUE;
+
+	if ( n_nyaurism_plotter_selection_shift_onoff )
+	{
+		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		{
+			r = FALSE;
+		} else
+		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		{
+			l = FALSE;
+		}
+	}
+
+
+	n_wav_mute_partial( wav, x, sx, l, r );
 
 
 	n_wav_free( &n_nyaurism_wav_slider_orig );
@@ -478,7 +494,22 @@ n_nyaurism_plotter_fade_in( n_wav *wav )
 
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( wav, &x, &sx );
 
-	n_wav_fade_in_partial( wav, 0, x, sx, 1.0, 1.0 );
+	n_type_real l = 1.0;
+	n_type_real r = 1.0;
+
+	if ( n_nyaurism_plotter_selection_shift_onoff )
+	{
+		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		{
+			l = 0.0;
+		} else
+		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		{
+			r = 0.0;
+		}
+	}
+
+	n_wav_fade_in_partial( wav, x, sx, l, r );
 
 	//n_nyaurism_plotter_selection_off();
 
@@ -500,7 +531,22 @@ n_nyaurism_plotter_fade_out( n_wav *wav )
 
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( wav, &x, &sx );
 
-	n_wav_fade_out_partial( wav, 0, x, sx, 1.0, 1.0 );
+	n_type_real l = 1.0;
+	n_type_real r = 1.0;
+
+	if ( n_nyaurism_plotter_selection_shift_onoff )
+	{
+		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		{
+			l = 0.0;
+		} else
+		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		{
+			r = 0.0;
+		}
+	}
+
+	n_wav_fade_out_partial( wav, x, sx, l, r );
 
 	//n_nyaurism_plotter_selection_off();
 
@@ -524,8 +570,9 @@ n_nyaurism_plotter_monoaural( n_wav *wav )
 	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
+	// [!] : L/R : not supported by spec
 
-	n_wav_monaural_partial( wav, 0, x, sx, 1.0, 1.0 );
+	n_wav_monaural_partial( wav, x, sx, 1.0, 1.0 );
 
 	n_nyaurism_slider_redraw( wav );
 
@@ -549,8 +596,9 @@ n_nyaurism_plotter_L2R( n_wav *wav )
 	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
+	// [!] : L/R : not supported by spec
 
-	n_wav_L2R_partial( wav, 0, x, sx, 1.0, 1.0 );
+	n_wav_L2R_partial( wav, x, sx );
 
 	n_nyaurism_slider_redraw( wav );
 
@@ -574,8 +622,9 @@ n_nyaurism_plotter_R2L( n_wav *wav )
 	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
+	// [!] : L/R : not supported by spec
 
-	n_wav_R2L_partial( wav, 0, x, sx, 1.0, 1.0 );
+	n_wav_R2L_partial( wav, x, sx );
 
 	n_nyaurism_slider_redraw( wav );
 
@@ -599,8 +648,22 @@ n_nyaurism_plotter_smoother( n_wav *wav )
 	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
+	n_posix_bool l = n_posix_true;
+	n_posix_bool r = n_posix_true;
 
-	n_wav_smoother_partial( wav, x, sx );
+	if ( n_nyaurism_plotter_selection_shift_onoff )
+	{
+		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		{
+			l = n_posix_false;
+		} else
+		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		{
+			r = n_posix_false;
+		}
+	}
+
+	n_wav_smoother_partial( wav, x, sx, l, r );
 
 	n_nyaurism_slider_redraw( wav );
 
@@ -624,8 +687,22 @@ n_nyaurism_plotter_overdrive( n_wav *wav )
 	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
+	n_posix_bool l = n_posix_true;
+	n_posix_bool r = n_posix_true;
 
-	n_wav_overdrive_partial( wav, x, sx );
+	if ( n_nyaurism_plotter_selection_shift_onoff )
+	{
+		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		{
+			l = n_posix_false;
+		} else
+		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		{
+			r = n_posix_false;
+		}
+	}
+
+	n_wav_overdrive_partial( wav, x, sx, l, r );
 
 	n_nyaurism_slider_redraw( wav );
 
@@ -649,8 +726,22 @@ n_nyaurism_plotter_whitenoise( n_wav *wav )
 	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
+	n_type_real l = 1.0;
+	n_type_real r = 1.0;
 
-	n_wav_whitenoise_partial( wav, 44100, x, sx, 1.0, 1.0 );
+	if ( n_nyaurism_plotter_selection_shift_onoff )
+	{
+		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		{
+			l = 0.0;
+		} else
+		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		{
+			r = 0.0;
+		}
+	}
+
+	n_wav_whitenoise_partial( wav, 44100, x, sx, l, r );
 
 	n_nyaurism_slider_redraw( wav );
 
@@ -674,8 +765,22 @@ n_nyaurism_plotter_pinknoise( n_wav *wav )
 	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
+	n_type_real l = 1.0;
+	n_type_real r = 1.0;
 
-	n_wav_pinknoise_partial( wav, 0, x, sx, 1.0, 1.0 );
+	if ( n_nyaurism_plotter_selection_shift_onoff )
+	{
+		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		{
+			l = 0.0;
+		} else
+		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		{
+			r = 0.0;
+		}
+	}
+
+	n_wav_pinknoise_partial( wav, 0, x, sx, l, r );
 
 	n_nyaurism_slider_redraw( wav );
 
@@ -959,6 +1064,9 @@ n_nyaurism_plotter_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_gfx sy )
 
 	if ( n_nyaurism_plotter_selection_shift_onoff )
 	{
+		n_type_gfx from = n_nyaurism_plotter_selection_left_edge();
+		if ( size == 0 ) { size = sx; }
+
 		n_type_gfx ty  = 0;
 		n_type_gfx tsy = sy;
 		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
@@ -971,7 +1079,21 @@ n_nyaurism_plotter_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_gfx sy )
 			tsy = sy / 2;
 		}
 
-		n_bmp_mixer( bmp, 0, ty, sx, tsy, cselect, 0.2 );
+		n_bmp_mixer( bmp, from, ty, size, tsy, cselect, 0.2 );
+
+		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		{
+			n_bmp_line( bmp, from       , tsy, from       , sy, cselect );
+			n_bmp_line( bmp, from + size, tsy, from + size, sy, cselect );
+		} else
+		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		{
+			n_bmp_line( bmp, from       , 0, from       , tsy, cselect );
+			n_bmp_line( bmp, from + size, 0, from + size, tsy, cselect );
+		} else {
+			n_bmp_line( bmp, from       , 0, from       , sy, cselect );
+			n_bmp_line( bmp, from + size, 0, from + size, sy, cselect );
+		}
 	} else {
 		n_type_gfx from = n_nyaurism_plotter_selection_left_edge();
 //NSLog( @"%d %d", from, n_nyaurism_plotter_selection_size );
@@ -999,13 +1121,6 @@ n_nyaurism_plotter_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_gfx sy )
 		n_nyaurism_tooltip_draw( bmp, n_nyaurism_tooltip_str );
 	}
 
-/*
-	// [x] : button : not working
-	if ( n_nyaurism_is_processing )
-	{
-		n_nyaurism_tooltip_draw( bmp, "Processing..." );
-	}
-*/
 
 	return;
 }
@@ -1175,6 +1290,8 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 		if ( theEvent.modifierFlags & NSEventModifierFlagCommand )
 		{
+			if ( n_nyaurism_plotter_selection_shift_onoff ) { break; }
+
 			n_nyaurism_plotter_undo( &n_nyaurism_wav );
 			[self display];
 		}
@@ -1185,6 +1302,8 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 		if ( theEvent.modifierFlags & NSEventModifierFlagCommand )
 		{
+			if ( n_nyaurism_plotter_selection_shift_onoff ) { break; }
+
 			n_nyaurism_plotter_cut( &n_nyaurism_wav );
 			[self display];
 		}
@@ -1195,6 +1314,8 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 		if ( theEvent.modifierFlags & NSEventModifierFlagCommand )
 		{
+			if ( n_nyaurism_plotter_selection_shift_onoff ) { break; }
+
 			n_nyaurism_plotter_copy( &n_nyaurism_wav );
 			[self display];
 		}
@@ -1205,6 +1326,8 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 		if ( theEvent.modifierFlags & NSEventModifierFlagCommand )
 		{
+			if ( n_nyaurism_plotter_selection_shift_onoff ) { break; }
+
 			n_nyaurism_plotter_paste( &n_nyaurism_wav );
 			[self display];
 		}
@@ -1215,6 +1338,8 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 		if ( theEvent.modifierFlags & NSEventModifierFlagCommand )
 		{
+			if ( n_nyaurism_plotter_selection_shift_onoff ) { break; }
+
 			n_nyaurism_plotter_overwrite( &n_nyaurism_wav );
 			[self display];
 		}
@@ -1222,6 +1347,8 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 	break;
 
 	case N_MAC_KEYCODE_BACKSPACE:
+
+		if ( n_nyaurism_plotter_selection_shift_onoff ) { break; }
 
 		n_nyaurism_plotter_delete( &n_nyaurism_wav );
 		[self display];
@@ -1247,6 +1374,9 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 	{
 //NSLog( @"double-click" );
 
+		NSUInteger flags = [theEvent modifierFlags];
+		if ( flags & NSEventModifierFlagShift ) { return; }
+
 		n_type_gfx size;
 		if ( n_nyaurism_plotter_selection_step == 1 )
 		{
@@ -1270,6 +1400,7 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 		if ( n_nyaurism_plotter_selection_shift_onoff )
 		{
+			if ( 0 != n_nyaurism_plotter_selection_left_edge() ) { return; }
 
 			NSUInteger flags = [[NSApp currentEvent] modifierFlags];
 
@@ -1335,9 +1466,7 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 	{
 		n_nyaurism_plotter_selection_drag_onoff = n_posix_false;
 
-
 		NSPoint pt = n_mac_cursor_position_get( self );
-
 		if ( pt.x < n_nyaurism_plotter_selection_from )
 		{
 			n_nyaurism_plotter_selection_from = n_nyaurism_plotter_selection_loop;
@@ -1365,6 +1494,8 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 	if ( n_nyaurism_plotter_selection_shift_onoff )
 	{
+		if ( 0 != n_nyaurism_plotter_selection_left_edge() ) { return; }
+
 		n_type_gfx x = n_nyaurism_plotter_selection_shift - pt.x;
 //NSLog( @"%d", x );
 		x *= n_nyaurism_plotter_selection_step;
@@ -1449,7 +1580,6 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 	{
 
 		NSUInteger flags = [[NSApp currentEvent] modifierFlags];
-
 		if ( flags & NSEventModifierFlagCommand )
 		{
 			NSPoint pt = n_mac_cursor_position_get( self );
@@ -1481,15 +1611,36 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 	if ( flags & NSEventModifierFlagShift )
 	{
 //NSLog( @"shift on" );
-		n_nyaurism_plotter_selection_shift_onoff = n_posix_true;
-		[self mouseMoved:event];
+
+		n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( &n_nyaurism_wav, &x, &sx );
+
+		if ( ( x == 0 )&&( sx == N_WAV_COUNT( &n_nyaurism_wav ) ) )
+		{
+			//
+		} else
+		if ( ( x != 0 )&&( sx == 0 ) )
+		{
+			// [!] : indicator mode
+		} else
+		//
+		{
+			n_nyaurism_plotter_selection_shift_onoff = n_posix_true;
+
+			[self mouseMoved:event];
+		}
 	} else
 	if ( n_nyaurism_plotter_selection_shift_onoff )
 	{
 //NSLog( @"shift off" );
+
 		n_nyaurism_plotter_selection_shift_onoff = n_posix_false;
 
-		n_nyaurism_tooltip_calc( 0 );
+		if ( 0 == n_nyaurism_plotter_selection_left_edge() )
+		{
+			n_nyaurism_tooltip_calc( 0 );
+		} else {
+			n_nyaurism_tooltip_calc( n_nyaurism_plotter_selection_size * n_nyaurism_plotter_selection_step  );
+		}
 
 		n_wav_free( &n_nyaurism_wav_slider_orig );
 		n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_slider_orig );
