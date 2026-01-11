@@ -11,6 +11,13 @@
 
 
 
+#define n_wav_sample_sandstorm  n_wav_sample_whitenoise
+#define n_wav_sandstorm         n_wav_whitenoise
+#define n_wav_sandstorm_partial n_wav_whitenoise_partial
+
+
+
+
 #define n_wav_fade( w, hz, r_l, r_r ) n_wav_fade_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
 
 void
@@ -96,6 +103,106 @@ n_wav_delay_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real rati
 
 
 	n_wav_free( &w );
+
+
+	return;
+}
+
+
+
+
+#define n_wav_tremolo( w, hz, r_l, r_r ) n_wav_tremolo_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
+
+void
+n_wav_tremolo_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+{
+
+	if ( n_wav_error_format( wav ) ) { return; }
+
+	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	u32 f = 0;
+	u32 t = sx;
+	n_posix_loop
+	{
+
+		if ( f >= t ) { break; }
+
+		u32 xx = x + f;
+
+		if ( n_wav_sample_is_accessible( wav, xx ) )
+		{
+			n_type_real d = n_wav_sample_sine_coeff( wav, hz, xx );
+
+			n_type_real l,r;
+			n_wav_sample_get( wav, x + f, &l, &r );
+
+			if ( ratio_l != 0 ) { l = d * l * ratio_l; }
+			if ( ratio_r != 0 ) { r = d * r * ratio_r; }
+
+			n_wav_sample_set( wav, xx, l, r );
+		}
+
+		f++;
+
+	}
+
+
+	return;
+}
+
+
+
+
+#define n_wav_distortion( w, hz, r_l, r_r ) n_wav_distortion_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
+
+void
+n_wav_distortion_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+{
+
+	// [!] : "hz" is not used
+
+	if ( n_wav_error_format( wav ) ) { return; }
+
+	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	// Phase 1 : get peak value
+
+	n_type_real hi_l = 0.0;
+	n_type_real hi_r = 0.0;
+
+	n_wav_peak_value( wav, x, sx, &hi_l, &hi_r );
+
+
+	// Phase 2 : apply
+
+	hi_l *= 1.0 - ratio_l;
+	hi_r *= 1.0 - ratio_r;
+
+	u32 f = 0;
+	u32 t = sx;
+	n_posix_loop
+	{
+
+		if ( f >= t ) { break; }
+
+		u32 xx = x + f;
+
+		if ( n_wav_sample_is_accessible( wav, xx ) )
+		{
+			n_type_real l,r; n_wav_sample_get( wav, xx, &l, &r );
+
+			if ( fabs( l ) >= hi_l ) { if ( l > 0 ) { l = hi_l; } else { l = -hi_l; } }
+			if ( fabs( r ) >= hi_r ) { if ( r > 0 ) { r = hi_r; } else { r = -hi_r; } }
+
+			n_wav_sample_set( wav, xx, l, r );
+		}
+
+		f++;
+
+	}
 
 
 	return;

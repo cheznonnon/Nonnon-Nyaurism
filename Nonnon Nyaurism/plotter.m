@@ -513,6 +513,31 @@ n_nyaurism_plotter_fade_out( n_wav *wav )
 }
 
 void
+n_nyaurism_plotter_monoaural( n_wav *wav )
+{
+
+	n_wav_free( &n_nyaurism_wav_undo );
+	n_wav_carboncopy( wav, &n_nyaurism_wav_undo );
+
+
+	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( wav, &x, &sx );
+	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
+	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
+
+
+	n_wav_monaural_partial( wav, 0, x, sx, 1.0, 1.0 );
+
+	n_nyaurism_slider_redraw( wav );
+
+
+	n_wav_free( &n_nyaurism_wav_slider_orig );
+	n_wav_carboncopy( wav, &n_nyaurism_wav_slider_orig );
+
+
+	return;
+}
+
+void
 n_nyaurism_plotter_L2R( n_wav *wav )
 {
 
@@ -601,6 +626,56 @@ n_nyaurism_plotter_overdrive( n_wav *wav )
 
 
 	n_wav_overdrive_partial( wav, x, sx );
+
+	n_nyaurism_slider_redraw( wav );
+
+
+	n_wav_free( &n_nyaurism_wav_slider_orig );
+	n_wav_carboncopy( wav, &n_nyaurism_wav_slider_orig );
+
+
+	return;
+}
+
+void
+n_nyaurism_plotter_whitenoise( n_wav *wav )
+{
+
+	n_wav_free( &n_nyaurism_wav_undo );
+	n_wav_carboncopy( wav, &n_nyaurism_wav_undo );
+
+
+	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( wav, &x, &sx );
+	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
+	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
+
+
+	n_wav_whitenoise_partial( wav, 44100, x, sx, 1.0, 1.0 );
+
+	n_nyaurism_slider_redraw( wav );
+
+
+	n_wav_free( &n_nyaurism_wav_slider_orig );
+	n_wav_carboncopy( wav, &n_nyaurism_wav_slider_orig );
+
+
+	return;
+}
+
+void
+n_nyaurism_plotter_pinknoise( n_wav *wav )
+{
+
+	n_wav_free( &n_nyaurism_wav_undo );
+	n_wav_carboncopy( wav, &n_nyaurism_wav_undo );
+
+
+	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( wav, &x, &sx );
+	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
+	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
+
+
+	n_wav_pinknoise_partial( wav, 0, x, sx, 1.0, 1.0 );
 
 	n_nyaurism_slider_redraw( wav );
 
@@ -1078,7 +1153,9 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 	case N_MAC_KEYCODE_F1:
 	{
 
-		n_fft_histogram_test( &n_nyaurism_wav );
+		//n_fft_histogram_test( &n_nyaurism_wav );
+
+		n_wav_pinknoise( &n_nyaurism_wav, 0, 1.0, 1.0 );
 
 		[self display];
 	}

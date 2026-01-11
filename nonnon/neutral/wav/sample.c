@@ -338,7 +338,7 @@ n_wav_sample_square( n_wav *wav, n_type_real hz, u32 x )
 }
 
 n_type_real
-n_wav_sample_sandstorm( n_wav *wav, n_type_real hz, u32 x )
+n_wav_sample_whitenoise( n_wav *wav, n_type_real hz, u32 x )
 {
 
 	// [!] : human recognition

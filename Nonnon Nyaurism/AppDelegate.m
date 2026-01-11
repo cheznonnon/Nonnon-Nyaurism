@@ -572,7 +572,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 			//n_nyaurism_tooltip_calc( N_WAV_COUNT( &wav_local ) );
 
-			n_nyaurism_plotter_paste( &n_nyaurism_wav );
+			n_nyaurism_plotter_overwrite( &n_nyaurism_wav );
 
 			n_nyaurism_slider_redraw( &n_nyaurism_wav );
 
@@ -962,6 +962,14 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 }
 
+- (IBAction)n_plotter_menu_monaural:(id)sender {
+
+	n_nyaurism_plotter_monoaural( &n_nyaurism_wav );
+
+	[_n_plotter display];
+
+}
+
 - (IBAction)n_plotter_menu_L2R:(id)sender {
 
 	n_nyaurism_plotter_L2R( &n_nyaurism_wav );
@@ -991,6 +999,23 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 	n_nyaurism_plotter_overdrive( &n_nyaurism_wav );
 
 	[_n_plotter display];
+
+}
+
+- (IBAction)n_plotter_menu_whitenoise:(id)sender {
+
+	n_nyaurism_plotter_whitenoise( &n_nyaurism_wav );
+
+	[_n_plotter display];
+
+}
+
+- (IBAction)n_plotter_menu_pinknoise:(id)sender {
+
+	n_nyaurism_plotter_pinknoise( &n_nyaurism_wav );
+
+	[_n_plotter display];
+
 }
 
 

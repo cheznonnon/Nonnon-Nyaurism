@@ -305,10 +305,10 @@ n_wav_square_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real rat
 	return;
 }
 
-#define n_wav_sandstorm( w, hz, r_l, r_r ) n_wav_sandstorm_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
+#define n_wav_whitenoise( w, hz, r_l, r_r ) n_wav_sandstorm_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
 
 void
-n_wav_sandstorm_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+n_wav_whitenoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
 {
 
 	// [!] : hz : random parameter
@@ -332,8 +332,11 @@ n_wav_sandstorm_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
-			n_type_real d = n_wav_sample_sandstorm( wav, hz, xx );
-			n_wav_sample_mix( wav, xx, d, d, ratio_l, ratio_r );
+			n_type_real d = n_wav_sample_whitenoise( wav, hz, xx );
+
+			d *= 0.025;
+
+			n_wav_sample_add( wav, xx, d, d );
 		}
 
 		f++;
@@ -360,9 +363,8 @@ n_wav_pinknoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 	n_random_shuffle();
 
 
-	// [!] : this code comes from Audacity's source code
-
 	n_type_real buf0 = 1, buf1 = 1, buf2 = 1, buf3 = 1, buf4 = 1, buf5 = 1, buf6 = 1;
+
 
 	u32 f = 0;
 	u32 t = sx;
@@ -375,6 +377,8 @@ n_wav_pinknoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
+
+			// [!] : Voss-McCartney algorithm
 
 			n_type_real white = ( rand() / ( ( (n_type_real) RAND_MAX ) / 2.0 ) ) - 1.0;
 
@@ -390,7 +394,7 @@ n_wav_pinknoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 			if ( N_WAV_FORMAT_PCM == N_WAV_FORMAT( wav ) ) { d *= SHRT_MAX; }
 			d *= 0.025;
 
-			n_wav_sample_mix( wav, xx, d, d, ratio_l, ratio_r );
+			n_wav_sample_add( wav, xx, d, d );
 
 			buf6 = white * 0.115926;
 
@@ -404,6 +408,9 @@ n_wav_pinknoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 
 	return;
 }
+
+
+
 
 #define n_wav_fade_in( w, hz, r_l, r_r ) n_wav_fade_in_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
 
@@ -560,7 +567,7 @@ n_wav_L2R_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_
 
 			n_wav_sample_get( wav, xx, &l, &r );
 
-			n_wav_sample_set( wav, xx, l, l );
+			n_wav_sample_set( wav, xx,  l,  l );
 		}
 
 		f++;
@@ -599,101 +606,7 @@ n_wav_R2L_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_
 
 			n_wav_sample_get( wav, xx, &l, &r );
 
-			n_wav_sample_set( wav, xx, r, r );
-		}
-
-		f++;
-
-	}
-
-
-	return;
-}
-
-#define n_wav_tremolo( w, hz, r_l, r_r ) n_wav_tremolo_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
-
-void
-n_wav_tremolo_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
-{
-
-	if ( n_wav_error_format( wav ) ) { return; }
-
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
-
-
-	u32 f = 0;
-	u32 t = sx;
-	n_posix_loop
-	{
-
-		if ( f >= t ) { break; }
-
-		u32 xx = x + f;
-
-		if ( n_wav_sample_is_accessible( wav, xx ) )
-		{
-			n_type_real d = n_wav_sample_sine_coeff( wav, hz, xx );
-
-			n_type_real l,r;
-			n_wav_sample_get( wav, x + f, &l, &r );
-
-			if ( ratio_l != 0 ) { l = d * l * ratio_l; }
-			if ( ratio_r != 0 ) { r = d * r * ratio_r; }
-
-			n_wav_sample_set( wav, xx, l, r );
-		}
-
-		f++;
-
-	}
-
-
-	return;
-}
-
-#define n_wav_distortion( w, hz, r_l, r_r ) n_wav_distortion_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
-
-void
-n_wav_distortion_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
-{
-
-	// [!] : "hz" is not used
-
-	if ( n_wav_error_format( wav ) ) { return; }
-
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
-
-
-	// Phase 1 : get peak value
-
-	n_type_real hi_l = 0.0;
-	n_type_real hi_r = 0.0;
-
-	n_wav_peak_value( wav, x, sx, &hi_l, &hi_r );
-
-
-	// Phase 2 : apply
-
-	hi_l *= 1.0 - ratio_l;
-	hi_r *= 1.0 - ratio_r;
-
-	u32 f = 0;
-	u32 t = sx;
-	n_posix_loop
-	{
-
-		if ( f >= t ) { break; }
-
-		u32 xx = x + f;
-
-		if ( n_wav_sample_is_accessible( wav, xx ) )
-		{
-			n_type_real l,r; n_wav_sample_get( wav, xx, &l, &r );
-
-			if ( fabs( l ) >= hi_l ) { if ( l > 0 ) { l = hi_l; } else { l = -hi_l; } }
-			if ( fabs( r ) >= hi_r ) { if ( r > 0 ) { r = hi_r; } else { r = -hi_r; } }
-
-			n_wav_sample_set( wav, xx, l, r );
+			n_wav_sample_set( wav, xx,  r,  r );
 		}
 
 		f++;
@@ -880,16 +793,10 @@ n_wav_marsian_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ra
 
 
 
-#define n_wav_smoother( w ) n_wav_smoother_partial( w, 0, N_WAV_COUNT( w ) )
-
+// internal
 void
-n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
+n_wav_smoother_channel( n_wav *wav, u32 x, u32 count, double *input, double *output, int ch )
 {
-
-	if ( n_wav_error_format( wav ) ) { return; }
-
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
-
 
 	// [!] : Thx : DeepSeek AI
 
@@ -937,12 +844,6 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 	}
 
 
-	u32 count = sx;
-
-
-	double *input_l = (double*) n_memory_new_closed( count * sizeof( double ) );
-	double *input_r = (double*) n_memory_new_closed( count * sizeof( double ) );
-
 	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
 	{
 		s16 *p = (s16*) N_WAV_PTR( wav );
@@ -950,8 +851,7 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 		u32 j = x * 2;
 		for ( int i = 0; i < count; i++ )
 		{
-			input_l[ i ] = (double) p[ j + 0 ] / SHRT_MAX;
-			input_r[ i ] = (double) p[ j + 1 ] / SHRT_MAX;
+			input[ i ] = (double) p[ j + ch ] / SHRT_MAX;
 			j += 2;
 		}
 	} else {
@@ -960,20 +860,15 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 		u32 j = x * 2;
 		for ( int i = 0; i < count; i++ )
 		{
-			input_l[ i ] = (double) p[ j + 0 ];
-			input_r[ i ] = (double) p[ j + 1 ];
+			input[ i ] = (double) p[ j + ch ];
 			j += 2;
 		}
 	}
 
 
-	double *output_l = (double*) n_memory_new_closed( count * sizeof( double ) );
-	double *output_r = (double*) n_memory_new_closed( count * sizeof( double ) );
-
 	for ( int i = 0; i < count; i++ )
 	{
-		output_l[ i ] = 0.0;
-		output_r[ i ] = 0.0;
+		output[ i ] = 0.0;
 
 		for ( int j = -half_window; j <= half_window; j++ )
 		{
@@ -987,8 +882,7 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 				idx = 2 * count - idx - 2;
 			}
 
-			output_l[ i ] += coeffs[ j + half_window ] * input_l[ idx ];
-			output_r[ i ] += coeffs[ j + half_window ] * input_r[ idx ];
+			output[ i ] += coeffs[ j + half_window ] * input[ idx ];
 		}
 	}
 
@@ -1001,8 +895,7 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 		u32 j = x * 2;
 		for ( int i = 0; i < count; i++ )
 		{
-			p[ j + 0 ] = output_l[ i ] * SHRT_MAX;
-			p[ j + 1 ] = output_r[ i ] * SHRT_MAX;
+			p[ j + ch ] = output[ i ] * SHRT_MAX;
 			j += 2;
 		}
 	} else {
@@ -1011,12 +904,67 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 		u32 j = x * 2;
 		for ( int i = 0; i < count; i++ )
 		{
-			p[ j + 0 ] = (float) output_l[ i ];
-			p[ j + 1 ] = (float) output_r[ i ];
+			p[ j + ch ] = (float) output[ i ];
 			j += 2;
 		}
 	}
 
+
+	return;
+}
+
+#define n_wav_smoother( w ) n_wav_smoother_partial( w, 0, N_WAV_COUNT( w ) )ć
+
+void
+n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
+{
+
+	if ( n_wav_error_format( wav ) ) { return; }
+
+	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	u32 count = sx;
+
+
+	double * input_l = (double*) n_memory_new_closed( count * sizeof( double ) );
+	double * input_r = (double*) n_memory_new_closed( count * sizeof( double ) );
+
+	double *output_l = (double*) n_memory_new_closed( count * sizeof( double ) );
+	double *output_r = (double*) n_memory_new_closed( count * sizeof( double ) );
+
+#ifdef N_POSIX_PLATFORM_MAC
+
+	if ( n_wav_queue == NULL ) { n_wav_queue = [[NSOperationQueue alloc] init]; }
+
+
+	{
+		NSOperation *o = [NSBlockOperation blockOperationWithBlock:^{
+
+			n_wav_smoother_channel( wav, x, sx, input_l, output_l, 0 );
+
+		}];
+		[n_wav_queue addOperation:o];
+	}
+
+	{
+		NSOperation *o = [NSBlockOperation blockOperationWithBlock:^{
+
+			n_wav_smoother_channel( wav, x, sx, input_r, output_r, 1 );
+
+		}];
+		[n_wav_queue addOperation:o];
+	}
+
+
+	[n_wav_queue waitUntilAllOperationsAreFinished];
+
+#else
+
+	n_wav_smoother_channel( wav, x, sx, input_l, output_l, 0 );
+	n_wav_smoother_channel( wav, x, sx, input_r, output_r, 1 );
+
+#endif
 
 	n_memory_free_closed( input_l );
 	n_memory_free_closed( input_r );
@@ -1033,14 +981,14 @@ n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx )
 
 // internal
 void
-n_wav_overdrive_channel( double *audio, int count )
+n_wav_overdrive_engine( double *audio, u32 count )
 {
 
 	const int    factor = 1;
 	const double drive  = 1.5;
 
 
-	int     oversampled_len = count * factor;
+	u32     oversampled_len = count * factor;
 	double *oversampled     = n_memory_new_closed( oversampled_len * sizeof( double ) );
 
 
@@ -1092,68 +1040,107 @@ n_wav_overdrive_channel( double *audio, int count )
 	return;
 }
 
+// internal
+void
+n_wav_overdrive_channel( n_wav *wav, u32 x, u32 count, double *audio, int ch )
+{
+
+	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+	{
+		s16 *ptr = (s16*) N_WAV_PTR( wav );
+
+		u32 j = x * 2;
+		for ( int i = 0; i < count; i++ )
+		{
+			audio[ i ] = (double) ptr[ j + ch ] / SHRT_MAX;
+			j += 2;
+		}
+	} else {
+		float *ptr = (float*) N_WAV_PTR( wav );
+
+		u32 j = x * 2;
+		for ( int i = 0; i < count; i++ )
+		{
+			audio[ i ] = (double) ptr[ j + ch ];
+			j += 2;
+		}
+	}
+
+
+	n_wav_overdrive_engine( audio, count );
+
+
+	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+	{
+		s16 *ptr = (s16*) N_WAV_PTR( wav );
+
+		u32 j = x * 2;
+		for ( int i = 0; i < count; i++ )
+		{
+			ptr[ j + ch ] = (float) audio[ i ] * SHRT_MAX;
+			j += 2;
+		}
+	} else {
+		float *ptr = (float*) N_WAV_PTR( wav );
+
+		u32 j = x * 2;
+		for ( int i = 0; i < count; i++ )
+		{
+			ptr[ j + ch ] = (float) audio[ i ];
+			j += 2;
+		}
+	}
+
+
+	return;
+}
+
 #define n_wav_overdrive( w ) n_wav_overdrive_partial( w, 0, N_WAV_COUNT( w ) )
 
 void
 n_wav_overdrive_partial( n_wav *wav, u32 x, u32 sx )
 {
 
-	int count = sx;
+	u32 count = sx;
 
 
 	double *audio_l = (double*) n_memory_new_closed( count * sizeof( double ) );
 	double *audio_r = (double*) n_memory_new_closed( count * sizeof( double ) );
 
-	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
+
+#ifdef N_POSIX_PLATFORM_MAC
+
+	if ( n_wav_queue == NULL ) { n_wav_queue = [[NSOperationQueue alloc] init]; }
+
+
 	{
-		s16 *ptr = (s16*) N_WAV_PTR( wav );
+		NSOperation *o = [NSBlockOperation blockOperationWithBlock:^{
 
-		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
-		{
-			audio_l[ i ] = (double) ptr[ j + 0 ] / SHRT_MAX;
-			audio_r[ i ] = (double) ptr[ j + 1 ] / SHRT_MAX;
-			j += 2;
-		}
-	} else {
-		float *ptr = (float*) N_WAV_PTR( wav );
+			n_wav_overdrive_channel( wav, x, sx, audio_l, 0 );
 
-		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
-		{
-			audio_l[ i ] = (double) ptr[ j + 0 ];
-			audio_r[ i ] = (double) ptr[ j + 1 ];
-			j += 2;
-		}
+		}];
+		[n_wav_queue addOperation:o];
+	}
+
+	{
+		NSOperation *o = [NSBlockOperation blockOperationWithBlock:^{
+
+			n_wav_overdrive_channel( wav, x, sx, audio_r, 1 );
+
+		}];
+		[n_wav_queue addOperation:o];
 	}
 
 
-	n_wav_overdrive_channel( audio_l, count );
-	n_wav_overdrive_channel( audio_r, count );
+	[n_wav_queue waitUntilAllOperationsAreFinished];
 
+#else
 
-	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
-	{
-		s16 *ptr = (s16*) N_WAV_PTR( wav );
+	n_wav_overdrive_channel( wav, x, sx, audio_l, 0 );
+	n_wav_overdrive_channel( wav, x, sx, audio_r, 1 );
 
-		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
-		{
-			ptr[ j + 0 ] = (float) audio_l[ i ] * SHRT_MAX;
-			ptr[ j + 1 ] = (float) audio_r[ i ] * SHRT_MAX;
-			j += 2;
-		}
-	} else {
-		float *ptr = (float*) N_WAV_PTR( wav );
+#endif
 
-		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
-		{
-			ptr[ j + 0 ] = (float) audio_l[ i ];
-			ptr[ j + 1 ] = (float) audio_r[ i ];
-			j += 2;
-		}
-	}
 
 	n_memory_free_closed( audio_l );
 	n_memory_free_closed( audio_r );

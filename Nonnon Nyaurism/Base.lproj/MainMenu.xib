@@ -236,6 +236,12 @@
                         <action selector="n_plotter_menu_mute:" target="Voe-Tx-rLC" id="G0R-LM-dNe"/>
                     </connections>
                 </menuItem>
+                <menuItem title="Monaural" id="fWG-ZT-Wnm">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="n_plotter_menu_monaural:" target="Voe-Tx-rLC" id="Hbi-Pf-xle"/>
+                    </connections>
+                </menuItem>
                 <menuItem title="Copy Left to Right" id="yoR-jF-Udf">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
@@ -272,6 +278,19 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="n_plotter_menu_overdrive:" target="Voe-Tx-rLC" id="8aM-wo-JaI"/>
+                    </connections>
+                </menuItem>
+                <menuItem isSeparatorItem="YES" id="OSI-CT-VaV"/>
+                <menuItem title="White Noise" id="3DO-FQ-ram">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="n_plotter_menu_whitenoise:" target="Voe-Tx-rLC" id="kEJ-B8-x3i"/>
+                    </connections>
+                </menuItem>
+                <menuItem title="Pink Noise" id="duw-nx-nau">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="n_plotter_menu_pinknoise:" target="Voe-Tx-rLC" id="tnp-b0-R9p"/>
                     </connections>
                 </menuItem>
             </items>
