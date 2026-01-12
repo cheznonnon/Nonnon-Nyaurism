@@ -207,28 +207,40 @@
         </window>
         <menu id="nOP-Hw-V4y">
             <items>
-                <menuItem title="Undo" tag="1" keyEquivalent="z" id="KDi-qe-kvf">
+                <menuItem title="Undo" keyEquivalent="z" id="KDi-qe-kvf">
                     <connections>
                         <action selector="n_plotter_menu_undo:" target="Voe-Tx-rLC" id="dHa-Qj-cTh"/>
                     </connections>
                 </menuItem>
                 <menuItem isSeparatorItem="YES" id="TfC-KG-xUW"/>
-                <menuItem title="Cut" tag="2" keyEquivalent="x" id="xqN-Iv-MPg">
+                <menuItem title="Select All" tag="1" keyEquivalent="a" id="ENi-hj-DBe">
+                    <connections>
+                        <action selector="n_plotter_menu_select_all:" target="Voe-Tx-rLC" id="xbh-nH-SgF"/>
+                    </connections>
+                </menuItem>
+                <menuItem title="Unselect" tag="1" id="u5l-zA-8Gw">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="n_plotter_menu_unselect:" target="Voe-Tx-rLC" id="GFj-xP-GGd"/>
+                    </connections>
+                </menuItem>
+                <menuItem isSeparatorItem="YES" id="ykb-0P-PMl"/>
+                <menuItem title="Cut" tag="1" keyEquivalent="x" id="xqN-Iv-MPg">
                     <connections>
                         <action selector="n_plotter_menu_cut:" target="Voe-Tx-rLC" id="LvI-6H-LJU"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Copy" tag="3" keyEquivalent="c" id="Rmj-oy-OKj">
+                <menuItem title="Copy" tag="1" keyEquivalent="c" id="Rmj-oy-OKj">
                     <connections>
                         <action selector="n_plotter_menu_copy:" target="Voe-Tx-rLC" id="BQC-QY-nHX"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Paste" tag="4" keyEquivalent="v" id="pgC-oR-AgG">
+                <menuItem title="Paste" tag="1" keyEquivalent="v" id="pgC-oR-AgG">
                     <connections>
                         <action selector="n_plotter_menu_paste:" target="Voe-Tx-rLC" id="qDG-ZH-N77"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Overwrite/Mix" tag="5" keyEquivalent="b" id="slA-rk-qmZ">
+                <menuItem title="Overwrite/Mix" tag="1" keyEquivalent="b" id="slA-rk-qmZ">
                     <connections>
                         <action selector="n_plotter_menu_overwrite:" target="Voe-Tx-rLC" id="Vp2-Zj-74a"/>
                     </connections>

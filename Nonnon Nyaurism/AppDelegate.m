@@ -937,21 +937,9 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 	{
 //NSLog( @"%@ : %ld", menuItem.title, menuItem.tag );
 
-		// [!] : tag is set by right-pane of XIB
+		// [!] : you can set tag by right-pane of XIB
 
-		if ( menuItem.tag == 2 ) // "Cut"
-		{
-			return NO;
-		} else
-		if ( menuItem.tag == 3 ) // "Copy"
-		{
-			return NO;
-		} else
-		if ( menuItem.tag == 4 ) // "Paste"
-		{
-			return NO;
-		} else
-		if ( menuItem.tag == 5 ) // "Overwrite/Mix"
+		if ( menuItem.tag == 1 )
 		{
 			return NO;
 		}
@@ -972,6 +960,22 @@ NSLog( @"menuNeedsUpdate" );
 - (IBAction)n_plotter_menu_undo:(id)sender {
 
 	n_nyaurism_plotter_undo( &n_nyaurism_wav );
+
+	[_n_plotter display];
+
+}
+
+- (IBAction)n_plotter_menu_select_all:(id)sender {
+
+	n_nyaurism_plotter_select_all( &n_nyaurism_wav );
+
+	[_n_plotter display];
+
+}
+
+- (IBAction)n_plotter_menu_unselect:(id)sender {
+
+	n_nyaurism_plotter_selection_off();
 
 	[_n_plotter display];
 
