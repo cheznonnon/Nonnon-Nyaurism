@@ -1130,7 +1130,7 @@ n_wav_marsian_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ra
 	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
-	const u32 unit = (u32) ( (n_type_real) 44100 * 0.125 );
+	const u32 unit = (u32) ( (n_type_real) N_WAV_RATE( wav ) * 0.125 );
 
 
 	n_random_shuffle();

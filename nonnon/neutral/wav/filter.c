@@ -799,7 +799,7 @@ n_wav_martian_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_re
 	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
-	const u32 unit = (u32) ( (n_type_real) 44100 * 0.125 );
+	const u32 unit = (u32) ( (n_type_real) N_WAV_RATE( wav ) * 0.125 );
 
 
 	n_random_shuffle();
@@ -1368,40 +1368,55 @@ n_wav_insert( n_wav *wav, n_wav *ins, u32 x, u32 sx )
 
 
 #define N_WAV_COPY_SET 0
-#define N_WAV_COPY_MIX 1
-#define N_WAV_COPY_ADD 2
+#define N_WAV_COPY_ADD 1
+#define N_WAV_COPY_MIX 2
 
-#define n_wav_set( f,t, l,r ) n_wav_copy( f,t, 0,0, 0, l,r, N_WAV_COPY_SET )
-#define n_wav_mix( f,t, l,r ) n_wav_copy( f,t, 0,0, 0, l,r, N_WAV_COPY_MIX )
-#define n_wav_add( f,t, l,r ) n_wav_copy( f,t, 0,0, 0, l,r, N_WAV_COPY_ADD )
+#define n_wav_copy_set( f,t, x,sx, tx      ) n_wav_copy( f,t, x,sx, tx, 0,0, N_WAV_COPY_SET )
+#define n_wav_copy_add( f,t, x,sx, tx      ) n_wav_copy( f,t, x,sx, tx, 0,0, N_WAV_COPY_ADD )
+#define n_wav_copy_mix( f,t, x,sx, tx, l,r ) n_wav_copy( f,t, x,sx, tx, l,r, N_WAV_COPY_MIX )
 
 void
-n_wav_copy( n_wav *f, n_wav *t, u32 fx, u32 sx, u32 tx, n_type_real ratio_l, n_type_real ratio_r, int mode )
+n_wav_copy( n_wav *f, n_wav *t, n_type_int _fx, n_type_int _fsx, n_type_int _tx, n_type_real ratio_l, n_type_real ratio_r, int mode )
 {
+
+	// [!] : ratio_* : -1 : no touch
 
 	if ( n_wav_error_format( f ) ) { return; }
 	if ( n_wav_error_format( t ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( f, fx ) ) { return; }
-	if ( n_posix_false == n_wav_sample_is_accessible( t, tx ) ) { return; }
+
+	n_type_int count_f = N_WAV_COUNT( f );
+	n_type_int count_t = N_WAV_COUNT( t );
+
+//NSLog( @"%lld %lld : %lld : %lld %lld", _fx, _fsx, _tx, count_f, count_t ); return;
 
 
-	u32 count_f = N_WAV_COUNT( f );
-	u32 count_t = N_WAV_COUNT( t );
+	// Phase 1 : out of left corner
 
-	if ( sx == 0 ) { sx = count_f; }
+	if ( _fx < 0 ) { _fsx -= n_posix_abs_n_type_int( _fx ); _tx += n_posix_abs_n_type_int( _fx ); _fx = 0; }
+	if ( _tx < 0 ) { _fsx -= n_posix_abs_n_type_int( _tx ); _fx += n_posix_abs_n_type_int( _tx ); _tx = 0; }
 
-	if ( fx >= count_f ) { return; }
-	if ( fx <        0 ) { sx += fx; tx += ( fx * -1 ); fx = 0; }
-
-	if ( tx >= count_t ) { return; }
-	if ( tx <        0 ) { sx += tx; fx += ( fx * -1 ); tx = 0; }
-
-	if ( sx <=       0 ) { return; }
+	if ( _fsx <= 0 ) { return; }
 
 
-	n_type_real l, r;
+	// Phase 2 : out of right corner
 
+	if ( _fx >= count_f ) { return; }
+	if ( _tx >= count_t ) { return; }
+
+
+	// [!] : not supported
+
+//NSLog( @"%lld %lld : %lld", _fx, _fsx, _tx ); //return;
+
+	if ( _fx  < 0 ) { return; } else if ( _fx  > UINT_MAX ) { return; }
+	if ( _tx  < 0 ) { return; } else if ( _tx  > UINT_MAX ) { return; }
+	if ( _fsx < 0 ) { return; } else if ( _fsx > UINT_MAX ) { return; }
+
+
+	u32 fx  = (u32) _fx;
+	u32 fsx = (u32) _fsx;
+	u32 tx  = (u32) _tx;
 
 	u32 x = 0;
 	n_posix_loop
@@ -1411,24 +1426,73 @@ n_wav_copy( n_wav *f, n_wav *t, u32 fx, u32 sx, u32 tx, n_type_real ratio_l, n_t
 		if ( ( tx + x ) >= count_t ) { break; }
 
 
-		n_wav_sample_get( f, fx + x, &l, &r );
+		n_type_real l_f, r_f; n_wav_sample_get( f, fx + x, &l_f, &r_f );
+		n_type_real l_t, r_t; n_wav_sample_get( t, tx + x, &l_t, &r_t );
 
 		if ( mode == N_WAV_COPY_SET )
 		{
-			n_wav_sample_set( t, tx + x, l * ratio_l, r * ratio_r );
+			n_type_real dat_l;
+			if ( ratio_l == -1 )
+			{
+				dat_l = l_t;
+			} else {
+				dat_l = l_f;
+			}
+
+			n_type_real dat_r;
+			if ( ratio_r == -1 )
+			{
+				dat_r = r_t;
+			} else {
+				dat_r = r_f;
+			}
+
+			n_wav_sample_set( t, tx + x, dat_l, dat_r );
 		} else
 		if ( mode == N_WAV_COPY_MIX )
 		{
-			n_wav_sample_mix( t, tx + x, l, r, ratio_l, ratio_r );
+			n_type_real dat_l;
+			if ( ratio_l == -1 )
+			{
+				dat_l = l_t;
+			} else {
+				dat_l = n_wav_sample_blend( l_f, l_t, ratio_l );
+			}
+
+			n_type_real dat_r;
+			if ( ratio_r == -1 )
+			{
+				dat_r = r_t;
+			} else {
+				dat_r = n_wav_sample_blend( r_f, r_t, ratio_r );
+			}
+
+			n_wav_sample_add( t, tx + x, dat_l, dat_r );
 		} else
 		if ( mode == N_WAV_COPY_ADD )
 		{
-			n_wav_sample_add( t, tx + x, l * ratio_l, r * ratio_r );
+			n_type_real dat_l;
+			if ( ratio_l == -1 )
+			{
+				dat_l = l_t;
+			} else {
+				dat_l = l_f + l_t;
+			}
+
+			n_type_real dat_r;
+			if ( ratio_r == -1 )
+			{
+				dat_r = r_t;
+			} else {
+				dat_r = r_f + r_t;
+			}
+
+			n_wav_sample_add( t, tx + x, dat_l, dat_r );
 		}// else
 
 
 		x++;
-		if ( x >= sx ) { break; }
+		if ( x >= fsx ) { break; }
 	}
 
 

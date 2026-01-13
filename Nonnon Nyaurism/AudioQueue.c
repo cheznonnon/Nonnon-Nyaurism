@@ -53,6 +53,7 @@ n_mac_sound_AudioQueue_callback
 void
 n_mac_sound_AudioQueue_init( n_wav *wav, u32 x, u32 sx )
 {
+//NSLog( @"%d", N_WAV_RATE( wav ) );
 
 	n_mac_sound_AudioQueue *player = &n_mac_sound_AudioQueue_instance;
 
@@ -114,7 +115,19 @@ n_mac_sound_AudioQueue_init( n_wav *wav, u32 x, u32 sx )
 			if ( i >= sx ) { break; }
 		}
 	} else {
-		memcpy( audioData, N_WAV_PTR( wav ), byte );
+		u32 i = 0;
+		u32 j = 0;
+		n_posix_loop
+		{
+
+			n_type_real l,r; n_wav_sample_get( wav, x + i, &l, &r );
+
+			audioData[ j + 0 ] = l;
+			audioData[ j + 1 ] = r;
+
+			i++; j += ch;
+			if ( i >= sx ) { break; }
+		}
 	}
 
 

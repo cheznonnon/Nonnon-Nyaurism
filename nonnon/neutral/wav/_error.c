@@ -34,7 +34,7 @@ n_wav_error_format( const n_wav *wav )
 		if ( 32 != N_WAV_BIT( wav ) ) { return n_posix_true; }
 	}
 
-	if ( 44100 != N_WAV_RATE  ( wav ) ) { return n_posix_true; }
+	//if ( 44100 != N_WAV_RATE( wav ) ) { return n_posix_true; }
 
 
 	return n_posix_false;

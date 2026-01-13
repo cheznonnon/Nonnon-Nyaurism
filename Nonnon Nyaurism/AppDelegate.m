@@ -52,7 +52,7 @@ static float n_nyaurism_seekbar_float_norm = -1;
 #define n_nyaurism_now_playing() ( n_nyaurism_seekbar_float_norm != -1 )
 
 static n_wav n_nyaurism_wav_undo;
-static n_wav n_nyaurism_wav_slider_orig;
+static n_wav n_nyaurism_wav_base;
 
 static NSSlider *n_slider_body_l_global;
 static NSSlider *n_slider_body_r_global;
@@ -94,6 +94,16 @@ n_nyaurism_slider_redraw( n_wav *wav )
 	n_slider_label_l_global.stringValue = [NSString stringWithFormat:@"%0.0f%%", n_slider_value_l_global * 100];;
 	n_slider_label_r_global.stringValue = [NSString stringWithFormat:@"%0.0f%%", n_slider_value_r_global * 100];;
 
+
+	return;
+}
+
+void
+n_nyaurism_backup( n_wav *f, n_wav *t )
+{
+
+	n_wav_free( t );
+	n_wav_carboncopy( f, t );
 
 	return;
 }
@@ -197,11 +207,8 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 - (BOOL)startTrackingAt:(NSPoint)startPoint inView:(NSView *)controlView {
 //NSLog(@"startTrackingAt");
 
-	n_wav_free( &n_nyaurism_wav_undo );
-	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_undo );
-
-	n_wav_free( &n_nyaurism_wav_slider_orig );
-	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_slider_orig );
+	n_nyaurism_backup( &n_nyaurism_wav, &n_nyaurism_wav_undo );
+	n_nyaurism_backup( &n_nyaurism_wav, &n_nyaurism_wav_base );
 
 	return [super startTrackingAt:startPoint inView:controlView];
 }
@@ -378,7 +385,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 	n_wav_martian( &n_nyaurism_wav, 0.25, 0.25 );
 
 	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_undo );
-	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_slider_orig );
+	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_base );
 
 	n_plotter_global = _n_plotter;
 
@@ -582,11 +589,8 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 			[self NonnonNyaurismTitle];
 
-			n_wav_free( &n_nyaurism_wav_undo );
-			n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_undo );
-
-			n_wav_free( &n_nyaurism_wav_slider_orig );
-			n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_slider_orig );
+			n_nyaurism_backup( &n_nyaurism_wav, &n_nyaurism_wav_undo );
+			n_nyaurism_backup( &n_nyaurism_wav, &n_nyaurism_wav_base );
 
 			n_nyaurism_plotter_selection_off();
 
@@ -808,8 +812,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 	{
 //NSLog( @"_n_button_eq" );
 
-		n_wav_free( &n_nyaurism_wav_slider_orig );
-		n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_slider_orig );
+		n_nyaurism_backup( &n_nyaurism_wav, &n_nyaurism_wav_base );
 
 		NSRect parent = [_window      frame];
 		NSRect child  = [_n_eq_window frame];
@@ -967,7 +970,7 @@ NSLog( @"menuNeedsUpdate" );
 
 - (IBAction)n_plotter_menu_select_all:(id)sender {
 
-	n_nyaurism_plotter_select_all( &n_nyaurism_wav );
+	n_nyaurism_plotter_select_all( &n_nyaurism_wav, YES );
 
 	[_n_plotter display];
 
@@ -991,7 +994,7 @@ NSLog( @"menuNeedsUpdate" );
 
 - (IBAction)n_plotter_menu_copy:(id)sender {
 
-	n_nyaurism_plotter_copy( &n_nyaurism_wav );
+	n_nyaurism_plotter_copy( &n_nyaurism_wav, &n_nyaurism_plotter_selection_clip );
 
 	[_n_plotter display];
 
@@ -1106,8 +1109,7 @@ NSLog( @"menuNeedsUpdate" );
 	_n_slider_label_l.stringValue = [self NonnonNyaurismSliderLabel:n_slider_value_l_global];
 
 
-	n_wav_free( &n_nyaurism_wav );
-	n_wav_carboncopy( &n_nyaurism_wav_slider_orig, &n_nyaurism_wav );
+	n_nyaurism_backup( &n_nyaurism_wav_base, &n_nyaurism_wav );
 
 
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( &n_nyaurism_wav, &x, &sx );
@@ -1132,8 +1134,7 @@ NSLog( @"menuNeedsUpdate" );
 	_n_slider_label_r.stringValue = [self NonnonNyaurismSliderLabel:n_slider_value_r_global];
 
 
-	n_wav_free( &n_nyaurism_wav );
-	n_wav_carboncopy( &n_nyaurism_wav_slider_orig, &n_nyaurism_wav );
+	n_nyaurism_backup( &n_nyaurism_wav_base, &n_nyaurism_wav );
 
 
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( &n_nyaurism_wav, &x, &sx );
@@ -1389,11 +1390,8 @@ NSLog( @"menuNeedsUpdate" );
 //NSLog( @"%f", gains_db[ 0 ] );
 
 
-	n_wav_free( &n_nyaurism_wav_undo );
-	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_undo );
-
-	n_wav_free( &n_nyaurism_wav_slider_orig );
-	n_wav_carboncopy( &n_nyaurism_wav, &n_nyaurism_wav_slider_orig );
+	n_nyaurism_backup( &n_nyaurism_wav, &n_nyaurism_wav_undo );
+	n_nyaurism_backup( &n_nyaurism_wav, &n_nyaurism_wav_base );
 
 
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( &n_nyaurism_wav, &x, &sx );
@@ -1413,9 +1411,9 @@ NSLog( @"menuNeedsUpdate" );
 
 		if ( n_nyaurism_mix_onoff )
 		{
-			n_wav_copy( &tmp, &n_nyaurism_wav, x, sx, x, 1.0, 1.0, N_WAV_COPY_ADD );
+			n_wav_copy_add( &tmp, &n_nyaurism_wav, x, sx, x );
 		} else {
-			n_wav_copy( &tmp, &n_nyaurism_wav, x, sx, x, 1.0, 1.0, N_WAV_COPY_SET );
+			n_wav_copy_set( &tmp, &n_nyaurism_wav, x, sx, x );
 		}
 
 		n_wav_free( &tmp );

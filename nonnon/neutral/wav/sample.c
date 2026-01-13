@@ -81,6 +81,23 @@ n_wav_sample_clamp( n_wav *wav, n_type_real d )
 }
 
 n_type_real
+n_wav_sample_blend( n_type_real f, n_type_real t, n_type_real blend )
+{
+
+	if ( blend <= 0.0 ) { return f; }
+	if ( blend >= 1.0 ) { return t; }
+
+	n_type_real d = ( f - t ) * blend;
+
+	if ( f > t )
+	{
+		return f - (int) n_posix_max_n_type_real(  1.0, d );
+	} else {
+		return f - (int) n_posix_min_n_type_real( -1.0, d );
+	}
+}
+
+n_type_real
 n_wav_sample_amp( n_wav *wav )
 {
 
@@ -247,7 +264,7 @@ n_wav_sample_hz2sample( n_wav *wav, n_type_real hz )
 	static n_type_real p_hz = 0;
 	static n_type_real ret  = 0;
 
-	if ( p_hz != hz ) { ret = 44100.0 / hz; p_hz = hz; }
+	if ( p_hz != hz ) { ret = N_WAV_RATE( wav ) / hz; p_hz = hz; }
 
 
 	return ret;
