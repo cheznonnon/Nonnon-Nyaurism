@@ -37,6 +37,8 @@ n_nyaurism_plotter_select_all( n_wav *wav, BOOL tip )
 		n_nyaurism_tooltip_calc( n_nyaurism_plotter_selection_size_pixel );
 	}
 
+	n_nyaurism_slider_redraw( wav );
+
 
 	return;
 }
@@ -59,11 +61,11 @@ n_nyaurism_plotter_mute( n_wav *wav )
 
 	if ( n_nyaurism_plotter_selection_shift_onoff )
 	{
-		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		if ( n_nyaurism_plotter_selection_channel == 1 )
 		{
 			r = FALSE;
 		} else
-		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		if ( n_nyaurism_plotter_selection_channel == 2 )
 		{
 			l = FALSE;
 		}
@@ -151,6 +153,8 @@ n_nyaurism_plotter_paste( n_wav *wav )
 
 	n_nyaurism_backup( wav, &n_nyaurism_wav_base );
 
+	n_nyaurism_slider_redraw( wav );
+
 
 	return;
 }
@@ -186,6 +190,8 @@ n_nyaurism_plotter_overwrite( n_wav *wav )
 
 	n_nyaurism_backup( wav, &n_nyaurism_wav_base );
 
+	n_nyaurism_slider_redraw( wav );
+
 
 	return;
 }
@@ -206,6 +212,8 @@ n_nyaurism_plotter_delete( n_wav *wav )
 
 	n_nyaurism_backup( wav, &n_nyaurism_wav_base );
 
+	n_nyaurism_slider_redraw( wav );
+
 
 	return;
 }
@@ -218,17 +226,19 @@ n_nyaurism_plotter_fade_in( n_wav *wav )
 
 
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( wav, &x, &sx );
+	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
+	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
 	n_type_real l = 1.0;
 	n_type_real r = 1.0;
 
 	if ( n_nyaurism_plotter_selection_shift_onoff )
 	{
-		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		if ( n_nyaurism_plotter_selection_channel == 1 )
 		{
 			l = 0.0;
 		} else
-		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		if ( n_nyaurism_plotter_selection_channel == 2 )
 		{
 			r = 0.0;
 		}
@@ -240,6 +250,8 @@ n_nyaurism_plotter_fade_in( n_wav *wav )
 
 
 	n_nyaurism_backup( wav, &n_nyaurism_wav_base );
+
+	n_nyaurism_slider_redraw( wav );
 
 
 	return;
@@ -253,17 +265,19 @@ n_nyaurism_plotter_fade_out( n_wav *wav )
 
 
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( wav, &x, &sx );
+	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
+	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
 	n_type_real l = 1.0;
 	n_type_real r = 1.0;
 
 	if ( n_nyaurism_plotter_selection_shift_onoff )
 	{
-		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		if ( n_nyaurism_plotter_selection_channel == 1 )
 		{
 			l = 0.0;
 		} else
-		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		if ( n_nyaurism_plotter_selection_channel == 2 )
 		{
 			r = 0.0;
 		}
@@ -275,6 +289,8 @@ n_nyaurism_plotter_fade_out( n_wav *wav )
 
 
 	n_nyaurism_backup( wav, &n_nyaurism_wav_base );
+
+	n_nyaurism_slider_redraw( wav );
 
 
 	return;
@@ -295,10 +311,10 @@ n_nyaurism_plotter_monoaural( n_wav *wav )
 
 	n_wav_monaural_partial( wav, x, sx, 1.0, 1.0 );
 
-	n_nyaurism_slider_redraw( wav );
-
 
 	n_nyaurism_backup( wav, &n_nyaurism_wav_base );
+
+	n_nyaurism_slider_redraw( wav );
 
 
 	return;
@@ -319,10 +335,10 @@ n_nyaurism_plotter_L2R( n_wav *wav )
 
 	n_wav_L2R_partial( wav, x, sx );
 
-	n_nyaurism_slider_redraw( wav );
-
 
 	n_nyaurism_backup( wav, &n_nyaurism_wav_base );
+
+	n_nyaurism_slider_redraw( wav );
 
 
 	return;
@@ -343,10 +359,10 @@ n_nyaurism_plotter_R2L( n_wav *wav )
 
 	n_wav_R2L_partial( wav, x, sx );
 
-	n_nyaurism_slider_redraw( wav );
-
 
 	n_nyaurism_backup( wav, &n_nyaurism_wav_base );
+
+	n_nyaurism_slider_redraw( wav );
 
 
 	return;
@@ -368,11 +384,11 @@ n_nyaurism_plotter_smoother( n_wav *wav )
 
 	if ( n_nyaurism_plotter_selection_shift_onoff )
 	{
-		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		if ( n_nyaurism_plotter_selection_channel == 1 )
 		{
 			l = n_posix_false;
 		} else
-		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		if ( n_nyaurism_plotter_selection_channel == 2 )
 		{
 			r = n_posix_false;
 		}
@@ -380,10 +396,10 @@ n_nyaurism_plotter_smoother( n_wav *wav )
 
 	n_wav_smoother_partial( wav, x, sx, l, r );
 
-	n_nyaurism_slider_redraw( wav );
-
 
 	n_nyaurism_backup( wav, &n_nyaurism_wav_base );
+
+	n_nyaurism_slider_redraw( wav );
 
 
 	return;
@@ -405,11 +421,11 @@ n_nyaurism_plotter_overdrive( n_wav *wav )
 
 	if ( n_nyaurism_plotter_selection_shift_onoff )
 	{
-		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		if ( n_nyaurism_plotter_selection_channel == 1 )
 		{
 			l = n_posix_false;
 		} else
-		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		if ( n_nyaurism_plotter_selection_channel == 2 )
 		{
 			r = n_posix_false;
 		}
@@ -417,10 +433,10 @@ n_nyaurism_plotter_overdrive( n_wav *wav )
 
 	n_wav_overdrive_partial( wav, x, sx, l, r );
 
-	n_nyaurism_slider_redraw( wav );
-
 
 	n_nyaurism_backup( wav, &n_nyaurism_wav_base );
+
+	n_nyaurism_slider_redraw( wav );
 
 
 	return;
@@ -442,11 +458,11 @@ n_nyaurism_plotter_whitenoise( n_wav *wav )
 
 	if ( n_nyaurism_plotter_selection_shift_onoff )
 	{
-		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		if ( n_nyaurism_plotter_selection_channel == 1 )
 		{
 			l = 0.0;
 		} else
-		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		if ( n_nyaurism_plotter_selection_channel == 2 )
 		{
 			r = 0.0;
 		}
@@ -454,10 +470,10 @@ n_nyaurism_plotter_whitenoise( n_wav *wav )
 
 	n_wav_whitenoise_partial( wav, 44100, x, sx, l, r );
 
-	n_nyaurism_slider_redraw( wav );
-
 
 	n_nyaurism_backup( wav, &n_nyaurism_wav_base );
+
+	n_nyaurism_slider_redraw( wav );
 
 
 	return;
@@ -479,11 +495,11 @@ n_nyaurism_plotter_pinknoise( n_wav *wav )
 
 	if ( n_nyaurism_plotter_selection_shift_onoff )
 	{
-		if ( n_nyaurism_plotter_selection_shift_ch == 1 )
+		if ( n_nyaurism_plotter_selection_channel == 1 )
 		{
 			l = 0.0;
 		} else
-		if ( n_nyaurism_plotter_selection_shift_ch == 2 )
+		if ( n_nyaurism_plotter_selection_channel == 2 )
 		{
 			r = 0.0;
 		}
@@ -491,10 +507,10 @@ n_nyaurism_plotter_pinknoise( n_wav *wav )
 
 	n_wav_pinknoise_partial( wav, 0, x, sx, l, r );
 
-	n_nyaurism_slider_redraw( wav );
-
 
 	n_nyaurism_backup( wav, &n_nyaurism_wav_base );
+
+	n_nyaurism_slider_redraw( wav );
 
 
 	return;

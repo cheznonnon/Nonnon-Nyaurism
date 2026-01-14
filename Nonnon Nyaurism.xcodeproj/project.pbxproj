@@ -15,7 +15,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				AudioQueue.c,
-				fft_histogram.c,
+				plotter_verb.c,
 				plotter.m,
 				stub.c,
 			);

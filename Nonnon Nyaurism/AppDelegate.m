@@ -39,6 +39,8 @@ static float n_nyaurism_playback_msec_sx = 0;
 
 // [!] : plotter.m uses these variables and n_nyaurism_slider_redraw()
 
+static AppDelegate *n_self = nil;
+
 static NSString *n_nyaurism_fname;
 
 static n_bmp n_nyaurism_bmp;
@@ -63,6 +65,8 @@ static NSTextField *n_slider_label_r_global;
 static n_type_real n_slider_value_l_global;
 static n_type_real n_slider_value_r_global;
 
+static int n_nyaurism_plotter_selection_channel = 0;
+
 void
 n_nyaurism_slider_redraw( n_wav *wav )
 {
@@ -84,15 +88,24 @@ n_nyaurism_slider_redraw( n_wav *wav )
 	n_slider_value_r_global = hi_r / n_wav_sample_amp( wav );
 //NSLog( @"%f %f %f %f", hi_l, hi_r, n_slider_value_l_global, n_slider_value_r_global );
 
-	//if ( n_slider_value_l_global == 0.0 ) { n_slider_value_l_global = 1.0; }
-	//if ( n_slider_value_r_global == 0.0 ) { n_slider_value_r_global = 1.0; }
-
 	[n_slider_body_l_global setIntValue:n_slider_value_l_global * 100];
 	[n_slider_body_r_global setIntValue:n_slider_value_r_global * 100];
 
 
 	n_slider_label_l_global.stringValue = [NSString stringWithFormat:@"%0.0f%%", n_slider_value_l_global * 100];;
 	n_slider_label_r_global.stringValue = [NSString stringWithFormat:@"%0.0f%%", n_slider_value_r_global * 100];;
+
+
+	if ( n_nyaurism_plotter_selection_channel == 1 )
+	{
+		[n_self NonnonNyaurismSliderUIOnOff:nil L:FALSE R:TRUE];
+	} else
+	if ( n_nyaurism_plotter_selection_channel == 2 )
+	{
+		[n_self NonnonNyaurismSliderUIOnOff:nil L:TRUE R:FALSE];
+	} else {
+		[n_self NonnonNyaurismSliderUIOnOff:nil L:TRUE R:TRUE];
+	}
 
 
 	return;
@@ -347,6 +360,8 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 - (void)awakeFromNib
 {
+
+	n_self = self;
 
 	n_mac_image_window = _window;
 	n_gdi_scale_factor = n_mac_image_window.backingScaleFactor;
@@ -635,6 +650,36 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 
 
+- (void) NonnonNyaurismSliderUIOnOff:(void*)stub L:(BOOL)onoff_l R:(BOOL)onoff_r
+{
+
+	CGFloat blend_l;
+	if ( onoff_l )
+	{
+		blend_l = 1.0;
+	} else {
+		blend_l = 0.2;
+	}
+
+	[_n_slider_body_l       setEnabled:onoff_l];
+	[_n_slider_label_base_l setAlphaValue:blend_l];
+	[_n_slider_label_l      setAlphaValue:blend_l];
+
+
+	CGFloat blend_r;
+	if ( onoff_r )
+	{
+		blend_r = 1.0;
+	} else {
+		blend_r = 0.2;
+	}
+
+	[_n_slider_body_r       setEnabled:onoff_r];
+	[_n_slider_label_base_r setAlphaValue:blend_r];
+	[_n_slider_label_r      setAlphaValue:blend_r];
+
+}
+
 - (void) NonnonNyaurismPlaybackUIOnOff:(BOOL)onoff
 {
 
@@ -644,8 +689,6 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 	[_n_button_save    n_enable:onoff]; [_n_button_save    display];
 	[_n_button_eq      n_enable:onoff]; [_n_button_eq      display];
 
-	[_n_slider_body_l setEnabled:onoff];
-	[_n_slider_body_r setEnabled:onoff];
 
 	CGFloat blend;
 	if ( onoff )
@@ -655,11 +698,13 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 		blend = 0.2;
 	}
 
+	[_n_slider_body_l       setEnabled:onoff];
 	[_n_slider_label_base_l setAlphaValue:blend];
-	[_n_slider_label_base_r setAlphaValue:blend];
+	[_n_slider_label_l      setAlphaValue:blend];
 
-	[_n_slider_label_l setAlphaValue:blend];
-	[_n_slider_label_r setAlphaValue:blend];
+	[_n_slider_body_r       setEnabled:onoff];
+	[_n_slider_label_base_r setAlphaValue:blend];
+	[_n_slider_label_r      setAlphaValue:blend];
 
 }
 
@@ -1409,12 +1454,17 @@ NSLog( @"menuNeedsUpdate" );
 
 		n_fft_equalizer_apply( &tmp, gains_db, num_bands, N_NYAURISM_FFT_RESOLUTION );
 
+
+		n_type_real l = 1.0; if ( n_nyaurism_plotter_selection_channel == 1 ) { l = -1; }
+		n_type_real r = 1.0; if ( n_nyaurism_plotter_selection_channel == 2 ) { r = -1; }
+
 		if ( n_nyaurism_mix_onoff )
 		{
-			n_wav_copy_add( &tmp, &n_nyaurism_wav, x, sx, x );
+			n_wav_copy( &tmp, &n_nyaurism_wav, x, sx, x, l, r, N_WAV_COPY_ADD );
 		} else {
-			n_wav_copy_set( &tmp, &n_nyaurism_wav, x, sx, x );
+			n_wav_copy( &tmp, &n_nyaurism_wav, x, sx, x, l, r, N_WAV_COPY_SET );
 		}
+
 
 		n_wav_free( &tmp );
 	}

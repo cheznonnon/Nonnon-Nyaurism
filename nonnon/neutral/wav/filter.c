@@ -54,7 +54,7 @@ n_wav_peak_value( n_wav *wav, u32 x, u32 sx, n_type_real *ret_l, n_type_real *re
 	if ( n_wav_queue == NULL ) { n_wav_queue = [[NSOperationQueue alloc] init]; }
 
 	u32 cores = n_posix_cpu_count(); if ( sx < cores ) { cores = 1; }
-	u32 byte  = ( cores + 1 ) * sizeof( n_type_real );
+	u32 byte  = ( cores + 1 ) * sizeof( n_type_real ); // [!] : +1 for "rest"
 
 	__block n_type_real *hi_l_mt = n_memory_new_closed( byte );
 	__block n_type_real *hi_r_mt = n_memory_new_closed( byte );
@@ -62,7 +62,8 @@ n_wav_peak_value( n_wav *wav, u32 x, u32 sx, n_type_real *ret_l, n_type_real *re
 	n_memory_zero( hi_l_mt, byte );
 	n_memory_zero( hi_r_mt, byte );
 
-	u32 t = sx / cores;
+	u32 slice = sx / cores;
+	u32 rest  = sx - ( slice * cores );
 
 	u32 i = 0;
 	n_posix_loop
@@ -73,9 +74,9 @@ n_wav_peak_value( n_wav *wav, u32 x, u32 sx, n_type_real *ret_l, n_type_real *re
 			u32 f = 0;
 			n_posix_loop
 			{
-				if ( f >= t ) { break; }
+				if ( f >= slice ) { break; }
 
-				u32 xx = x + f + ( t * i );
+				u32 xx = x + f + ( slice * i );
 
 				if ( n_wav_sample_is_accessible( wav, xx ) )
 				{
@@ -101,14 +102,14 @@ n_wav_peak_value( n_wav *wav, u32 x, u32 sx, n_type_real *ret_l, n_type_real *re
 
 	[n_wav_queue waitUntilAllOperationsAreFinished];
 
-	// [Needed] : rest
+	if ( rest )
 	{
-		u32 f = t * i;
+		u32 f = 0;
 		n_posix_loop
 		{
-			if ( f >= sx ) { break; }
+			if ( f >= rest ) { break; }
 
-			u32 xx = x + f;
+			u32 xx = x + f + ( slice * i );
 
 			if ( n_wav_sample_is_accessible( wav, xx ) )
 			{
@@ -134,7 +135,7 @@ n_wav_peak_value( n_wav *wav, u32 x, u32 sx, n_type_real *ret_l, n_type_real *re
 		hi_r = n_posix_max_n_type_real( hi_r, hi_r_mt[ i ] );
 
 		i++;
-		if ( i >= cores ) { break; }
+		if ( i >= ( cores + 1 ) ) { break; }
 	}
 
 	n_memory_free_closed( hi_l_mt );
@@ -692,7 +693,8 @@ n_wav_normalize_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_
 
 	u32 cores = n_posix_cpu_count(); if ( sx < cores ) { cores = 1; }
 
-	u32 t = sx / cores;
+	u32 slice = sx / cores;
+	u32 rest  = sx - ( slice * cores );
 
 
 	u32 i = 0;
@@ -703,9 +705,9 @@ n_wav_normalize_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_
 			u32 f = 0;
 			n_posix_loop
 			{
-				if ( f >= t ) { break; }
+				if ( f >= slice ) { break; }
 
-				u32 xx = x + f + ( t * i );
+				u32 xx = x + f + ( slice * i );
 
 				if ( n_wav_sample_is_accessible( wav, xx ) )
 				{
@@ -729,14 +731,14 @@ n_wav_normalize_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_
 
 	[n_wav_queue waitUntilAllOperationsAreFinished];
 
-	// [Needed] : rest
+	if ( rest )
 	{
-		u32 f = t * i;
+		u32 f = 0;
 		n_posix_loop
 		{
-			if ( f >= sx ) { break; }
+			if ( f >= rest ) { break; }
 
-			u32 xx = x + f;
+			u32 xx = x + f + ( slice * i );
 
 			if ( n_wav_sample_is_accessible( wav, xx ) )
 			{
@@ -1371,6 +1373,78 @@ n_wav_insert( n_wav *wav, n_wav *ins, u32 x, u32 sx )
 #define N_WAV_COPY_ADD 1
 #define N_WAV_COPY_MIX 2
 
+void
+n_wav_copy_engine( n_wav *f, n_wav *t, u32 fx, u32 fsx, u32 tx, u32 x, n_type_real ratio_l, n_type_real ratio_r, int mode )
+{
+
+	n_type_real l_f, r_f; n_wav_sample_get( f, fx + x, &l_f, &r_f );
+	n_type_real l_t, r_t; n_wav_sample_get( t, tx + x, &l_t, &r_t );
+
+	if ( mode == N_WAV_COPY_SET )
+	{
+		n_type_real dat_l;
+		if ( ratio_l == -1 )
+		{
+			dat_l = l_t;
+		} else {
+			dat_l = l_f;
+		}
+
+		n_type_real dat_r;
+		if ( ratio_r == -1 )
+		{
+			dat_r = r_t;
+		} else {
+			dat_r = r_f;
+		}
+
+		n_wav_sample_set( t, tx + x, dat_l, dat_r );
+	} else
+	if ( mode == N_WAV_COPY_MIX )
+	{
+		n_type_real dat_l;
+		if ( ratio_l == -1 )
+		{
+			dat_l = l_t;
+		} else {
+			dat_l = n_wav_sample_blend( l_f, l_t, ratio_l );
+		}
+
+		n_type_real dat_r;
+		if ( ratio_r == -1 )
+		{
+			dat_r = r_t;
+		} else {
+			dat_r = n_wav_sample_blend( r_f, r_t, ratio_r );
+		}
+
+		n_wav_sample_add( t, tx + x, dat_l, dat_r );
+	} else
+	if ( mode == N_WAV_COPY_ADD )
+	{
+		n_type_real dat_l;
+		if ( ratio_l == -1 )
+		{
+			dat_l = l_t;
+		} else {
+			dat_l = l_f + l_t;
+		}
+
+		n_type_real dat_r;
+		if ( ratio_r == -1 )
+		{
+			dat_r = r_t;
+		} else {
+			dat_r = r_f + r_t;
+		}
+
+		n_wav_sample_add( t, tx + x, dat_l, dat_r );
+	}// else
+
+
+	return;
+}
+
 #define n_wav_copy_set( f,t, x,sx, tx      ) n_wav_copy( f,t, x,sx, tx, 0,0, N_WAV_COPY_SET )
 #define n_wav_copy_add( f,t, x,sx, tx      ) n_wav_copy( f,t, x,sx, tx, 0,0, N_WAV_COPY_ADD )
 #define n_wav_copy_mix( f,t, x,sx, tx, l,r ) n_wav_copy( f,t, x,sx, tx, l,r, N_WAV_COPY_MIX )
@@ -1418,6 +1492,67 @@ n_wav_copy( n_wav *f, n_wav *t, n_type_int _fx, n_type_int _fsx, n_type_int _tx,
 	u32 fsx = (u32) _fsx;
 	u32 tx  = (u32) _tx;
 
+#ifdef N_POSIX_PLATFORM_MAC
+
+	if ( n_wav_queue == NULL ) { n_wav_queue = [[NSOperationQueue alloc] init]; }
+
+	u32 cores = n_posix_cpu_count(); if ( fsx < cores ) { cores = 1; }
+
+	u32 slice = fsx / cores;
+	u32 rest  = fsx - ( slice * cores );
+
+
+	u32 i = 0;
+	n_posix_loop
+	{
+		NSOperation *o = [NSBlockOperation blockOperationWithBlock:^{
+
+			u32 x = 0;
+			n_posix_loop
+			{//break;
+
+				u32 xx = x + ( slice * i );
+
+				if ( ( fx + xx ) >= count_f ) { break; }
+				if ( ( tx + xx ) >= count_t ) { break; }
+
+				n_wav_copy_engine( f, t, fx, fsx, tx, xx, ratio_l, ratio_r, mode );
+
+				x++;
+				if ( x >= slice ) { break; }
+			}
+
+		}];
+		[n_wav_queue addOperation:o];
+
+		i++;
+		if ( i >= cores ) { break; }
+	}
+
+	[n_wav_queue waitUntilAllOperationsAreFinished];
+
+	if ( rest )
+	{
+
+		u32 x = 0;
+		n_posix_loop
+		{//break;
+
+			u32 xx = x + ( slice * i );
+
+			if ( ( fx + xx ) >= count_f ) { break; }
+			if ( ( tx + xx ) >= count_t ) { break; }
+
+			n_wav_copy_engine( f, t, fx, fsx, tx, xx, ratio_l, ratio_r, mode );
+
+			x++;
+			if ( x >= rest ) { break; }
+		}
+
+	}
+
+#else
+
 	u32 x = 0;
 	n_posix_loop
 	{//break;
@@ -1425,75 +1560,13 @@ n_wav_copy( n_wav *f, n_wav *t, n_type_int _fx, n_type_int _fsx, n_type_int _tx,
 		if ( ( fx + x ) >= count_f ) { break; }
 		if ( ( tx + x ) >= count_t ) { break; }
 
-
-		n_type_real l_f, r_f; n_wav_sample_get( f, fx + x, &l_f, &r_f );
-		n_type_real l_t, r_t; n_wav_sample_get( t, tx + x, &l_t, &r_t );
-
-		if ( mode == N_WAV_COPY_SET )
-		{
-			n_type_real dat_l;
-			if ( ratio_l == -1 )
-			{
-				dat_l = l_t;
-			} else {
-				dat_l = l_f;
-			}
-
-			n_type_real dat_r;
-			if ( ratio_r == -1 )
-			{
-				dat_r = r_t;
-			} else {
-				dat_r = r_f;
-			}
-
-			n_wav_sample_set( t, tx + x, dat_l, dat_r );
-		} else
-		if ( mode == N_WAV_COPY_MIX )
-		{
-			n_type_real dat_l;
-			if ( ratio_l == -1 )
-			{
-				dat_l = l_t;
-			} else {
-				dat_l = n_wav_sample_blend( l_f, l_t, ratio_l );
-			}
-
-			n_type_real dat_r;
-			if ( ratio_r == -1 )
-			{
-				dat_r = r_t;
-			} else {
-				dat_r = n_wav_sample_blend( r_f, r_t, ratio_r );
-			}
-
-			n_wav_sample_add( t, tx + x, dat_l, dat_r );
-		} else
-		if ( mode == N_WAV_COPY_ADD )
-		{
-			n_type_real dat_l;
-			if ( ratio_l == -1 )
-			{
-				dat_l = l_t;
-			} else {
-				dat_l = l_f + l_t;
-			}
-
-			n_type_real dat_r;
-			if ( ratio_r == -1 )
-			{
-				dat_r = r_t;
-			} else {
-				dat_r = r_f + r_t;
-			}
-
-			n_wav_sample_add( t, tx + x, dat_l, dat_r );
-		}// else
-
+		n_wav_copy_engine( f, t, fx, fsx, tx, x, ratio_l, ratio_r, mode );
 
 		x++;
 		if ( x >= fsx ) { break; }
 	}
+
+#endif
 
 
 	return;

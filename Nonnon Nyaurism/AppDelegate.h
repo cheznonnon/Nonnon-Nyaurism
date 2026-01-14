@@ -9,6 +9,7 @@
 
 @interface AppDelegate : NSObject <NSApplicationDelegate, NSTextFieldDelegate, NSMenuDelegate, NSMenuItemValidation>
 
+- (void) NonnonNyaurismSliderUIOnOff:(void*)stub L:(BOOL)onoff_l R:(BOOL)onoff_r;
 
 @end
 
