@@ -18,7 +18,7 @@
 #include "../nonnon/neutral/fft.c"
 
 
-#include "../nonnon/win32/gdi.c"
+#include "../nonnon/bridge/gdi.c"
 
 
 #include "../nonnon/mac/window.c"
@@ -41,7 +41,7 @@
 #include "../../nonnon/neutral/fft.c"
 
 
-#include "../../nonnon/win32/gdi.c"
+#include "../../nonnon/bridge/gdi.c"
 
 
 #include "../../nonnon/mac/window.c"

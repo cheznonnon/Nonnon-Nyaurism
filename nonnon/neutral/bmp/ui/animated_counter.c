@@ -11,9 +11,8 @@
 
 
 
-#include "../../../win32/gdi.c"
-
-#include "../../../game/transition.c"
+#include "../../../bridge/gdi.c"
+#include "../../../bridge/transition.c"
 
 
 

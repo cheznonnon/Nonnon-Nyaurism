@@ -19,8 +19,8 @@
 
 #include "../neutral/txt.c"
 
-#include "../game/pmr.c"
-#include "../game/progressbar.c"
+#include "../bridge/pmr.c"
+#include "../bridge/progressbar.c"
 
 #include "./win/icon.c"
 

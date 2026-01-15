@@ -38,9 +38,8 @@
 
 #include "../neutral/txt.c"
 
-#include "../game/helper.c"
-
-#include "../win32/gdi.c"
+#include "../bridge/helper.c"
+#include "../bridge/gdi.c"
 
 
 #include "_mac.c"

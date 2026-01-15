@@ -14,7 +14,7 @@
 #include "../neutral/ini.c"
 #include "../neutral/string_path.c"
 
-#include "../win32/gdi.c"
+#include "../bridge/gdi.c"
 
 
 

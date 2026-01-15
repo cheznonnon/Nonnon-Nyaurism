@@ -20,7 +20,7 @@
 #include "../neutral/string_path.c"
 #include "../neutral/txt.c"
 
-#include "../game/helper.c"
+#include "../bridge/helper.c"
 
 
 
