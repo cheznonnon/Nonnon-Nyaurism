@@ -66,7 +66,7 @@
 
 	// [Needed] : NSTrackingMouseEnteredAndExited
 
-	if ( FALSE == n_mac_window_is_keywindow( self.window ) )
+	if ( n_false == n_mac_window_is_keywindow( self.window ) )
 	{
 		[self.window makeKeyWindow];
 	}
@@ -88,7 +88,7 @@
 {
 //NSLog( @"acceptsFirstMouse" );
 
-	if ( n_mac_window_is_hovered( n_plotter_global ) ) { return NO; }
+	if ( n_mac_window_is_hovered( n_nyaurism->plotter ) ) { return NO; }
 
 
 	return YES;
