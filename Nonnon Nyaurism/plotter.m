@@ -814,6 +814,7 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 				if ( n_nyaurism->plotter_selection_channel == 2 )
 				{
 					n_nyaurism_plotter_selection_off();
+					return;
 				}
 			} else
 			if ( ( pt.y > 128 )&&( pt.y < 256 ) )
@@ -821,6 +822,7 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 				if ( n_nyaurism->plotter_selection_channel == 1 )
 				{
 					n_nyaurism_plotter_selection_off();
+					return;
 				}
 			}
 		}
