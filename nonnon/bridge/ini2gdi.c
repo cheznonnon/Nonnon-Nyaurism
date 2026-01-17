@@ -170,7 +170,7 @@ n_ini2gdi_str2val( const n_posix_char *str, int index )
 	//	index  :  [0] [1] [2]
 
 
-	n_posix_bool onoff = n_posix_false;
+	BOOL onoff = FALSE;
 
 
 	int count = 0;
@@ -190,7 +190,7 @@ n_ini2gdi_str2val( const n_posix_char *str, int index )
 		)
 		{
 
-			onoff = n_posix_true;
+			onoff = TRUE;
 
 			if ( index == count )
 			{
@@ -202,7 +202,7 @@ n_ini2gdi_str2val( const n_posix_char *str, int index )
 
 			if ( onoff )
 			{
-				onoff = n_posix_false;
+				onoff = FALSE;
 				count++;
 			}
 
@@ -359,13 +359,13 @@ n_ini2gdi_str2option( const n_ini2gdi_option *o, const n_posix_char *str )
 	return ret;
 }
 
-n_posix_bool
+BOOL
 n_ini2gdi_load_single( const n_posix_char *abspath, const n_posix_char *section, n_bmp *b, n_gdi *gdi_ret )
 {
 
-	if ( n_posix_false == n_posix_stat_is_file( abspath ) ) { return n_posix_true; }
+	if ( FALSE == n_posix_stat_is_file( abspath ) ) { return TRUE; }
 
-	if ( n_string_is_empty( section ) ) { return n_posix_true; }
+	if ( n_string_is_empty( section ) ) { return TRUE; }
 
 
 	// Init
@@ -579,7 +579,7 @@ n_posix_debug_literal
 	gdi.icon_clip_x = n_ini2gdi_str2val( str, 0 );
 	gdi.icon_clip_y = n_ini2gdi_str2val( str, 1 );
 /*
-if ( n_posix_false == n_string_is_empty( gdi.icon_clip ) )
+if ( FALSE == n_string_is_empty( gdi.icon_clip ) )
 {
 	n_posix_debug_literal( "%d %d", gdi.icon_clip_x, gdi.icon_clip_y );
 }
@@ -752,7 +752,7 @@ n_posix_debug_literal
 		{
 //n_posix_debug_literal( "n_gdi_bmp()" );
 
-			return n_posix_true;
+			return TRUE;
 		}
 
 
@@ -762,14 +762,14 @@ n_posix_debug_literal
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_ini2gdi_load( const n_posix_char *abspath, n_bmp *b )
 {
 
-	if ( n_posix_false == n_posix_stat_is_file( abspath ) ) { return n_posix_true; }
+	if ( FALSE == n_posix_stat_is_file( abspath ) ) { return TRUE; }
 
 
 	const int maxcount = 32;
@@ -793,13 +793,13 @@ n_ini2gdi_load( const n_posix_char *abspath, n_bmp *b )
 	if ( ini.newline == N_TXT_NEWLINE_BINARY )
 	{
 		n_ini_free( &ini );
-		return n_posix_true;
+		return TRUE;
 	}
 
 
 	const n_posix_char *section = n_posix_literal( "Nonnon INI2GDI Layer" );
 
-	if ( n_posix_false == n_ini_section_chk( &ini, section ) )
+	if ( FALSE == n_ini_section_chk( &ini, section ) )
 	{
 		n_ini_free( &ini );
 
@@ -823,9 +823,9 @@ n_ini2gdi_load( const n_posix_char *abspath, n_bmp *b )
 		// [!] : comment-out support : pass through when not exist
 
 		if (
-			( n_posix_false == n_string_is_empty( label ) )
+			( FALSE == n_string_is_empty( label ) )
 			&&
-			( n_posix_false == n_ini2gdi_load_single( abspath, label, &layer[ i ].bmp, &layer[ i ].gdi ) )
+			( FALSE == n_ini2gdi_load_single( abspath, label, &layer[ i ].bmp, &layer[ i ].gdi ) )
 		)
 		{
 
@@ -862,7 +862,7 @@ n_ini2gdi_load( const n_posix_char *abspath, n_bmp *b )
 	n_ini_free( &ini );
 
 
-	if ( first == -1 ) { return n_posix_true; }
+	if ( first == -1 ) { return TRUE; }
 
 
 	n_bmp *t = &layer[ first ].bmp;
@@ -891,7 +891,7 @@ n_ini2gdi_load( const n_posix_char *abspath, n_bmp *b )
 			n_type_gfx psx = sx;
 			n_type_gfx psy = sy;
 
-			n_bmp_matrix_rotate( f, layer[ i ].rotate, bg, n_posix_true );
+			n_bmp_matrix_rotate( f, layer[ i ].rotate, bg, TRUE );
 
 			sx = N_BMP_SX( f );
 			sy = N_BMP_SX( f );
@@ -920,7 +920,7 @@ n_ini2gdi_load( const n_posix_char *abspath, n_bmp *b )
 	n_bmp_alias( t, b );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 

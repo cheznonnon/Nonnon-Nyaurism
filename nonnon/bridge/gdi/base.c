@@ -16,16 +16,16 @@
 
 
 
-#define n_gdi_base_luna_solid( gdi, bmp, color, sc ) n_gdi_base_luna( gdi, bmp, color, sc, n_posix_false )
-#define n_gdi_base_luna_press( gdi, bmp, color, sc ) n_gdi_base_luna( gdi, bmp, color, sc, n_posix_true  )
+#define n_gdi_base_luna_solid( gdi, bmp, color, sc ) n_gdi_base_luna( gdi, bmp, color, sc, FALSE )
+#define n_gdi_base_luna_press( gdi, bmp, color, sc ) n_gdi_base_luna( gdi, bmp, color, sc, TRUE  )
 
 void
-n_gdi_base_luna( n_gdi *gdi, n_bmp *bmp, u32 color, int scaling, n_posix_bool is_pressed )
+n_gdi_base_luna( n_gdi *gdi, n_bmp *bmp, u32 color, int scaling, BOOL is_pressed )
 {
 
 	u32 c1, c2, c3, c4;
 
-	if ( is_pressed == n_posix_false )
+	if ( is_pressed == FALSE )
 	{
 
 		c1 = n_bmp_white;
@@ -56,7 +56,7 @@ n_gdi_base_luna( n_gdi *gdi, n_bmp *bmp, u32 color, int scaling, n_posix_bool is
 	n_type_gfx sy = N_BMP_SY( bmp );
 	n_type_gfx o  = 2 * scaling;
 
-	if ( n_posix_true )
+	if ( TRUE )
 	{
 
 		n_bmp_gradient( bmp, 0,0,sx,sy, c2,c3, mode | type );

@@ -17,7 +17,7 @@
 
 
 
-n_posix_inline n_posix_bool
+n_posix_inline BOOL
 n_game_timer( u32 *prv, u32 interval )
 {
 
@@ -36,14 +36,14 @@ n_game_timer( u32 *prv, u32 interval )
 	{
 		(*prv) = cur;
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_inline n_posix_bool
+n_posix_inline BOOL
 n_game_timer_once( u32 *prv, u32 interval )
 {
 
@@ -62,11 +62,11 @@ n_game_timer_once( u32 *prv, u32 interval )
 	{
 		//(*prv) = cur;
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 

@@ -66,7 +66,7 @@
 
 	// [Needed] : NSTrackingMouseEnteredAndExited
 
-	if ( n_false == n_mac_window_is_keywindow( self.window ) )
+	if ( FALSE == n_mac_window_is_keywindow( self.window ) )
 	{
 		[self.window makeKeyWindow];
 	}

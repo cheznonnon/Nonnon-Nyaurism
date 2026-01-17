@@ -16,7 +16,7 @@
 
 	n_posix_char *str = n_mac_nsstring2str( nsstring );
 
-	n_posix_bool ret = n_txt_load_utf8( n_txt_data, str );
+	BOOL ret = n_txt_load_utf8( n_txt_data, str );
 	if ( ret ) { n_string_free( str ); return FALSE; }
 
 

@@ -60,7 +60,7 @@ n_game_pmr_gdi
 		n_path_maker( f, folder, f );
 	}
 
-	if ( n_posix_false == n_posix_stat_is_exist( f ) )
+	if ( FALSE == n_posix_stat_is_exist( f ) )
 	{
 		n_posix_mkdir( f );
 	}
@@ -133,7 +133,7 @@ n_game_pmr_gdi
 */
 /*
 void
-n_game_pmr_resize( n_posix_char *path, n_type_real ratio_x, n_type_real ratio_y, n_posix_bool resample_onoff )
+n_game_pmr_resize( n_posix_char *path, n_type_real ratio_x, n_type_real ratio_y, BOOL resample_onoff )
 {
 
 	// [ Mechanisnm ] : copy and paste then use it
@@ -203,8 +203,8 @@ n_game_pmr_resize( n_posix_char *path, n_type_real ratio_x, n_type_real ratio_y,
 //	n_game_pmr_calc( pmr_folder, string, size_needed, &sx, &sy, &ratio, direction );
 //	n_game_pmr_draw( pmr_folder, string, &bmp_canvas, x, y, ratio, direction );
 
-#define n_game_pmr_calc( f,s, z, sx,sy, r,    d ) n_game_pmr_draw_internal( f,s, z, n_posix_true ,   sx,  sy,   r, NULL, 0,0, 0, 0, d )
-#define n_game_pmr_draw( f,s,    b,x,y, r, c, d ) n_game_pmr_draw_internal( f,s, 0, n_posix_false, NULL,NULL,NULL,    b, x,y, r, c, d )
+#define n_game_pmr_calc( f,s, z, sx,sy, r,    d ) n_game_pmr_draw_internal( f,s, z, TRUE ,   sx,  sy,   r, NULL, 0,0, 0, 0, d )
+#define n_game_pmr_draw( f,s,    b,x,y, r, c, d ) n_game_pmr_draw_internal( f,s, 0, FALSE, NULL,NULL,NULL,    b, x,y, r, c, d )
 
 void
 n_game_pmr_draw_internal
@@ -212,7 +212,7 @@ n_game_pmr_draw_internal
 	const n_posix_char *folder,
 	const n_posix_char *str,
 	      n_type_gfx    size_needed,
-	      n_posix_bool  calc_only,
+	      BOOL          calc_only,
 	      n_type_gfx   *ret_sx,
 	      n_type_gfx   *ret_sy,
 	      n_type_real  *ret_ratio,
@@ -285,9 +285,9 @@ n_game_pmr_draw_internal
 
 		n_bmp_resampler( &bmp_char, ratio, ratio );
 
-		if ( calc_only == n_posix_false )
+		if ( calc_only == FALSE )
 		{
-			n_bmp_rasterizer( &bmp_char, bmp, x + xx, y + yy, color, n_posix_false );
+			n_bmp_rasterizer( &bmp_char, bmp, x + xx, y + yy, color, FALSE );
 		}
 
 		if ( direction == N_GAME_PMR_DRAW_L2R )

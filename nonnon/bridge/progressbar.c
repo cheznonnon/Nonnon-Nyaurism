@@ -34,8 +34,8 @@ static u32  n_game_progressbar_animation_interval = 10;
 static int n_game_progressbar_animation = N_GAME_PROGRESSBAR_ANIMATION_OFF;
 
 
-static n_posix_bool n_game_progressbar_solid        = n_posix_false;
-static n_posix_bool n_game_progressbar_no_round     = n_posix_false;
+static BOOL         n_game_progressbar_solid        = FALSE;
+static BOOL         n_game_progressbar_no_round     = FALSE;
 static n_type_gfx   n_game_progressbar_round_div    = 2;
 static n_type_gfx   n_game_progressbar_border       = 0;
 static u32          n_game_progressbar_border_color = n_bmp_black + 1;
@@ -43,7 +43,7 @@ static u32          n_game_progressbar_border_color = n_bmp_black + 1;
 
 
 
-n_posix_bool
+BOOL
 n_game_progressbar_stripe_detect( n_type_gfx x, n_type_gfx y, n_type_gfx animation, n_type_gfx stripe )
 {
 
@@ -71,10 +71,10 @@ n_game_progressbar_stripe_detect( n_type_gfx x, n_type_gfx y, n_type_gfx animati
 	}
 
 
-	if ( ( n % stripe ) < ( stripe / 2 ) ) { return n_posix_true; }
+	if ( ( n % stripe ) < ( stripe / 2 ) ) { return TRUE; }
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #define N_GAME_PROGRESSBAR_HORIZONTAL 0
@@ -262,7 +262,7 @@ n_game_progressbar
 				if ( percent != 0 )
 				{
 
-					n_posix_bool onoff = n_posix_false;
+					BOOL onoff = FALSE;
 
 					n_type_real d = 1.0;
 
@@ -282,7 +282,7 @@ n_game_progressbar
 				if ( percent != 0 )
 				{
 
-					n_posix_bool onoff = n_posix_false;
+					BOOL onoff = FALSE;
 
 					n_type_real d = 1.0;
 

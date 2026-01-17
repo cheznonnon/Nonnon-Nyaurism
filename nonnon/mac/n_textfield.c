@@ -117,7 +117,7 @@ n_textfield_path( NSString *nsstr, BOOL folder_only )
 
 	if ( queue )
 	{
-		n_bmp_fade_engine( &fade, n_posix_true );
+		n_bmp_fade_engine( &fade, TRUE );
 		[self display];
 		if ( fade.stop ) { queue = FALSE; }
 	}

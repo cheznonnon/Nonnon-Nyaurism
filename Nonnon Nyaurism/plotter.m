@@ -74,7 +74,7 @@ n_nyaurism_plotter_selection_off( void )
 {
 //return;
 
-	n_nyaurism->selection_reverse         = n_false;
+	n_nyaurism->selection_reverse         = FALSE;
 	n_nyaurism->plotter_selection_channel = 0;
 
 	n_nyaurism->selection_from_pixel = 0;
@@ -104,11 +104,11 @@ n_nyaurism_plotter_selection_left_edge( void )
 	return ret;
 }
 
-n_bool
+BOOL
 n_nyaurism_plotter_selection_line_only( void )
 {
 
-	n_bool ret = n_false;
+	BOOL ret = FALSE;
 
 
 	if (
@@ -117,7 +117,7 @@ n_nyaurism_plotter_selection_line_only( void )
 		( 0 == n_nyaurism->selection_size_pixel )
 	)
 	{
-		ret = n_true;
+		ret = TRUE;
 	}
 
 
@@ -192,10 +192,10 @@ n_nyaurism_plotter_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_gfx sy )
 
 	// [!] : Main Canvas
 
-	static n_bool init = n_false;
-	if ( init == n_false )
+	static BOOL init = FALSE;
+	if ( init == FALSE )
 	{
-		init = n_true;
+		init = TRUE;
 		n_bmp_zero( bmp );
 
 		n_bmp_new( &n_nyaurism->seekbar_bmp, sx, sy );
@@ -210,8 +210,8 @@ n_nyaurism_plotter_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_gfx sy )
 	n_type_gfx grid_2 = (n_type_gfx) ( (n_type_real) ( 1000 * per_ms ) * ratio_x );
 
 
-	n_bool prv = n_bmp_is_multithread;
-	n_bmp_is_multithread = n_true;
+	BOOL prv = n_bmp_is_multithread;
+	n_bmp_is_multithread = TRUE;
 
 
 	if ( n_wav_queue == NULL ) { n_wav_queue = [[NSOperationQueue alloc] init]; }
@@ -528,9 +528,9 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 	self = [super initWithCoder:coder];
 	if ( self )
 	{
-		n_bmp_safemode = n_false;
+		n_bmp_safemode = FALSE;
 
-		n_bmp_transparent_onoff_default = n_false;
+		n_bmp_transparent_onoff_default = FALSE;
 
 		// [!] : for lack of mouse capture
 		//n_mac_timer_init( self, @selector( n_timer_method ), 100 );
@@ -740,7 +740,7 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 {
 //NSLog( @"mouseDown : %ld", [theEvent clickCount] );
 
-	n_nyaurism->selection_drag_onoff = n_false;
+	n_nyaurism->selection_drag_onoff = FALSE;
 
 	if ( n_nyaurism_now_playing() ) { return; }
 
@@ -750,12 +750,12 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 	{
 //NSLog( @"double-click" );
 
-		n_nyaurism->selection_select_all = n_true;
+		n_nyaurism->selection_select_all = TRUE;
 
 		NSUInteger flags = [theEvent modifierFlags];
 		if ( flags & NSEventModifierFlagShift ) { return; }
 
-		n_nyaurism->selection_reverse = n_false;
+		n_nyaurism->selection_reverse = FALSE;
 
 		n_nyaurism->selection_from_pixel = 0;
 		n_nyaurism->selection_loop_pixel = 0;
@@ -833,12 +833,12 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 		if ( n_nyaurism->selection_select_all )
 		{
-			n_nyaurism->selection_select_all = n_false;
+			n_nyaurism->selection_select_all = FALSE;
 			n_nyaurism_plotter_selection_off();
 		} else
 		if ( ( f < pt.x )&&( ( f + s ) > pt.x ) )
 		{
-			n_nyaurism->selection_reselect_onoff = n_true;
+			n_nyaurism->selection_reselect_onoff = TRUE;
 			n_nyaurism->selection_reselect_pixel = pt.x - f;
 		} else
 		if ( s != 0 )
@@ -847,7 +847,7 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 		} else
 		//
 		{
-			n_nyaurism->selection_reverse = n_false;
+			n_nyaurism->selection_reverse = FALSE;
 
 			n_nyaurism->selection_from_pixel = pt.x;
 			n_nyaurism->selection_loop_pixel = pt.x;
@@ -855,7 +855,7 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 			if ( ( pt.x * n_nyaurism->selection_step ) < N_WAV_COUNT( &n_nyaurism->wav )  )
 			{
-				n_nyaurism->selection_drag_onoff = n_true;
+				n_nyaurism->selection_drag_onoff = TRUE;
 			}
 		}
 	}
@@ -872,11 +872,11 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 	if ( n_nyaurism->selection_reselect_onoff )
 	{
-		n_nyaurism->selection_reselect_onoff = n_false;
+		n_nyaurism->selection_reselect_onoff = FALSE;
 	} else
 	if ( n_nyaurism->selection_drag_onoff )
 	{
-		n_nyaurism->selection_drag_onoff = n_false;
+		n_nyaurism->selection_drag_onoff = FALSE;
 
 		NSPoint pt = n_mac_cursor_position_get( self );
 		if ( pt.x < n_nyaurism->selection_from_pixel )
@@ -974,12 +974,12 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 		} else
 		if ( pt.x < n_nyaurism->selection_from_pixel )
 		{
-			n_nyaurism->selection_reverse =  n_true;
+			n_nyaurism->selection_reverse =  TRUE;
 
 			n_nyaurism->selection_size_pixel = n_nyaurism->selection_from_pixel - pt.x;
 			n_nyaurism->selection_loop_pixel = pt.x;
 		} else {
-			n_nyaurism->selection_reverse = n_false;
+			n_nyaurism->selection_reverse = FALSE;
 
 			n_type_gfx size = 512 - n_nyaurism_plotter_selection_left_edge();
 
@@ -995,7 +995,7 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 /*
 -(void)n_timer_method
 {
-	if ( n_false == n_mac_window_is_hovered( self ) )
+	if ( FALSE == n_mac_window_is_hovered( self ) )
 	{
 		NSEvent *e = [[NSEvent alloc] init];
 		[self mouseUp:e];
@@ -1054,7 +1054,7 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 		} else
 		//
 		{
-			n_nyaurism->selection_shift_onoff = n_true;
+			n_nyaurism->selection_shift_onoff = TRUE;
 
 			n_nyaurism_tooltip_calc( 0 );
 
@@ -1065,7 +1065,7 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 	{
 //NSLog( @"shift off" );
 
-		n_nyaurism->selection_shift_onoff = n_false;
+		n_nyaurism->selection_shift_onoff = FALSE;
 
 		n_nyaurism_tooltip_calc( n_nyaurism->selection_size_pixel );
 
@@ -1094,11 +1094,11 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 	if ( flags & NSEventModifierFlagCommand )
 	{
-		n_nyaurism->selection_command_onoff = n_true;
+		n_nyaurism->selection_command_onoff = TRUE;
 	} else
 	if ( n_nyaurism->selection_command_onoff )
 	{
-		n_nyaurism->selection_command_onoff = n_false;
+		n_nyaurism->selection_command_onoff = FALSE;
 	}
 
 

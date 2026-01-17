@@ -355,21 +355,10 @@
 //	if ( var != false ) { /*  true */ }
 //	if ( var == false ) { /* false */ }
 
-#ifdef N_POSIX_PLATFORM_WINDOWS
 
 #define n_posix_bool  BOOL
 #define n_posix_false FALSE
 #define n_posix_true  TRUE
-
-#else  // #ifdef N_POSIX_PLATFORM_WINDOWS
-
-#include <stdbool.h>
-
-#define n_posix_bool  bool
-#define n_posix_false false
-#define n_posix_true  true
-
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
 

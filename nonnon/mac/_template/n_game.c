@@ -132,7 +132,7 @@
 {
 //NSLog( @"drawRect" );
 
-	n_mac_image_nbmp_direct_draw( &canvas, &rect, n_posix_false );
+	n_mac_image_nbmp_direct_draw( &canvas, &rect, FALSE );
 
 }
 

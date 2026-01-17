@@ -499,7 +499,7 @@ n_mac_doubleclick_detect( int *phase, u32 *msec )
 	} else
 	if ( (*phase) == 1 )
 	{
-		if ( n_posix_false == n_game_timer_once( msec, 500 ) )
+		if ( FALSE == n_game_timer_once( msec, 500 ) )
 		{
 			onoff = TRUE;
 			(*phase) = 0;

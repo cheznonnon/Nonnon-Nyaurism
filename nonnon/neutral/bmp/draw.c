@@ -424,7 +424,9 @@ n_bmp_gradient_thread_main( n_bmp_gradient_thread_struct *p )
 
 	// [!] : random-dot based dither
 
-	const int randomdot_max  = 3;
+	// [!] : DeepSeek AI : pow 2 is faster
+
+	const int randomdot_max  = 4;
 	const int randomdot_half = randomdot_max / 2;
 
 
@@ -446,7 +448,8 @@ n_bmp_gradient_thread_main( n_bmp_gradient_thread_struct *p )
 			u32 color = n_bmp_gradient_pixel_s32( p->from,p->to, fx,fy, p->size, p->mode );
 
 
-			int d = (int) n_random_range( randomdot_max ) - randomdot_half;
+			//int d = (int) n_random_range( randomdot_max ) - randomdot_half;
+			int d = (int) ( n_rand() & 3 ) - randomdot_half;
 
 			// [!] : alpha is not used
 

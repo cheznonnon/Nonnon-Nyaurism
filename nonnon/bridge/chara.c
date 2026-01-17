@@ -14,6 +14,8 @@
 #include "../neutral/bmp/all.c"
 
 
+
+
 #ifdef N_POSIX_PLATFORM_MAC
 
 #define HWND       void*
@@ -48,11 +50,11 @@ n_game_chara_cursor_position_refresh( NSEvent *theEvent, n_bmp *bmp )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_win_is_input( int vk )
 {
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 	
 	if ( vk == VK_LBUTTON )
 	{
@@ -121,8 +123,8 @@ typedef struct {
 
 	// Drag And Drop
 
-	n_posix_bool dnd_onoff;
-	n_type_gfx   dnd_ox, dnd_oy;
+	BOOL       dnd_onoff;
+	n_type_gfx dnd_ox, dnd_oy;
 
 
 	// extra data : you can use freely
@@ -186,7 +188,7 @@ n_game_chara_src( n_game_chara *c, n_type_gfx srcx, n_type_gfx srcy, n_type_gfx 
 	return;
 }
 
-n_posix_inline n_posix_bool
+n_posix_inline BOOL
 n_game_chara_is_moved( const n_game_chara *c )
 {
 
@@ -196,11 +198,11 @@ n_game_chara_is_moved( const n_game_chara *c )
 		( c->y != c->py )
 	)
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 n_posix_inline void
@@ -235,7 +237,7 @@ n_game_chara_draw_full( n_game_chara *c, n_type_real blend, int mirror, int rota
 	n_game_chara_prv( c );
 
 
-	const n_posix_bool simple = ( ( mirror == 0 )&&( rotate == 0 )&&( edge == 0 ) );
+	const BOOL simple = ( ( mirror == 0 )&&( rotate == 0 )&&( edge == 0 ) );
 
 
 	n_type_gfx fx  = c->srcx;
@@ -266,7 +268,7 @@ n_game_chara_draw_full( n_game_chara *c, n_type_real blend, int mirror, int rota
 			fx = N_BMP_SX( c->chara ) - fx - fsx;
 		}
 
-		n_bmp_copy( c->chara, c->main, fx,fy,fsx,fsy, tx,ty, n_posix_true, blend, mirror, rotate, edge );
+		n_bmp_copy( c->chara, c->main, fx,fy,fsx,fsy, tx,ty, TRUE, blend, mirror, rotate, edge );
 
 	}
 
@@ -301,7 +303,7 @@ n_game_chara_draw_simple( n_game_chara *c )
 
 #define n_game_chara_is_hit( a,b ) n_game_chara_is_hit_offset( a,b, 0,0, 0,0 )
 
-n_posix_inline n_posix_bool
+n_posix_inline BOOL
 n_game_chara_is_hit_offset
 (
 	const n_game_chara *a,
@@ -328,8 +330,8 @@ n_game_chara_is_hit_offset
 	if ( b->mx ) { bfx += b->mx; btx -= b->mx; }
 	if ( b_osx ) { bfx += b_osx; btx -= b_osx; }
 
-	if ( afx > btx ) { return n_posix_false; }
-	if ( atx < bfx ) { return n_posix_false; }
+	if ( afx > btx ) { return FALSE; }
+	if ( atx < bfx ) { return FALSE; }
 
 
 	n_type_gfx afy = a->y;
@@ -343,11 +345,11 @@ n_game_chara_is_hit_offset
 	if ( b->my ) { bfy += b->my; bty -= b->my; }
 	if ( b_osy ) { bfy += b_osy; bty -= b_osy; }
 
-	if ( afy > bty ) { return n_posix_false; }
-	if ( aty < bfy ) { return n_posix_false; }
+	if ( afy > bty ) { return FALSE; }
+	if ( aty < bfy ) { return FALSE; }
 
 
-	return n_posix_true;
+	return TRUE;
 }
 
 #define n_game_chara_bulk_zero( c, count ) n_memory_zero( c, sizeof(n_game_chara) * (count) )
@@ -476,7 +478,7 @@ n_game_chara_dnd( n_game_chara *c, HWND hwnd, int vk )
 		n_game_chara_src( &cursor, 0,0, 1,1, 0,0 );
 
 
-		if ( c->dnd_onoff == n_posix_false )
+		if ( c->dnd_onoff == FALSE )
 		{
 
 			if ( n_game_chara_dnd_refcount != 0 ) { return; }
@@ -488,7 +490,7 @@ n_game_chara_dnd( n_game_chara *c, HWND hwnd, int vk )
 
 				n_game_chara_dnd_refcount++;
 
-				c->dnd_onoff = n_posix_true;
+				c->dnd_onoff = TRUE;
 				c->dnd_ox    = cursor.x - c->x;
 				c->dnd_oy    = cursor.y - c->y;
 
@@ -511,7 +513,7 @@ n_game_chara_dnd( n_game_chara *c, HWND hwnd, int vk )
 
 			if ( n_game_chara_dnd_refcount >= 1 ) { n_game_chara_dnd_refcount--; }
 
-			c->dnd_onoff = n_posix_false;
+			c->dnd_onoff = FALSE;
 			c->dnd_ox    = 0;
 			c->dnd_oy    = 0;
 

@@ -21,12 +21,12 @@ n_nyaurism_plotter_undo( n_wav *wav )
 }
 
 void
-n_nyaurism_plotter_select_all( n_wav *wav, n_bool tip )
+n_nyaurism_plotter_select_all( n_wav *wav, BOOL tip )
 {
 
-	n_nyaurism->selection_select_all = n_true;
+	n_nyaurism->selection_select_all = TRUE;
 
-	n_nyaurism->selection_reverse = n_false;
+	n_nyaurism->selection_reverse = FALSE;
 
 	n_nyaurism->selection_from_pixel = 0;
 	n_nyaurism->selection_loop_pixel = 0;
@@ -56,18 +56,18 @@ n_nyaurism_plotter_mute( n_wav *wav )
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
 
-	n_bool l = n_true;
-	n_bool r = n_true;
+	BOOL l = TRUE;
+	BOOL r = TRUE;
 
 	if ( n_nyaurism->selection_shift_onoff )
 	{
 		if ( n_nyaurism->plotter_selection_channel == 1 )
 		{
-			r = n_false;
+			r = FALSE;
 		} else
 		if ( n_nyaurism->plotter_selection_channel == 2 )
 		{
-			l = n_false;
+			l = FALSE;
 		}
 	}
 
@@ -101,7 +101,7 @@ n_nyaurism_plotter_cut( n_wav *wav )
 
 	// [x] : hard to implement
 
-	n_nyaurism->selection_reverse = n_false;
+	n_nyaurism->selection_reverse = FALSE;
 
 	n_nyaurism->selection_from_pixel = 0;
 	n_nyaurism->selection_loop_pixel = 0;
@@ -181,7 +181,7 @@ n_nyaurism_plotter_overwrite( n_wav *wav )
 
 	u32 sample = sx;//N_WAV_COUNT( &n_nyaurism->wav_clip );
 
-	n_nyaurism->selection_reverse = n_false;
+	n_nyaurism->selection_reverse = FALSE;
 
 	n_nyaurism->selection_from_pixel =      x / n_nyaurism->selection_step;
 	n_nyaurism->selection_loop_pixel = 0;
@@ -379,18 +379,18 @@ n_nyaurism_plotter_smoother( n_wav *wav )
 	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
-	n_bool l = n_true;
-	n_bool r = n_true;
+	BOOL l = TRUE;
+	BOOL r = TRUE;
 
 	if ( n_nyaurism->selection_shift_onoff )
 	{
 		if ( n_nyaurism->plotter_selection_channel == 1 )
 		{
-			l = n_false;
+			l = FALSE;
 		} else
 		if ( n_nyaurism->plotter_selection_channel == 2 )
 		{
-			r = n_false;
+			r = FALSE;
 		}
 	}
 
@@ -416,18 +416,18 @@ n_nyaurism_plotter_overdrive( n_wav *wav )
 	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
 	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
 
-	n_bool l = n_true;
-	n_bool r = n_true;
+	BOOL l = TRUE;
+	BOOL r = TRUE;
 
 	if ( n_nyaurism->selection_shift_onoff )
 	{
 		if ( n_nyaurism->plotter_selection_channel == 1 )
 		{
-			l = n_false;
+			l = FALSE;
 		} else
 		if ( n_nyaurism->plotter_selection_channel == 2 )
 		{
-			r = n_false;
+			r = FALSE;
 		}
 	}
 

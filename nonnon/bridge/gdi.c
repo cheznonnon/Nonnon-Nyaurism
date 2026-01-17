@@ -14,7 +14,7 @@
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
-#include "./wic.c"
+#include "../win32/wic.c"
 
 
 #include "../neutral/txt.c"
@@ -22,7 +22,7 @@
 #include "../bridge/pmr.c"
 #include "../bridge/progressbar.c"
 
-#include "./win/icon.c"
+#include "../win32/win/icon.c"
 
 
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
@@ -317,7 +317,7 @@ typedef struct {
 	n_type_gfx    base_gap_between_icon_and_text;
 
 	int           frame_style;
-	n_posix_bool  frame_is_hot;
+	BOOL          frame_is_hot;
 
 	n_posix_char *icon;
 	n_type_gfx    icon_index;
@@ -348,7 +348,7 @@ typedef struct {
 	n_type_gfx    text_fxsize1;
 	n_type_gfx    text_fxsize2;
 
-	n_posix_bool  debug_output;
+	BOOL          debug_output;
 
 
 	// In/Out
@@ -378,7 +378,7 @@ typedef struct {
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
-	n_posix_bool  pmr_onoff;
+	BOOL          pmr_onoff;
 
 	n_type_int   *text_cache_len;
 	SIZE         *text_cache_size;
@@ -400,12 +400,12 @@ const n_type_gfx n_gdi_smoothness = 5;
 
 // [!] : not beautiful but GDI-independent
 
-const n_posix_bool n_gdi_fakebold_onoff = n_posix_false;
+const BOOL n_gdi_fakebold_onoff = FALSE;
 
 
 // [!] : currently hidden option
 
-static n_posix_bool n_gdi_gradient_vertical_up_side_down = n_posix_false;
+static BOOL n_gdi_gradient_vertical_up_side_down = FALSE;
 
 
 
@@ -442,7 +442,7 @@ static n_posix_bool n_gdi_gradient_vertical_up_side_down = n_posix_false;
 
 #define n_gdi_base_load( gdi, icon ) n_gdi_image_load( gdi, icon, gdi->base )
 
-n_posix_bool
+BOOL
 n_gdi_image_load( const n_gdi *gdi, n_bmp *icon, n_posix_char *path )
 {
 
@@ -466,13 +466,13 @@ n_gdi_image_load( const n_gdi *gdi, n_bmp *icon, n_posix_char *path )
 		n_gdi_icon_extract( icon, path, gdi->base_index );
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 
-		if ( n_bmp_error( icon ) ) { return n_posix_true; }
+		if ( n_bmp_error( icon ) ) { return TRUE; }
 	} else {
-		//return n_posix_false;
+		//return FALSE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 void
@@ -496,16 +496,16 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 	// [Needed] : multi-thread : you need to manage this
 
-	n_posix_bool p_trans_onoff = n_bmp_transparent_onoff_default;
-	if ( n_bmp_is_multithread == n_posix_false )
+	BOOL p_trans_onoff = n_bmp_transparent_onoff_default;
+	if ( n_bmp_is_multithread == FALSE )
 	{
-		n_bmp_transparent_onoff_default = n_posix_true;
+		n_bmp_transparent_onoff_default = TRUE;
 	}
 
 
-	n_posix_bool      onoff = ( n_posix_false == ( gdi->style & N_GDI_CALCONLY ) );
-	n_posix_bool icon_onoff = ( n_posix_false == n_string_is_empty( gdi->icon ) );
-	n_posix_bool text_onoff = ( n_posix_false == n_string_is_empty( gdi->text ) );
+	BOOL      onoff = ( FALSE == ( gdi->style & N_GDI_CALCONLY ) );
+	BOOL icon_onoff = ( FALSE == n_string_is_empty( gdi->icon ) );
+	BOOL text_onoff = ( FALSE == n_string_is_empty( gdi->text ) );
 //NSLog( @"%s", gdi->text );
 
 	if ( ( onoff )&&( bmp == NULL ) ) { return; }
@@ -705,7 +705,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 	if ( gdi->frame_style == N_GDI_FRAME_FLUENT_CHK )
 	{
 #ifdef N_POSIX_PLATFORM_WINDOWS
-		if ( n_posix_false == n_string_is_empty( gdi->text ) )
+		if ( FALSE == n_string_is_empty( gdi->text ) )
 		{
 			gdi->text_color_main = n_bmp_white;
 		}
@@ -740,7 +740,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
-	if ( n_posix_stat_is_dir( gdi->text_font ) ) { gdi->pmr_onoff = n_posix_true; }
+	if ( n_posix_stat_is_dir( gdi->text_font ) ) { gdi->pmr_onoff = TRUE; }
 
 	if ( gdi->pmr_onoff )
 	{
@@ -815,7 +815,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 	{
 
 		if (
-			( n_posix_false == ( gdi->style & N_GDI_TEXTLOADER ) )
+			( FALSE == ( gdi->style & N_GDI_TEXTLOADER ) )
 			||
 			( n_ini_load( &txt, gdi->text ) )
 		)
@@ -952,8 +952,8 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		n_type_gfx icon_margin = n_posix_min_n_type_gfx( gdi->icon_sx, gdi->icon_sy );
 		n_type_gfx text_margin = gdi->text_size;
 
-		if ( icon_onoff == n_posix_false ) { icon_margin = 0; }
-		if ( text_onoff == n_posix_false ) { text_margin = 0; }
+		if ( icon_onoff == FALSE ) { icon_margin = 0; }
+		if ( text_onoff == FALSE ) { text_margin = 0; }
 
 		if ( gdi->style & N_GDI_NOMARGIN )
 		{
@@ -993,25 +993,25 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 	}
 
 
-	n_posix_bool is_center_x =
+	BOOL is_center_x =
 	(
 		( gdi->align == N_GDI_ALIGN_CENTER )
 		||
 		(
-			( n_posix_false == ( gdi->align & N_GDI_ALIGN_LEFT  ) )
+			( FALSE == ( gdi->align & N_GDI_ALIGN_LEFT  ) )
 			&&
-			( n_posix_false == ( gdi->align & N_GDI_ALIGN_RIGHT ) )
+			( FALSE == ( gdi->align & N_GDI_ALIGN_RIGHT ) )
 		)
 	);
 
-	n_posix_bool is_center_y =
+	BOOL is_center_y =
 	(
 		( gdi->align == N_GDI_ALIGN_CENTER )
 		||
 		(
-			( n_posix_false == ( gdi->align & N_GDI_ALIGN_TOP    ) )
+			( FALSE == ( gdi->align & N_GDI_ALIGN_TOP    ) )
 			&&
-			( n_posix_false == ( gdi->align & N_GDI_ALIGN_BOTTOM ) )
+			( FALSE == ( gdi->align & N_GDI_ALIGN_BOTTOM ) )
 		)
 	);
 
@@ -1074,7 +1074,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 		if ( text_onoff ) { n_ini_free( &txt ); }
 
-		if ( n_bmp_is_multithread == n_posix_false )
+		if ( n_bmp_is_multithread == FALSE )
 		{
 			n_bmp_transparent_onoff_default = p_trans_onoff;
 		}
@@ -1085,8 +1085,8 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 #ifdef N_POSIX_PLATFORM_MAC
 
-	//n_posix_bool autosize_sx = ( gdi->sx == 0 );
-	//n_posix_bool autosize_sy = ( gdi->sy == 0 );
+	//BOOL autosize_sx = ( gdi->sx == 0 );
+	//BOOL autosize_sy = ( gdi->sy == 0 );
 
 //NSLog( @"%d %d", autosize_sx, autosize_sy );
 
@@ -1180,7 +1180,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		if ( gdi->base_style == N_GDI_BASE_STRIPE )
 		{
 
-			n_bmp_pattern_stripe( &bmp_ret, gdi->base_unit, n_posix_true, bg, fg );
+			n_bmp_pattern_stripe( &bmp_ret, gdi->base_unit, TRUE, bg, fg );
 
 		} else
 		if ( gdi->base_style == N_GDI_BASE_CHECKER )
@@ -1382,13 +1382,13 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 		n_bmp icon; n_bmp_zero( &icon );
 
-		n_posix_bool ret = n_gdi_image_load( gdi, &icon, gdi->icon );
+		BOOL ret = n_gdi_image_load( gdi, &icon, gdi->icon );
 //NSLog( @"%s : Ret %d : SX %d : Error %d", gdi->icon, ret, N_BMP_SX( &icon ), n_bmp_error( &icon ) );
 //NSLog( @"%d %d", N_BMP_SX( &icon ), N_BMP_SY( &icon ) );
 
 //n_bmp_fastcopy( &icon, bmp, 0,0,64,64, 0,0 );
 
-		if ( ret == n_posix_false )
+		if ( ret == FALSE )
 		{
 			n_gdi_bmp_effect_icon( gdi, &bmp_ret, &icon );
 		}
@@ -1531,7 +1531,7 @@ n_bmp_box( &bmp_ret, gdi->text_x, gdi->text_y, gdi->text_sx, gdi->text_sy, n_bmp
 
 	if ( text_onoff ) { n_ini_free( &txt ); }
 
-	if ( n_bmp_is_multithread == n_posix_false )
+	if ( n_bmp_is_multithread == FALSE )
 	{
 		n_bmp_transparent_onoff_default = p_trans_onoff;
 	}

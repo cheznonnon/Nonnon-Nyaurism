@@ -78,8 +78,8 @@ n_mac_listbox_draw_linenumber
 		cch_y++;
 	}
 
-	n_posix_bool over_ten_thousand = n_posix_false;
-	if ( cch_y >= 10000 ) { over_ten_thousand = n_posix_true; }
+	BOOL over_ten_thousand = FALSE;
+	if ( cch_y >= 10000 ) { over_ten_thousand = TRUE; }
 
 	if ( cch_y >= 10000 ) { cch_y = cch_y % 10000; }
 
@@ -278,9 +278,9 @@ n_mac_listbox_draw_linenumber
 		}
 	}
 
-	n_bmp_fade_engine( &fade, n_posix_true );
+	n_bmp_fade_engine( &fade, TRUE );
 //NSLog( @"%d", fade.percent );
-	if ( fade.stop == n_posix_false )
+	if ( fade.stop == FALSE )
 	{
 		[self display];
 	}
@@ -467,7 +467,7 @@ n_mac_listbox_draw_linenumber
 	// [!] : Line Number
 
 	{
-		n_bmp_flip_onoff = n_posix_true;
+		n_bmp_flip_onoff = TRUE;
 
 		n_type_int     i = 0;
 		n_type_gfx pxl_y = 0;
@@ -491,7 +491,7 @@ n_mac_listbox_draw_linenumber
 
 		}
 
-		n_bmp_flip_onoff = n_posix_false;
+		n_bmp_flip_onoff = FALSE;
 	}
 
 
@@ -571,7 +571,7 @@ n_mac_listbox_draw_linenumber
 
 			u32 color = color_fg;
 
-			n_bmp_flip_onoff = n_posix_true;
+			n_bmp_flip_onoff = TRUE;
 
 			u32 color_shaft = n_bmp_alpha_replace_pixel( color, 16 );
 			n_bmp_roundrect( &frame, scr_x,o, scrsx,csy, color_shaft, 50 );
@@ -597,7 +597,7 @@ n_mac_listbox_draw_linenumber
 			u32 color_thumb = n_bmp_alpha_replace_pixel( color, alpha );
 			n_bmp_roundrect( &frame, scr_x,scr_y, scrsx,scrsy, color_thumb, 50 );
 
-			n_bmp_flip_onoff = n_posix_false;
+			n_bmp_flip_onoff = FALSE;
 		}
 
 		n_mac_image_nbmp_direct_draw( &frame, &rect, TRUE );
@@ -624,7 +624,7 @@ n_mac_listbox_draw_linenumber
 	n_focus = trunc( scroll + trunc( ( local_point.y - 4 ) / font_size.height ) );
 //NSLog( @"%f", n_focus );
 
-	thumb_is_hovered = n_posix_false;
+	thumb_is_hovered = FALSE;
 
 	[self display];
 

@@ -33,7 +33,7 @@ n_mac_txtbox_utf8_cb( n_posix_char *str )
 }
 
 // internal
-n_posix_bool
+BOOL
 n_mac_txtbox_is_fullwidth_detect( u16 c )
 {
 
@@ -42,7 +42,7 @@ n_mac_txtbox_is_fullwidth_detect( u16 c )
 
 		// [!] : ASCII compatible code
 
-		return n_posix_false;
+		return FALSE;
 
 	} else
 	if (
@@ -77,42 +77,42 @@ n_mac_txtbox_is_fullwidth_detect( u16 c )
 		( ( c >= 0xff00 )&&( c <= 0xff60 ) )		// 65280 - 65376 : 0xff61 or above : includes "half-width kana"
 	)
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 // internal
-n_posix_bool
+BOOL
 n_mac_txtbox_is_accentmark_detect( u16 c )
 {
 //NSLog( @"%04x", c );
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	if ( ( c >= 0x0300 )&&( c <= 0x036f ) )
 	{
-		ret = n_posix_true;
+		ret = TRUE;
 	} else
 	if ( ( c >= 0x1ab0 )&&( c <= 0x1ac0 ) )
 	{
-		ret = n_posix_true;
+		ret = TRUE;
 	} else
 	if ( ( c >= 0x1dc0 )&&( c <= 0x1dff ) )
 	{
-		ret = n_posix_true;
+		ret = TRUE;
 	} else
 	if ( ( c >= 0x20d0 )&&( c <= 0x20f0 ) )
 	{
-		ret = n_posix_true;
+		ret = TRUE;
 	} else
 	if ( ( c >= 0xfe20 )&&( c <= 0xfeff ) )
 	{
-		ret = n_posix_true;
+		ret = TRUE;
 	} else
 	if ( ( c == 0x3099 )||( c == 0x309a ) )
 	{
@@ -123,18 +123,18 @@ n_mac_txtbox_is_accentmark_detect( u16 c )
 		//
 		//	Finder : a default name of a new folder uses this
 
-		ret = n_posix_true;
+		ret = TRUE;
 	}
 
 
 	return ret;
 }
 
-n_posix_bool
+BOOL
 n_mac_txtbox_is_fullwidth( char *str, n_type_int cch )
 {
 
-	if ( str == NULL ) { return n_posix_false; }
+	if ( str == NULL ) { return FALSE; }
 
 
 	// [x] : enough size
@@ -168,11 +168,11 @@ n_mac_txtbox_is_fullwidth( char *str, n_type_int cch )
 	return n_mac_txtbox_is_fullwidth_detect( wc );
 }
 
-n_posix_bool
+BOOL
 n_mac_txtbox_is_accentmark( char *str, n_type_int cch )
 {
 
-	if ( str == NULL ) { return n_posix_false; }
+	if ( str == NULL ) { return FALSE; }
 
 
 	// [x] : enough size
@@ -209,11 +209,11 @@ n_mac_txtbox_is_accentmark( char *str, n_type_int cch )
 	return n_mac_txtbox_is_accentmark_detect( wc );
 }
 
-n_posix_bool
+BOOL
 n_mac_txtbox_is_digit_fullwidth( n_posix_char *str, n_type_int index )
 {
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	if ( n_string_is_empty( str ) ) { return ret; }
@@ -250,7 +250,7 @@ n_mac_txtbox_is_digit_fullwidth( n_posix_char *str, n_type_int index )
 			)
 		)
 		{
-			ret = n_posix_true;
+			ret = TRUE;
 			break; 
 		}
 
@@ -262,31 +262,31 @@ n_mac_txtbox_is_digit_fullwidth( n_posix_char *str, n_type_int index )
 	return ret;
 }
 
-n_posix_bool
+BOOL
 n_mac_txtbox_digit_detect( n_posix_char *starting_char, n_posix_char *str, n_type_int index )
 {
 
 	// [!] : is_digit : set starting char status
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	if (
 		(
 			( n_string_is_digit( starting_char, 0 ) )
 			&&
-			( n_posix_false == n_string_is_digit( str, index ) )
+			( FALSE == n_string_is_digit( str, index ) )
 		)
 		||
 		(
-			( n_posix_false == n_string_is_digit( starting_char, 0 ) )
+			( FALSE == n_string_is_digit( starting_char, 0 ) )
 			&&
 			( n_string_is_digit( str, index ) )
 		)
 	)
 	{
-		ret = n_posix_true;
+		ret = TRUE;
 	}
 
 
@@ -294,17 +294,17 @@ n_mac_txtbox_digit_detect( n_posix_char *starting_char, n_posix_char *str, n_typ
 		(
 			( n_mac_txtbox_is_digit_fullwidth( starting_char, 0 ) )
 			&&
-			( n_posix_false == n_mac_txtbox_is_digit_fullwidth( str, index ) )
+			( FALSE == n_mac_txtbox_is_digit_fullwidth( str, index ) )
 		)
 		||
 		(
-			( n_posix_false == n_mac_txtbox_is_digit_fullwidth( starting_char, 0 ) )
+			( FALSE == n_mac_txtbox_is_digit_fullwidth( starting_char, 0 ) )
 			&&
 			( n_mac_txtbox_is_digit_fullwidth( str, index ) )
 		)
 	)
 	{
-		ret = n_posix_true;
+		ret = TRUE;
 	}
 
 

@@ -442,7 +442,7 @@ ii += 4; y++; i += n_bmp_linebyte( N_BMP_SX( bmp ), 8 );
 	return n_posix_false;
 }
 
-n_posix_bool
+int
 n_bmp_pal2full( n_bmp *bmp )
 {
 

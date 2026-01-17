@@ -7,7 +7,7 @@
 //
 //	[ when engine seems to be misbehave ]
 //
-//	set n_bmp.transparent_onoff n_posix_false
+//	set n_bmp.transparent_onoff FALSE
 
 
 
@@ -53,7 +53,7 @@ static n_type_gfx n_game_transition_offset_x = 0;
 static n_type_gfx n_game_transition_offset_y = 0;
 
 
-static n_posix_bool n_game_transition_percent_smooth = n_posix_false;
+static BOOL n_game_transition_percent_smooth = FALSE;
 
 
 
@@ -124,8 +124,8 @@ n_game_transition_fade( n_bmp *bmp_old, n_bmp *bmp_new, n_bmp *bmp_ret, n_type_g
 
 #ifdef N_POSIX_PLATFORM_MAC
 
-	n_posix_bool prv = n_bmp_is_multithread;
-	n_bmp_is_multithread = n_posix_true;
+	BOOL prv = n_bmp_is_multithread;
+	n_bmp_is_multithread = TRUE;
 
 
 	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
@@ -182,8 +182,8 @@ n_game_transition_fade( n_bmp *bmp_old, n_bmp *bmp_new, n_bmp *bmp_ret, n_type_g
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -274,7 +274,7 @@ typedef struct {
 
 
 
-n_posix_bool
+BOOL
 n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old, n_bmp *bmp_new, u32 msec, int type )
 {
 
@@ -286,26 +286,26 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 	// [!] : Return Value
 	//
-	//	n_posix_false : running
-	//	n_posix_true  : stop or error
+	//	FALSE : running
+	//	TRUE  : stop or error
 
 
-	if ( n_bmp_error( bmp     ) ) { p->error_code = 1; return n_posix_true; }
-	if ( n_bmp_error( bmp_old ) ) { p->error_code = 2; return n_posix_true; }
-	if ( n_bmp_error( bmp_new ) ) { p->error_code = 3; return n_posix_true; }
+	if ( n_bmp_error( bmp     ) ) { p->error_code = 1; return TRUE; }
+	if ( n_bmp_error( bmp_old ) ) { p->error_code = 2; return TRUE; }
+	if ( n_bmp_error( bmp_new ) ) { p->error_code = 3; return TRUE; }
 
-	if ( N_BMP_SX( bmp_old ) != N_BMP_SX( bmp_new ) ) { p->error_code = 4; return n_posix_true; }
-	if ( N_BMP_SY( bmp_old ) != N_BMP_SY( bmp_new ) ) { p->error_code = 5; return n_posix_true; }
+	if ( N_BMP_SX( bmp_old ) != N_BMP_SX( bmp_new ) ) { p->error_code = 4; return TRUE; }
+	if ( N_BMP_SY( bmp_old ) != N_BMP_SY( bmp_new ) ) { p->error_code = 5; return TRUE; }
 
 
 	// [!] : nothing to do
 
-	if ( N_BMP_PTR( bmp_old ) == N_BMP_PTR( bmp_new ) ) { p->error_code = 6; return n_posix_true; }
-	if ( N_BMP_PTR( bmp     ) == N_BMP_PTR( bmp_new ) ) { p->error_code = 7; return n_posix_true; }
+	if ( N_BMP_PTR( bmp_old ) == N_BMP_PTR( bmp_new ) ) { p->error_code = 6; return TRUE; }
+	if ( N_BMP_PTR( bmp     ) == N_BMP_PTR( bmp_new ) ) { p->error_code = 7; return TRUE; }
 
-	if ( msec == 0 ) { return p->error_code = 8; n_posix_true; }
+	if ( msec == 0 ) { return p->error_code = 8; TRUE; }
 
-	if ( ( type < 0 )||( type > N_GAME_TRANSITION_LAST ) ) { p->error_code = 9; return n_posix_true; }
+	if ( ( type < 0 )||( type > N_GAME_TRANSITION_LAST ) ) { p->error_code = 9; return TRUE; }
 
 
 	const n_type_real ox = n_game_transition_offset_x;
@@ -545,8 +545,8 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 //NSLog( @"multihreaded" );
 
-		n_posix_bool prv = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL prv = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 		NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 		u32               cores = n_posix_cpu_count();
@@ -576,28 +576,28 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 				n_type_gfx center_x = (n_type_gfx) x - n_game_transition_circle_x;
 				n_type_gfx center_y = (n_type_gfx) y - n_game_transition_circle_y;
 
-				n_posix_bool outer = n_bmp_hoop_detect( center_x,center_y, size );
-				n_posix_bool inner = n_posix_false;//n_bmp_hoop_detect( center_x,center_y, p_size );
+				BOOL outer = n_bmp_hoop_detect( center_x,center_y, size );
+				BOOL inner = FALSE;//n_bmp_hoop_detect( center_x,center_y, p_size );
 
 				while( outer )
 				{//break;
 
 					inner = n_bmp_hoop_detect( center_x,center_y, p->circle_prev_size );
-					if ( inner == n_posix_false ) { break; }
+					if ( inner == FALSE ) { break; }
 
 					center_x++; x++;
 					if ( x >= bmpsx ) { break; }
 				}
 
 
-				if ( ( inner == n_posix_false )&&( outer ) )
+				if ( ( inner == FALSE )&&( outer ) )
 				{
 
 					u32 color;
 
 					n_bmp_ptr_get_fast( bmp_new, x, y, &color );
 /*
-					if ( n_posix_false == n_bmp_hoop_detect( center_x,center_y, size - 2 ) )
+					if ( FALSE == n_bmp_hoop_detect( center_x,center_y, size - 2 ) )
 					{
 //color = 0x00ff0000;
 						u32 c; n_bmp_ptr_get_fast( bmp, (n_type_gfx) ox+x, (n_type_gfx) oy+y, &c );
@@ -607,7 +607,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 					n_bmp_ptr_set_fast( bmp, (n_type_gfx) ox + x, (n_type_gfx) oy + y, color );
 
 				} else
-				if ( ( inner == n_posix_false )&&( outer == n_posix_false ) )
+				if ( ( inner == FALSE )&&( outer == FALSE ) )
 				{
 
 					if ( center_x >= 0 ) { x = bmpsx; }
@@ -880,7 +880,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 		n_bmp_carboncopy( bmp_old, &b );
 		n_bmp_scaler_lil( &b, 2 + (n_type_gfx) ( c / p->whirl_scale ) );
-		n_bmp_matrix_rotate( &b, (n_type_gfx) ( (n_type_real) c * p->whirl_step ), color_trans, n_posix_true );
+		n_bmp_matrix_rotate( &b, (n_type_gfx) ( (n_type_real) c * p->whirl_step ), color_trans, TRUE );
 		n_bmp_resizer( &b, bmpsx,bmpsy, color_trans, N_BMP_RESIZER_CENTER );
 
 		n_bmp_transcopy
@@ -986,7 +986,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 		p->percent = 0;
 
-		return n_posix_true;
+		return TRUE;
 
 	} else {
 
@@ -1032,10 +1032,10 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_game_transition( n_bmp *bmp, n_bmp *bmp_old, n_bmp *bmp_new, u32 msec, n_type_real *percent, int type )
 {
 
@@ -1047,7 +1047,7 @@ n_game_transition( n_bmp *bmp, n_bmp *bmp_old, n_bmp *bmp_new, u32 msec, n_type_
 		t.percent = 0;
 	}
 
-	n_posix_bool ret = n_game_transition_main( &t, bmp, bmp_old, bmp_new, msec, type );
+	BOOL ret = n_game_transition_main( &t, bmp, bmp_old, bmp_new, msec, type );
 
 	(*percent) = t.percent;
 

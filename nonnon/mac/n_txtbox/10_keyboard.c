@@ -906,7 +906,7 @@
 
 				n_posix_char *line = n_txt_get( n_txt_data, min_y + y );
 
-				if ( n_posix_false == n_string_is_empty( line ) )
+				if ( FALSE == n_string_is_empty( line ) )
 				{
 					n_posix_char *str = n_string_new( n_posix_strlen( line ) + 1 );
 					n_posix_sprintf_literal( str, "%s%s", N_STRING_TAB, line );

@@ -970,8 +970,8 @@ n_mac_txtbox_path_ellipsis( n_posix_char *path, NSFont *font, CGFloat width_limi
 		}
 
 
-		n_posix_bool over_ten_thousand = n_posix_false;
-		if ( cch_y >= 10000 ) { over_ten_thousand = n_posix_true; }
+		BOOL over_ten_thousand = FALSE;
+		if ( cch_y >= 10000 ) { over_ten_thousand = TRUE; }
 
 		if ( cch_y >= 10000 ) { cch_y = cch_y % 10000; }
 
@@ -1181,7 +1181,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 			BOOL blend_onoff = FALSE;
 
 			n_type_real d = 1.0;
-			if ( find_icon_fade.stop == n_posix_false )
+			if ( find_icon_fade.stop == FALSE )
 			{
 				blend_onoff = TRUE;
 
@@ -1507,7 +1507,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 	if ( underline_rect.origin.x != -1 )
 	{
 
-		n_bmp_flip_onoff = n_posix_true;
+		n_bmp_flip_onoff = TRUE;
 
 		n_type_gfx  x = underline_rect.origin.x;
 		n_type_gfx  y = underline_rect.origin.y;
@@ -1538,7 +1538,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 			if ( xx >= sx ) { break; }
 		}
 
-		n_bmp_flip_onoff = n_posix_false;
+		n_bmp_flip_onoff = FALSE;
 	}
 
 
@@ -1552,7 +1552,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 	{
 //{static int i = 0;NSLog( @"%d", i );i++;}
 
-		n_bmp_flip_onoff = n_posix_true;
+		n_bmp_flip_onoff = TRUE;
 
 		n_type_int     i = 0;
 		n_type_gfx pxl_y = 0;
@@ -1606,7 +1606,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 		}
 
-		n_bmp_flip_onoff = n_posix_false;
+		n_bmp_flip_onoff = FALSE;
 	}
 
 
@@ -1760,7 +1760,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 			u32 color = n_mac_nscolor2argb( nscolor_text );
 
-			n_bmp_flip_onoff = n_posix_true;
+			n_bmp_flip_onoff = TRUE;
 
 			u32 color_shaft = n_bmp_alpha_replace_pixel( color, 16 );
 
@@ -1863,7 +1863,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 			n_mac_draw_box( N_TXTBOX_INDICATOR_CARET, rect_local );
 
 
-			n_bmp_flip_onoff = n_posix_false;
+			n_bmp_flip_onoff = FALSE;
 		}
 
 

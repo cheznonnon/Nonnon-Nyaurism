@@ -15,7 +15,7 @@
 
 
 void
-n_gdi_effect_fogmaker( n_bmp *bmp, n_type_real effect_count, n_posix_bool is_icon, n_posix_bool smooth_onoff, n_posix_bool fog_onoff )
+n_gdi_effect_fogmaker( n_bmp *bmp, n_type_real effect_count, BOOL is_icon, BOOL smooth_onoff, BOOL fog_onoff )
 {
 
 	if ( n_bmp_error( bmp ) ) { return; }
@@ -53,7 +53,7 @@ n_gdi_effect_fogmaker( n_bmp *bmp, n_type_real effect_count, n_posix_bool is_ico
 
 		if ( is_icon )
 		{
-			if ( n_posix_false == n_bmp_is_trans( bmp, color ) )
+			if ( FALSE == n_bmp_is_trans( bmp, color ) )
 			{
 				color = n_bmp_white;
 			}
@@ -99,10 +99,10 @@ n_gdi_bmp_effect_text_go
 	if ( o <= 0 ) { return; }
 
 
-	n_type_gfx   fx_size      = ( o + 1 + o );
-	n_posix_bool is_icon      = ( mode == N_GDI_EFFECT_ICON );
-	n_posix_bool smooth_onoff = ( style & N_GDI_ICON_SMOOTH );
-	n_posix_bool fog_onoff    = ( ( style & N_GDI_ICON_SHADOW_FOG )||( style & N_GDI_ICON_CONTOUR_FOG ) );
+	n_type_gfx fx_size      = ( o + 1 + o );
+	BOOL       is_icon      = ( mode == N_GDI_EFFECT_ICON );
+	BOOL       smooth_onoff = ( style & N_GDI_ICON_SMOOTH );
+	BOOL       fog_onoff    = ( ( style & N_GDI_ICON_SHADOW_FOG )||( style & N_GDI_ICON_CONTOUR_FOG ) );
 //n_posix_debug_literal( " %d %d ", ( style & N_GDI_ICON_SHADOW_FOG ), ( style & N_GDI_ICON_CONTOUR_FOG ) );
 
 	n_bmp fog; n_bmp_carboncopy( obj, &fog );
@@ -132,7 +132,7 @@ n_gdi_bmp_effect_text_go
 	n_type_gfx cx = gdi->icon_clip_x;
 	n_type_gfx cy = gdi->icon_clip_y;
 
-	//clip.transparent_onoff = n_posix_false;
+	//clip.transparent_onoff = FALSE;
 
 
 	n_type_real ratio_x = (n_type_real) matrix / fx_size;
@@ -154,7 +154,7 @@ n_gdi_bmp_effect_text_go
 			 bmp,   x + fx_x - o,  y + fx_y - o,
 			NULL, clr,
 			&clip, cx + fx_x - o, cy + fx_y - o,
-			n_posix_false
+			FALSE
 		);
 
 		fx_x++;
@@ -198,7 +198,7 @@ n_gdi_bmp_alpha_enhancer( const n_gdi *gdi, n_bmp *bmp )
 	{
 
 		u32 color = N_BMP_PTR( bmp )[ i ];
-		if ( n_posix_false == n_bmp_is_trans( bmp, color ) )
+		if ( FALSE == n_bmp_is_trans( bmp, color ) )
 		{
 			N_BMP_PTR( bmp )[ i ] = n_bmp_blend_pixel( color, n_bmp_white, 0.33 );
 		}
@@ -231,7 +231,7 @@ n_gdi_bmp_effect( const n_gdi *gdi, n_bmp *bmp, n_bmp *obj, int mode )
 	{
 
 		style = gdi->icon_style;
-		clear = n_posix_false;
+		clear = FALSE;
 		x     = gdi->icon_x;
 		y     = gdi->icon_y;
 

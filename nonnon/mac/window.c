@@ -149,11 +149,11 @@ n_mac_cursor_position_get( NSView *view )
 	return viewLocation;
 }
 
-n_posix_bool
+BOOL
 n_mac_window_is_hovered( NSView *view )
 {
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 	NSPoint pt = n_mac_cursor_position_get( view );
 //NSLog( @"%f %f", pt.y, [ view bounds ].origin.y );
@@ -167,11 +167,11 @@ n_mac_window_is_hovered( NSView *view )
 	return ret;
 }
 
-n_posix_bool
+BOOL
 n_mac_window_is_hovered_offset_by_rect( NSView *view, NSRect rect )
 {
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 	NSPoint pt = n_mac_cursor_position_get( view );
 

@@ -183,7 +183,7 @@ n_mac_image_nbmp2nsimage( const n_bmp *bmp )
 #define N_MAC_IMAGE_SAVE_PNG ( 1 )
 #define N_MAC_IMAGE_SAVE_JPG ( 2 )
 
-n_posix_bool
+BOOL
 n_mac_image_save( const n_bmp *bmp, n_posix_char *path, int mode )
 {
 
@@ -216,7 +216,7 @@ n_mac_image_save( const n_bmp *bmp, n_posix_char *path, int mode )
 	return ( ret == NO );
 }
 
-n_posix_bool
+BOOL
 n_mac_image_nsimage2nbmp( NSImage *image, n_bmp *bmp )
 {
 
@@ -234,7 +234,7 @@ n_mac_image_nsimage2nbmp( NSImage *image, n_bmp *bmp )
 	// [x] : NSBitmapImageFileTypeBMP : unknown format will be returned
 
 	//NSData *data = [bmprep representationUsingType:NSBitmapImageFileTypeBMP properties:[[NSDictionary alloc] init]];
-	//if ( data == nil ) { return n_posix_true; }
+	//if ( data == nil ) { return TRUE; }
 
 
 //u32 tick = n_posix_tickcount();
@@ -266,15 +266,15 @@ n_mac_image_nsimage2nbmp( NSImage *image, n_bmp *bmp )
 */
 
 	NSData *data = [bmprep representationUsingType:NSBitmapImageFileTypePNG properties:[[NSDictionary alloc] init]];
-	if ( data == nil ) { return n_posix_true; }
+	if ( data == nil ) { return TRUE; }
 
 	n_png png; n_png_zero( &png );
 
-	n_posix_bool ret = n_png_load_onmemory( &png, (void*) [data bytes], [data length] );
-	if ( ret ) { return n_posix_true; }
+	BOOL ret = n_png_load_onmemory( &png, (void*) [data bytes], [data length] );
+	if ( ret ) { return TRUE; }
 
 	ret = n_png_uncompress( &png, bmp );
-	if ( ret ) { n_png_free( &png ); return n_posix_true; }
+	if ( ret ) { n_png_free( &png ); return TRUE; }
 
 	n_png_free( &png );
 
@@ -282,15 +282,15 @@ n_mac_image_nsimage2nbmp( NSImage *image, n_bmp *bmp )
 //NSLog( @"%d", (int) n_posix_tickcount() - tick );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_mac_image_load( n_posix_char *path, n_bmp *bmp )
 {
 
 	NSImage *image = [[NSImage alloc] initWithContentsOfFile:n_mac_str2nsstring( path )];
-	if ( image == nil ) { return n_posix_true; }
+	if ( image == nil ) { return TRUE; }
 
 
 	return n_mac_image_nsimage2nbmp( image, bmp );
@@ -349,7 +349,7 @@ n_mac_image_imagerep_draw( NSBitmapImageRep *rep, NSRect *rect, BOOL flip, BOOL 
 }
 
 void
-n_mac_image_nbmp_direct_draw( const n_bmp *bmp, NSRect *rect, n_posix_bool flip )
+n_mac_image_nbmp_direct_draw( const n_bmp *bmp, NSRect *rect, BOOL flip )
 {
 
 //static u32 tick_prv = 0;
@@ -397,7 +397,7 @@ n_mac_image_nbmp_direct_draw( const n_bmp *bmp, NSRect *rect, n_posix_bool flip 
 }
 
 void
-n_mac_image_nbmp_direct_draw_fast( const n_bmp *bmp, NSRect *rect, n_posix_bool flip )
+n_mac_image_nbmp_direct_draw_fast( const n_bmp *bmp, NSRect *rect, BOOL flip )
 {
 
 	NSImage *img = n_mac_image_nbmp2nsimage( bmp );
@@ -452,7 +452,7 @@ n_mac_image_imagerep_sync( NSBitmapImageRep *rep, n_bmp *bmp )
 }
 
 void
-n_mac_image_nbmp_direct_draw_faster( NSBitmapImageRep *rep, NSRect *rect, n_posix_bool flip )
+n_mac_image_nbmp_direct_draw_faster( NSBitmapImageRep *rep, NSRect *rect, BOOL flip )
 {
 
 	//NSImage *img = n_mac_image_imagerep2nsimage( rep );
@@ -653,8 +653,8 @@ n_mac_image_rc_load_bmp( NSString *name, n_bmp *bmp )
 
 	n_posix_char *str = n_mac_nsstring2str( path );
 
-	n_posix_bool ret = n_bmp_load( bmp, str );
-	if ( ret == n_posix_false )
+	BOOL ret = n_bmp_load( bmp, str );
+	if ( ret == FALSE )
 	{
 		// [!] : do when needed manually
 		//n_bmp_mac( bmp );

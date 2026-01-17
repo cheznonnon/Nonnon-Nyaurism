@@ -78,7 +78,7 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 		}
 //NSLog( @"%f", n_focus );
 
-		thumb_is_hovered = n_posix_false;
+		thumb_is_hovered = FALSE;
 
 		if ( ( self.n_listbox_edit_onoff )&&( listbox_edit_index == n_focus ) )
 		{
@@ -142,7 +142,7 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 			}
 		}
 
-		thumb_is_hovered = n_posix_false;
+		thumb_is_hovered = FALSE;
 
 		caret_blink_force_onoff = TRUE;
 
@@ -162,7 +162,7 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 			caret_fr = caret_to = [self NonnonTxtboxMouseCursorDetect];
 		}
 
-		thumb_is_hovered = n_posix_false;
+		thumb_is_hovered = FALSE;
 
 		caret_blink_force_onoff = TRUE;
 

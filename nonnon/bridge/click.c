@@ -101,11 +101,11 @@ typedef struct {
 
 
 
-n_posix_bool
+BOOL
 n_game_click_threshold( n_game_click *p )
 {
 
-	if ( p == NULL ) { return n_posix_false; }
+	if ( p == NULL ) { return FALSE; }
 
 	GetCursorPos( &p->pt_cur );
 
@@ -117,11 +117,11 @@ n_game_click_threshold( n_game_click *p )
 		( p->threshold.y >= abs( p->pt_prv.y - p->pt_cur.y ) )
 	)
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 void
@@ -170,11 +170,11 @@ n_game_click_init( n_game_click *p, int vk )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_game_click_single( n_game_click *p )
 {
 
-	if ( p == NULL ) { return n_posix_false; }
+	if ( p == NULL ) { return FALSE; }
 
 
 	if ( n_win_is_input( p->vk ) )
@@ -195,7 +195,7 @@ n_game_click_single( n_game_click *p )
 		if ( p->phase == N_GAME_CLICK_PHASE_DOWN )
 		{
 
-			if ( n_posix_false == n_game_click_threshold( p ) )
+			if ( FALSE == n_game_click_threshold( p ) )
 			{
 				p->phase = N_GAME_CLICK_PHASE_LOCK;
 			}
@@ -217,7 +217,7 @@ n_game_click_single( n_game_click *p )
 
 			if ( n_game_click_threshold( p ) )
 			{
-				return n_posix_true;
+				return TRUE;
 			}
 
 		}
@@ -225,14 +225,14 @@ n_game_click_single( n_game_click *p )
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_game_click_double( n_game_click *p )
 {
 
-	if ( p == NULL ) { return n_posix_false; }
+	if ( p == NULL ) { return FALSE; }
 
 
 	if ( n_win_is_input( p->vk ) )
@@ -306,14 +306,14 @@ n_game_click_debug( "N_GAME_CLICK_PHASE_DOUBLE" );
 
 			if ( n_game_click_threshold( p ) )
 			{
-				return n_posix_true;
+				return TRUE;
 			}
 
 		}
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 

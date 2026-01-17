@@ -18,8 +18,8 @@
 
 
 
-#define n_gdi_frame_roundframe(      b, x,y,sx,sy, r,sz, fg,bg, blend       ) n_gdi_frame_roundframe_main( b, x,y,sx,sy, r,sz, fg,bg, blend, n_posix_false,    0 )
-#define n_gdi_frame_roundframe_mask( b, x,y,sx,sy, r,sz, fg,bg, blend, mask ) n_gdi_frame_roundframe_main( b, x,y,sx,sy, r,sz, fg,bg, blend, n_posix_true , mask )
+#define n_gdi_frame_roundframe(      b, x,y,sx,sy, r,sz, fg,bg, blend       ) n_gdi_frame_roundframe_main( b, x,y,sx,sy, r,sz, fg,bg, blend, FALSE,    0 )
+#define n_gdi_frame_roundframe_mask( b, x,y,sx,sy, r,sz, fg,bg, blend, mask ) n_gdi_frame_roundframe_main( b, x,y,sx,sy, r,sz, fg,bg, blend, TRUE , mask )
 
 // internal
 void
@@ -32,7 +32,7 @@ n_gdi_frame_roundframe_main
 	u32           color_fg,
 	u32           color_bg,
 	n_type_real   blend,
-	n_posix_bool  cornermask_onoff,
+	BOOL          cornermask_onoff,
 	u32           cornermask_color
 )
 {
@@ -150,8 +150,8 @@ n_gdi_frame_roundframe_luna
 		u32 clr_1 = n_bmp_blend_pixel( clr_m, n_bmp_black, d );
 		u32 clr_2 = n_bmp_blend_pixel( clr_m, n_bmp_white, d );
 
-		n_gdi_frame_roundframe_main( bmp, -1+o,-1+o,sx+2-oo,sy+2-oo, r,sz, clr_1, clr_m, 0.0, n_posix_false, 0 );
-		n_gdi_frame_roundframe_main( bmp,  0+o, 0+o,sx+1-oo,sy+1-oo, r,sz, clr_2, clr_m, 0.0, n_posix_false, 0 );
+		n_gdi_frame_roundframe_main( bmp, -1+o,-1+o,sx+2-oo,sy+2-oo, r,sz, clr_1, clr_m, 0.0, FALSE, 0 );
+		n_gdi_frame_roundframe_main( bmp,  0+o, 0+o,sx+1-oo,sy+1-oo, r,sz, clr_2, clr_m, 0.0, FALSE, 0 );
 
 	}
 
@@ -187,7 +187,7 @@ n_gdi_frame_roundframe_luna
 	if ( offset == 0 )
 	{
 
-		n_gdi_frame_roundframe_main( bmp, fx+o,fy+o,fsx-oo,fsy-oo, r, sz, clr_fg, clr_bg, 0.0, n_posix_false, 0 );
+		n_gdi_frame_roundframe_main( bmp, fx+o,fy+o,fsx-oo,fsy-oo, r, sz, clr_fg, clr_bg, 0.0, FALSE, 0 );
 
 	} else {
 
@@ -199,7 +199,7 @@ n_gdi_frame_roundframe_luna
 		n_bmp_roundrect( &gradient, fx+(sz*1)+o,fy+(sz*1)+o,fsx-(sz*2)-oo,fsy-(sz*2)-oo, n_bmp_black_invisible, r );
 		n_bmp_cornermask( &gradient, r, sz+o, gdi->frame_corner_color );
 
-		n_bmp_rasterizer( &gradient, bmp, 0,0, clr_fg, n_posix_false );
+		n_bmp_rasterizer( &gradient, bmp, 0,0, clr_fg, FALSE );
 
 		n_bmp_free( &gradient );
 
@@ -302,13 +302,13 @@ n_gdi_frame_bmp_cornermask_aqua( n_bmp *bmp, n_type_gfx round_size, n_type_gfx f
 	n_bmp_roundrect( &b, tx,ty,tsx,tsy, n_bmp_black, round_size );
 //n_bmp_save_literal( &b, "b.bmp" );
 
-	n_posix_bool p_trans = b.transparent_onoff; b.transparent_onoff = n_posix_false;
+	BOOL p_trans = b.transparent_onoff; b.transparent_onoff = FALSE;
 	n_bmp_flush_antialias( &b, 1.0 );
 	b.transparent_onoff = p_trans;
 
 //n_bmp_save_literal( &b, "c.bmp" );
 
-//n_bmp_rasterizer( &b, bmp, 0,0, bg, n_posix_false );
+//n_bmp_rasterizer( &b, bmp, 0,0, bg, FALSE );
 
 
 	n_bmp b_f; n_bmp_zero( &b_f ); n_bmp_carboncopy( bmp, &b_f );
@@ -317,8 +317,8 @@ n_gdi_frame_bmp_cornermask_aqua( n_bmp *bmp, n_type_gfx round_size, n_type_gfx f
 	u32        sh = n_bmp_black_invisible;
 	n_type_gfx hf = sy / 2;
 
-	n_bmp_rasterizer( &b, &b_f, 0,0, bg, n_posix_false );
-	n_bmp_rasterizer( &b, &b_t, 0,0, sh, n_posix_false );
+	n_bmp_rasterizer( &b, &b_f, 0,0, bg, FALSE );
+	n_bmp_rasterizer( &b, &b_t, 0,0, sh, FALSE );
 
 	//n_bmp_flush_antialias( &b_f, 1.0 );
 	//n_bmp_flush_antialias( &b_t, 1.0 );
@@ -500,7 +500,7 @@ n_gdi_frame_draw( n_gdi *gdi, n_bmp *bmp )
 		n_bmp b; n_bmp_zero( &b ); n_bmp_1st_fast( &b, sx,sy );
 		n_bmp_flush( &b, n_bmp_white_invisible );
 
-		b.transparent_onoff = n_posix_false;
+		b.transparent_onoff = FALSE;
 
 		n_bmp_ui_roundframe( &b, 0,0,sx,sy, gdi->frame_round, gdi->frame_size, outer, inner );
 

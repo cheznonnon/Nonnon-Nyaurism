@@ -32,12 +32,12 @@ n_txt_utf8_new( n_txt *txt )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_txt_load_utf8_is_binary( void *stream, n_type_int byte )
 {
 
-	n_posix_bool  ret = n_posix_false;
-	char         *ptr = stream;
+	BOOL  ret = FALSE;
+	char *ptr = stream;
 
 
 	n_type_int i = 0;
@@ -45,7 +45,7 @@ n_txt_load_utf8_is_binary( void *stream, n_type_int byte )
 	{
 		if ( i >= byte ) { break; }
 
-		if ( ptr[ i ] == 0 ) { ret = n_posix_true; break; }
+		if ( ptr[ i ] == 0 ) { ret = TRUE; break; }
 
 		i++;
 	}
@@ -58,14 +58,14 @@ n_txt_load_utf8_is_binary( void *stream, n_type_int byte )
 #define n_txt_load_utf8_onmemory( v, stream, byte ) n_txt_load_utf8_internal( v,  NULL, stream, byte )
 
 // internal
-n_posix_bool
+BOOL
 n_txt_load_utf8_internal( n_txt *txt, const n_posix_char *fname, void *stream, n_type_int byte )
 {
 
 	// [!] : load_onmemory() : don't free "stream" after calling this function
 
 
-	if ( txt == NULL ) { return n_posix_true; }
+	if ( txt == NULL ) { return TRUE; }
 
 
 	n_type_int bom_offset = 0;
@@ -77,7 +77,7 @@ n_txt_load_utf8_internal( n_txt *txt, const n_posix_char *fname, void *stream, n
 	{
 
 		FILE *fp = n_posix_fopen_read( fname );
-		if ( fp == NULL ) { return n_posix_true; }
+		if ( fp == NULL ) { return TRUE; }
 
 		byte = n_posix_stat_size( fname );
 
@@ -130,8 +130,8 @@ n_txt_load_utf8_internal( n_txt *txt, const n_posix_char *fname, void *stream, n
 
 		n_unicode_utf8_decode_no_bom( ptr, cb );
 
-		n_posix_bool error  = n_memory_is_same( ptr, stream, byte );
-		n_posix_bool binary = n_posix_false;
+		BOOL error  = n_memory_is_same( ptr, stream, byte );
+		BOOL binary = FALSE;
 		if ( error ) { binary = n_txt_load_utf8_is_binary( stream, byte ); }
 //NSLog( @"Error %d : Binary : %d", error, binary );
 
@@ -139,7 +139,7 @@ n_txt_load_utf8_internal( n_txt *txt, const n_posix_char *fname, void *stream, n
 
 		if ( binary )
 		{
-			txt->readonly = n_posix_true;
+			txt->readonly = TRUE;
 
 			txt->unicode = N_TXT_UNICODE_NIL;
 			txt->newline = N_TXT_NEWLINE_BINARY;
@@ -152,7 +152,7 @@ n_txt_load_utf8_internal( n_txt *txt, const n_posix_char *fname, void *stream, n
 //NSLog( @"Byte %d", byte );
 //NSLog( @"%d", memcmp( stream, ptr, byte ) );
 
-			txt->readonly = n_posix_true;
+			txt->readonly = TRUE;
 
 			txt->unicode = N_TXT_UNICODE_NIL;
 			txt->newline = n_txt_newline_check( stream, byte );
@@ -215,7 +215,7 @@ n_txt_load_utf8_internal( n_txt *txt, const n_posix_char *fname, void *stream, n
 //NSLog( @"%d", txt->readonly );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 n_type_int
@@ -233,14 +233,14 @@ n_txt_wcslen( u16 *utf_16_str )
 	return i;
 }
 
-n_posix_bool
+BOOL
 n_txt_save_utf8( n_txt *txt, const n_posix_char *fname )
 {
 
-	if ( n_txt_error( txt ) ) { return n_posix_true; }
+	if ( n_txt_error( txt ) ) { return TRUE; }
 
 
-	if ( txt->readonly ) { return n_posix_true; }
+	if ( txt->readonly ) { return TRUE; }
 
 
 	n_txt_stream( txt );
@@ -248,9 +248,9 @@ n_txt_save_utf8( n_txt *txt, const n_posix_char *fname )
 
 	// Encoder
 
-	n_posix_bool  is_allocated;
-	char         *ptr;
-	n_type_int    byte;
+	BOOL         is_allocated;
+	char        *ptr;
+	n_type_int   byte;
 
 //NSLog( @"%d", txt->unicode );
 
@@ -260,13 +260,13 @@ n_txt_save_utf8( n_txt *txt, const n_posix_char *fname )
 /*
 		txt->unicode = N_TXT_UNICODE_UTF8_NO_BOM;
 
-		is_allocated = n_posix_false;
+		is_allocated = FALSE;
 
 		byte = txt->byte;
 		ptr  = txt->stream;
 */
 
-		is_allocated = n_posix_true;
+		is_allocated = TRUE;
 
 		n_type_int cch = n_posix_strlen( txt->stream );
 
@@ -294,7 +294,7 @@ n_txt_save_utf8( n_txt *txt, const n_posix_char *fname )
 	if ( txt->unicode == N_TXT_UNICODE_UTF )
 	{
 
-		is_allocated = n_posix_false;
+		is_allocated = FALSE;
 
 		byte = n_posix_strlen( txt->stream ) + 3;
 		ptr  = n_memory_new( byte );
@@ -309,7 +309,7 @@ n_txt_save_utf8( n_txt *txt, const n_posix_char *fname )
 
 		// [!] : currently non-unicode formats are handled as UTF-8 always
 
-		is_allocated = n_posix_false;
+		is_allocated = FALSE;
 
 		byte = txt->byte;
 		ptr  = txt->stream;
@@ -317,13 +317,13 @@ n_txt_save_utf8( n_txt *txt, const n_posix_char *fname )
 	}
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	FILE *fp = n_posix_fopen_write( fname );
 	if ( fp == NULL )
 	{
-		ret = n_posix_true;
+		ret = TRUE;
 	} else {
 		n_posix_fwrite( ptr, byte, 1, fp );
 	}
