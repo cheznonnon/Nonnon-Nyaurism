@@ -631,7 +631,9 @@ n_nyaurism_plotter_seekbar_draw( n_bmp *bmp, n_wav *wav, n_type_gfx sx, n_type_g
 
 		//n_fft_histogram_test( &n_nyaurism->wav );
 
-		n_wav_pinknoise( &n_nyaurism->wav, 0, 1.0, 1.0 );
+		//n_wav_pinknoise( &n_nyaurism->wav, 0, 1.0, 1.0 );
+
+		n_wav_tremolo( &n_nyaurism->wav, 3, 1.0, 1.0 );
 
 		[self display];
 	}

@@ -297,6 +297,13 @@
                     </connections>
                 </menuItem>
                 <menuItem isSeparatorItem="YES" id="OSI-CT-VaV"/>
+                <menuItem title="Tremolo" id="1OQ-t3-w62">
+                    <modifierMask key="keyEquivalentModifierMask"/>
+                    <connections>
+                        <action selector="n_plotter_menu_tremolo:" target="Voe-Tx-rLC" id="bbK-of-M5D"/>
+                    </connections>
+                </menuItem>
+                <menuItem isSeparatorItem="YES" id="ssr-K3-GLK"/>
                 <menuItem title="White Noise" id="3DO-FQ-ram">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>

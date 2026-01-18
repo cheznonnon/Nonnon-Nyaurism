@@ -1159,6 +1159,14 @@ NSLog( @"menuNeedsUpdate" );
 
 }
 
+- (IBAction)n_plotter_menu_tremolo:(id)sender {
+
+	n_nyaurism_plotter_tremolo( &n_nyaurism->wav );
+
+	[_n_plotter display];
+
+}
+
 - (IBAction)n_plotter_menu_whitenoise:(id)sender {
 
 	n_nyaurism_plotter_whitenoise( &n_nyaurism->wav );

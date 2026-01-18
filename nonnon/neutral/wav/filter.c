@@ -5,15 +5,6 @@
 
 
 
-#ifndef N_POSIX_PLATFORM_MAC
-
-
-#include "./__filter_deprecated.c"
-
-
-#else // #ifndef N_POSIX_PLATFORM_MAC
-
-
 #ifndef _H_NONNON_NEUTRAL_WAV_FILTER
 #define _H_NONNON_NEUTRAL_WAV_FILTER
 
@@ -38,6 +29,15 @@ n_wav_sample_is_accessible( n_wav *wav, u32 x )
 
 	return n_posix_false;
 }
+
+
+
+
+#ifndef N_POSIX_PLATFORM_MAC
+
+#include "./__filter_deprecated.c"
+
+#endif // #ifndef N_POSIX_PLATFORM_MAC
 
 
 
@@ -305,6 +305,53 @@ n_wav_square_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real rat
 		{
 			n_type_real d = n_wav_sample_square( wav, hz, xx );
 			n_wav_sample_mix( wav, xx, d, d, ratio_l, ratio_r );
+		}
+
+		f++;
+
+	}
+
+
+	return;
+}
+
+
+
+
+#define n_wav_tremolo( w, hz, r_l, r_r ) n_wav_tremolo_partial( w, hz, 0, N_WAV_COUNT( w ), r_l, r_r )
+
+void
+n_wav_tremolo_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio_l, n_type_real ratio_r )
+{
+
+	// [!] : LFO Filter : use low freq like 3 Hz
+
+
+	if ( n_wav_error_format( wav ) ) { return; }
+
+	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+
+
+	u32 f = 0;
+	u32 t = sx;
+	n_posix_loop
+	{
+
+		if ( f >= t ) { break; }
+
+		u32 xx = x + f;
+
+		if ( n_wav_sample_is_accessible( wav, xx ) )
+		{
+			n_type_real d = n_wav_sample_sine_coeff( wav, hz, xx );
+
+			n_type_real l,r;
+			n_wav_sample_get( wav, x + f, &l, &r );
+
+			if ( ratio_l != 0 ) { l = d * l * ratio_l; }
+			if ( ratio_r != 0 ) { r = d * r * ratio_r; }
+
+			n_wav_sample_set( wav, xx, l, r );
 		}
 
 		f++;
@@ -1576,7 +1623,4 @@ n_wav_copy( n_wav *f, n_wav *t, n_type_int _fx, n_type_int _fsx, n_type_int _tx,
 
 
 #endif // _H_NONNON_NEUTRAL_WAV_FILTER
-
-
-#endif // #ifndef N_POSIX_PLATFORM_MAC
 

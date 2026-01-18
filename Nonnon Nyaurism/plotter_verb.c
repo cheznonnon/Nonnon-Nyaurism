@@ -443,6 +443,45 @@ n_nyaurism_plotter_overdrive( n_wav *wav )
 }
 
 void
+n_nyaurism_plotter_tremolo( n_wav *wav )
+{
+
+	n_nyaurism_backup( wav, &n_nyaurism->wav_undo );
+
+
+	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( wav, &x, &sx );
+	if ( sx == 0 ) { sx = N_WAV_COUNT( wav ); }
+	if ( n_nyaurism_plotter_selection_line_only() ) { sx = 0; }
+
+	n_type_real l = 1.0;
+	n_type_real r = 1.0;
+
+	if ( n_nyaurism->selection_shift_onoff )
+	{
+		if ( n_nyaurism->plotter_selection_channel == 1 )
+		{
+			l = 0.0;
+		} else
+		if ( n_nyaurism->plotter_selection_channel == 2 )
+		{
+			r = 0.0;
+		}
+	}
+
+	n_type_real hz = 3.0;
+
+	n_wav_tremolo_partial( wav, hz, x, sx, l, r );
+
+
+	n_nyaurism_backup( wav, &n_nyaurism->wav_base );
+
+	n_nyaurism_slider_redraw( wav );
+
+
+	return;
+}
+
+void
 n_nyaurism_plotter_whitenoise( n_wav *wav )
 {
 
