@@ -292,7 +292,7 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int ch )
 #else
 	int num_blocks = ( eq->sample_count - eq->resolution ) / hop_size + 1;
 
-	for( int block = 0; block <    num_blocks; block++ )
+	for( int block = 0; block < num_blocks; block++ )
 #endif
 	{
 		int start_idx = block * hop_size;
@@ -308,7 +308,7 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int ch )
 				buffer[ i ] = 0.0;
 			}
 #else
-			if ( idx < count )
+			if ( idx < eq->sample_count )
 			{
 				buffer[ i ] = audio[ idx ] * eq->window[ i ];
 			} else {
@@ -382,7 +382,7 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int ch )
 
 #else
 
-		double freq_resolution = (double) eq->sample_rate / eq->resolution;
+		double freq_resolution = (double) N_FFT_RATE / eq->resolution;
 
 		for( int i = 0; i < eq->resolution/2; i++ )
 		{
@@ -408,12 +408,12 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int ch )
 
 		}
 
-		n_fft_ifft( buffer, eq->resolution );
+		n_fft_decode( buffer, eq->resolution );
 
 		for( int i = 0; i < eq->resolution; i++ )
 		{
 			int idx = start_idx + i;
-			if ( idx < count )
+			if ( idx < eq->sample_count )
 			{
 				output[ idx ] += creal( buffer[ i ] ) * eq->window[ i ];
 			}
@@ -484,8 +484,8 @@ n_fft_equalizer_apply_channel( n_fft_equalizer *eq, void *data, int ch )
 		}
 	}
 
-	n_fft_equalizer_channel_process( eq, audio, ch );
 
+	n_fft_equalizer_channel_process( eq, audio, ch );
 
 
 	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
@@ -915,6 +915,7 @@ n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, int re
 void
 n_fft_histogram_test( n_wav *wav )
 {
+
 	int count = 10;
 
 	double histogram[ count ];
@@ -926,6 +927,8 @@ n_fft_histogram_test( n_wav *wav )
 		NSLog( @"%f", histogram[ i ] );
 	}
 
+
+	return;
 }
 
 

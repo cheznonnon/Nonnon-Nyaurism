@@ -59,16 +59,13 @@ n_nyaurism_plotter_mute( n_wav *wav )
 	BOOL l = TRUE;
 	BOOL r = TRUE;
 
-	if ( n_nyaurism->selection_shift_onoff )
+	if ( n_nyaurism->plotter_selection_channel == 1 )
 	{
-		if ( n_nyaurism->plotter_selection_channel == 1 )
-		{
-			r = FALSE;
-		} else
-		if ( n_nyaurism->plotter_selection_channel == 2 )
-		{
-			l = FALSE;
-		}
+		r = FALSE;
+	} else
+	if ( n_nyaurism->plotter_selection_channel == 2 )
+	{
+		l = FALSE;
 	}
 
 
@@ -86,6 +83,9 @@ n_nyaurism_plotter_mute( n_wav *wav )
 void
 n_nyaurism_plotter_cut( n_wav *wav )
 {
+
+	if ( n_nyaurism->plotter_selection_channel ) { return; }
+
 
 	n_nyaurism_backup( wav, &n_nyaurism->wav_undo );
 
@@ -121,6 +121,9 @@ void
 n_nyaurism_plotter_copy( n_wav *wav, n_wav *wav_clip )
 {
 
+	if ( n_nyaurism->plotter_selection_channel ) { return; }
+
+
 	n_type_gfx x,sx; n_nyaurism_plotter_selection_pixel2sample( wav, &x, &sx );
 
 	n_wav_new_by_sample( &n_nyaurism->wav_clip, sx );
@@ -134,6 +137,9 @@ n_nyaurism_plotter_copy( n_wav *wav, n_wav *wav_clip )
 void
 n_nyaurism_plotter_paste( n_wav *wav )
 {
+
+	if ( n_nyaurism->plotter_selection_channel ) { return; }
+
 
 	n_nyaurism_backup( wav, &n_nyaurism->wav_undo );
 
@@ -162,6 +168,9 @@ n_nyaurism_plotter_paste( n_wav *wav )
 void
 n_nyaurism_plotter_overwrite( n_wav *wav )
 {
+
+	if ( n_nyaurism->plotter_selection_channel ) { return; }
+
 
 	n_nyaurism_backup( wav, &n_nyaurism->wav_undo );
 
@@ -200,6 +209,9 @@ void
 n_nyaurism_plotter_delete( n_wav *wav )
 {
 
+	if ( n_nyaurism->plotter_selection_channel ) { return; }
+
+
 	n_nyaurism_backup( wav, &n_nyaurism->wav_undo );
 
 
@@ -218,6 +230,9 @@ n_nyaurism_plotter_delete( n_wav *wav )
 	return;
 }
 
+
+
+
 void
 n_nyaurism_plotter_fade_in( n_wav *wav )
 {
@@ -232,16 +247,13 @@ n_nyaurism_plotter_fade_in( n_wav *wav )
 	n_type_real l = 1.0;
 	n_type_real r = 1.0;
 
-	if ( n_nyaurism->selection_shift_onoff )
+	if ( n_nyaurism->plotter_selection_channel == 1 )
 	{
-		if ( n_nyaurism->plotter_selection_channel == 1 )
-		{
-			l = 0.0;
-		} else
-		if ( n_nyaurism->plotter_selection_channel == 2 )
-		{
-			r = 0.0;
-		}
+		l = 0.0;
+	} else
+	if ( n_nyaurism->plotter_selection_channel == 2 )
+	{
+		r = 0.0;
 	}
 
 	n_wav_fade_in_partial( wav, x, sx, l, r );
@@ -271,16 +283,13 @@ n_nyaurism_plotter_fade_out( n_wav *wav )
 	n_type_real l = 1.0;
 	n_type_real r = 1.0;
 
-	if ( n_nyaurism->selection_shift_onoff )
+	if ( n_nyaurism->plotter_selection_channel == 1 )
 	{
-		if ( n_nyaurism->plotter_selection_channel == 1 )
-		{
-			l = 0.0;
-		} else
-		if ( n_nyaurism->plotter_selection_channel == 2 )
-		{
-			r = 0.0;
-		}
+		l = 0.0;
+	} else
+	if ( n_nyaurism->plotter_selection_channel == 2 )
+	{
+		r = 0.0;
 	}
 
 	n_wav_fade_out_partial( wav, x, sx, l, r );
@@ -382,16 +391,13 @@ n_nyaurism_plotter_smoother( n_wav *wav )
 	BOOL l = TRUE;
 	BOOL r = TRUE;
 
-	if ( n_nyaurism->selection_shift_onoff )
+	if ( n_nyaurism->plotter_selection_channel == 1 )
 	{
-		if ( n_nyaurism->plotter_selection_channel == 1 )
-		{
-			l = FALSE;
-		} else
-		if ( n_nyaurism->plotter_selection_channel == 2 )
-		{
-			r = FALSE;
-		}
+		l = FALSE;
+	} else
+	if ( n_nyaurism->plotter_selection_channel == 2 )
+	{
+		r = FALSE;
 	}
 
 	n_wav_smoother_partial( wav, x, sx, l, r );
@@ -419,16 +425,13 @@ n_nyaurism_plotter_overdrive( n_wav *wav )
 	BOOL l = TRUE;
 	BOOL r = TRUE;
 
-	if ( n_nyaurism->selection_shift_onoff )
+	if ( n_nyaurism->plotter_selection_channel == 1 )
 	{
-		if ( n_nyaurism->plotter_selection_channel == 1 )
-		{
-			l = FALSE;
-		} else
-		if ( n_nyaurism->plotter_selection_channel == 2 )
-		{
-			r = FALSE;
-		}
+		l = FALSE;
+	} else
+	if ( n_nyaurism->plotter_selection_channel == 2 )
+	{
+		r = FALSE;
 	}
 
 	n_wav_overdrive_partial( wav, x, sx, l, r );
@@ -456,16 +459,13 @@ n_nyaurism_plotter_tremolo( n_wav *wav )
 	n_type_real l = 1.0;
 	n_type_real r = 1.0;
 
-	if ( n_nyaurism->selection_shift_onoff )
+	if ( n_nyaurism->plotter_selection_channel == 1 )
 	{
-		if ( n_nyaurism->plotter_selection_channel == 1 )
-		{
-			l = 0.0;
-		} else
-		if ( n_nyaurism->plotter_selection_channel == 2 )
-		{
-			r = 0.0;
-		}
+		l = 0.0;
+	} else
+	if ( n_nyaurism->plotter_selection_channel == 2 )
+	{
+		r = 0.0;
 	}
 
 	n_type_real hz = 3.0;
@@ -495,16 +495,13 @@ n_nyaurism_plotter_whitenoise( n_wav *wav )
 	n_type_real l = 1.0;
 	n_type_real r = 1.0;
 
-	if ( n_nyaurism->selection_shift_onoff )
+	if ( n_nyaurism->plotter_selection_channel == 1 )
 	{
-		if ( n_nyaurism->plotter_selection_channel == 1 )
-		{
-			l = 0.0;
-		} else
-		if ( n_nyaurism->plotter_selection_channel == 2 )
-		{
-			r = 0.0;
-		}
+		l = 0.0;
+	} else
+	if ( n_nyaurism->plotter_selection_channel == 2 )
+	{
+		r = 0.0;
 	}
 
 	n_wav_whitenoise_partial( wav, 44100, x, sx, l, r );
@@ -532,16 +529,13 @@ n_nyaurism_plotter_pinknoise( n_wav *wav )
 	n_type_real l = 1.0;
 	n_type_real r = 1.0;
 
-	if ( n_nyaurism->selection_shift_onoff )
+	if ( n_nyaurism->plotter_selection_channel == 1 )
 	{
-		if ( n_nyaurism->plotter_selection_channel == 1 )
-		{
-			l = 0.0;
-		} else
-		if ( n_nyaurism->plotter_selection_channel == 2 )
-		{
-			r = 0.0;
-		}
+		l = 0.0;
+	} else
+	if ( n_nyaurism->plotter_selection_channel == 2 )
+	{
+		r = 0.0;
 	}
 
 	n_wav_pinknoise_partial( wav, 0, x, sx, l, r );
