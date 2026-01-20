@@ -1021,6 +1021,15 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 		// [!] : you can set tag by right-pane of XIB
 
+		if ( menuItem.tag != 0 )
+		{
+			return NO;
+		}
+	} else
+	if ( n_nyaurism->plotter_selection_channel != 0 )
+	{
+		// [!] : except for "Unselect"
+
 		if ( menuItem.tag == 1 )
 		{
 			return NO;

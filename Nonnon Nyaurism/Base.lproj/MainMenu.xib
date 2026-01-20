@@ -218,7 +218,7 @@
                         <action selector="n_plotter_menu_select_all:" target="Voe-Tx-rLC" id="xbh-nH-SgF"/>
                     </connections>
                 </menuItem>
-                <menuItem title="Unselect" tag="1" id="u5l-zA-8Gw">
+                <menuItem title="Unselect" tag="2" id="u5l-zA-8Gw">
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <connections>
                         <action selector="n_plotter_menu_unselect:" target="Voe-Tx-rLC" id="GFj-xP-GGd"/>
