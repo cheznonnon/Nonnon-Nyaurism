@@ -5,8 +5,8 @@
 
 
 
-#ifndef _H_NONNON_WIN32_GDI
-#define _H_NONNON_WIN32_GDI
+#ifndef _H_NONNON_BRIDGE_GDI
+#define _H_NONNON_BRIDGE_GDI
 
 
 
@@ -14,15 +14,12 @@
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
-#include "../win32/wic.c"
-
+#include "../neutral/ini.c"
 
 #include "../neutral/txt.c"
 
 #include "../bridge/pmr.c"
 #include "../bridge/progressbar.c"
-
-#include "../win32/win/icon.c"
 
 
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
@@ -44,6 +41,49 @@ static CGFloat n_gdi_scale_factor = 1.0;
 
 
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
+
+
+
+
+#ifdef N_POSIX_PLATFORM_WINDOWS
+
+void
+n_gdi_stdsize_text( HWND hwnd, const n_posix_char *str, n_type_gfx *sx, n_type_gfx *sy )
+{
+
+	// [Mechanism]
+	//
+	//	WM_GETFONT returns real hfont, not copy of it
+	//	WM_GETFONT returns NULL when system font
+	//	so don't n_win_font_exit() with it
+
+
+	// [Needed] : multi-thread
+
+	HANDLE hmutex = n_thread_mutex_init_and_wait_literal( NULL, "n_gdi_stdsize_text()" );
+
+
+	HDC   hdc = GetDC( hwnd );
+	HFONT pf  = SelectObject( hdc, (HFONT) SendMessage( hwnd, WM_GETFONT, 0, 0 ) );
+
+	SIZE size;
+	GetTextExtentPoint32( hdc, str, (int) n_posix_strlen( str ), &size );
+
+	SelectObject( hdc, pf );
+	ReleaseDC( hwnd, hdc );
+
+
+	hmutex = n_thread_mutex_exit( hmutex );
+
+
+	if ( sx != NULL ) { (*sx) = size.cx; }
+	if ( sy != NULL ) { (*sy) = size.cy; }
+
+
+	return;
+}
+
+#endif
 
 
 
@@ -231,8 +271,6 @@ n_gdi_crop( n_bmp *bmp, n_bmp *bmp_Aj )
 #define N_GDI_FRAME_ROUND       10
 #define N_GDI_FRAME_RPG         11
 #define N_GDI_FRAME_AQUA        12
-#define N_GDI_FRAME_FLUENT_CHK  13
-#define N_GDI_FRAME_FLUENT_BTN  14
 
 #define N_GDI_FONT_DEFAULT       ( 0 << 0 )
 #define N_GDI_FONT_BOLD          ( 1 << 0 )
@@ -421,12 +459,9 @@ static BOOL n_gdi_gradient_vertical_up_side_down = FALSE;
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
 #include "./gdi/base.c"
-#include "./gdi/bitmap.c"
-#include "./gdi/color.c"
 #include "./gdi/effect.c"
 #include "./gdi/font.c"
 #include "./gdi/frame.c"
-#include "./gdi/icon.c"
 #include "./gdi/text.c"
 
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
@@ -460,12 +495,12 @@ n_gdi_image_load( const n_gdi *gdi, n_bmp *icon, n_posix_char *path )
 		&&
 		( n_IPicture_load( path, icon ) )
 #endif // #ifdef _H_NONNON_WIN32_OLE_IPICTURE
+#ifdef _H_NONNON_WIN64_RESOURCE
+		&&
+		( n_win64_resource_load_nbmp( path, icon ) )
+#endif // #ifdef _H_NONNON_WIN64_RESOURCE
 	)
 	{
-#ifdef N_POSIX_PLATFORM_WINDOWS
-		n_gdi_icon_extract( icon, path, gdi->base_index );
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
-
 		if ( n_bmp_error( icon ) ) { return TRUE; }
 	} else {
 		//return FALSE;
@@ -522,7 +557,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 	{
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
-		HANDLE hmutex = n_win_mutex_init_and_wait_literal( NULL, "n_gdi_bmp()" );
+		HANDLE hmutex = n_thread_mutex_init_and_wait_literal( NULL, "n_gdi_bmp()" );
 
 
 		HDC hdc = GetDC( NULL );
@@ -532,7 +567,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		ReleaseDC( NULL, hdc );
 
 
-		hmutex = n_win_mutex_exit( hmutex );
+		hmutex = n_thread_mutex_exit( hmutex );
 
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 	} else {
@@ -671,7 +706,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		if ( gdi->layout == N_GDI_LAYOUT_HORIZONTAL )
 		{
 #ifdef N_POSIX_PLATFORM_WINDOWS
-			n_win_stdsize_text( NULL, n_posix_literal( " " ), &gdi->base_gap_between_icon_and_text, NULL );
+			n_gdi_stdsize_text( NULL, n_posix_literal( " " ), &gdi->base_gap_between_icon_and_text, NULL );
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
 			CGSize sz = n_mac_image_text_pixelsize( @" ", nsfont );
 			gdi->base_gap_between_icon_and_text = sz.width;
@@ -702,25 +737,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		gdi->frame_round = -100;
 		gdi->frame_size  = 2 * gdi->scale;
 	} else
-	if ( gdi->frame_style == N_GDI_FRAME_FLUENT_CHK )
-	{
-#ifdef N_POSIX_PLATFORM_WINDOWS
-		if ( FALSE == n_string_is_empty( gdi->text ) )
-		{
-			gdi->text_color_main = n_bmp_white;
-		}
-
-		gdi->frame_round = n_win_fluent_ui_round_param( NULL ) / 2;
-		gdi->frame_size  = 2 * gdi->scale;
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
-	} else
-	if ( gdi->frame_style == N_GDI_FRAME_FLUENT_BTN )
-	{
-#ifdef N_POSIX_PLATFORM_WINDOWS
-		gdi->frame_round = n_win_fluent_ui_round_param( NULL );
-		gdi->frame_size  = 2 * gdi->scale;
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
-	} else
 	if ( gdi->frame_style )
 	{
 		gdi->frame_round = 0;
@@ -738,7 +754,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 	// PMR Support
 
-#ifdef N_POSIX_PLATFORM_WINDOWS
+#ifdef N_POSIX_PLATFORM_MINGW
 
 	if ( n_posix_stat_is_dir( gdi->text_font ) ) { gdi->pmr_onoff = TRUE; }
 
@@ -751,7 +767,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		}
 	}
 
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
+#endif // #ifdef N_POSIX_PLATFORM_MINGW
 
 
 
@@ -774,9 +790,9 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 			n_type_gfx icon_sx = 32;
 			n_type_gfx icon_sy = 32;
 		
-#ifdef N_POSIX_PLATFORM_WINDOWS
+#ifdef N_POSIX_PLATFORM_MINGW
 			n_win_stdsize_icon_large( &icon_sx, &icon_sy );
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
+#endif // #ifdef N_POSIX_PLATFORM_MINGW
 
 			gdi->icon_rsrc = n_posix_max_n_type_gfx( icon_sx, icon_sy );
 
@@ -1191,7 +1207,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		} else
 		if ( gdi->base_style == N_GDI_BASE_LUNA )
 		{
-#ifdef _H_NONNON_WIN32_GDI_FRAME
 
 			n_gdi_base_luna_solid( gdi, &bmp_ret, bg, gdi->scale );
 
@@ -1209,7 +1224,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 			}
 
-#endif // _H_NONNON_WIN32_GDI_FRAME
 		} else
 		if ( gdi->base_style == N_GDI_BASE_LUNA_PRESS )
 		{
@@ -1232,7 +1246,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		} else
 		if ( gdi->base_style == N_GDI_BASE_PROGRESS_H )
 		{
-#ifdef N_POSIX_PLATFORM_WINDOWS
+#ifdef N_POSIX_PLATFORM_MINGW
 
 			n_bmp_flush( &bmp_ret, bg );
 
@@ -1244,11 +1258,11 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 				n_gdi_frame_lineframe( gdi, &bmp_ret, 0,0,gdi->sx,gdi->sy, color_frame );
 			}
 
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
+#endif // #ifdef N_POSIX_PLATFORM_MINGW
 		} else
 		if ( gdi->base_style == N_GDI_BASE_PROGRESS_V )
 		{
-#ifdef N_POSIX_PLATFORM_WINDOWS
+#ifdef N_POSIX_PLATFORM_MINGW
 
 			n_bmp_flush( &bmp_ret, bg );
 
@@ -1260,7 +1274,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 				n_gdi_frame_lineframe( gdi, &bmp_ret, 0,0,gdi->sx,gdi->sy, color_frame );
 			}
 
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
+#endif // #ifdef N_POSIX_PLATFORM_MINGW
 		} else
 		//
 		{
@@ -1309,25 +1323,15 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 	// Phase 4 : Icon and Text
 
 
-	if (
-		( gdi->frame_style == N_GDI_FRAME_FLUENT_CHK )
-		||
-		( gdi->frame_style == N_GDI_FRAME_FLUENT_BTN )
-		||
-		( gdi->frame_style == N_GDI_FRAME_AQUA )
-	)
+	if ( gdi->frame_style == N_GDI_FRAME_AQUA )
 	{
-#ifdef _H_NONNON_WIN32_GDI_FRAME
 		n_gdi_frame_draw( gdi, &bmp_ret );
-#endif // #ifdef _H_NONNON_WIN32_GDI_FRAME
 	}
 
 
 	if ( gdi->style & N_GDI_CLARITY )
 	{
-#ifdef _H_NONNON_WIN32_GDI_FRAME
 		n_gdi_frame_draw_highlight( gdi, &bmp_ret );
-#endif // #ifdef _H_NONNON_WIN32_GDI_FRAME
 	}
 
 
@@ -1374,11 +1378,11 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 			gdi->icon_y += gdi->scale;
 		}
 
-#ifdef N_POSIX_PLATFORM_WINDOWS
+#ifdef N_POSIX_PLATFORM_MINGW
 
 		n_gdi_icon_draw( gdi, &bmp_ret );
 
-#else  // #ifdef N_POSIX_PLATFORM_WINDOWS
+#else  // #ifdef N_POSIX_PLATFORM_MINGW
 
 		n_bmp icon; n_bmp_zero( &icon );
 
@@ -1395,7 +1399,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 		n_bmp_free_fast( &icon );
 
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
+#endif // #ifdef N_POSIX_PLATFORM_MINGW
 
 	}
 
@@ -1488,30 +1492,12 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 	}
 
 
-	if (
-		( gdi->frame_style == N_GDI_FRAME_FLUENT_CHK )
-		||
-		( gdi->frame_style == N_GDI_FRAME_FLUENT_BTN )
-		||
-		( gdi->frame_style == N_GDI_FRAME_AQUA )
-	)
+	n_gdi_frame_draw( gdi, &bmp_ret );
+
+	if ( gdi->frame_style == N_GDI_FRAME_ROUND )
 	{
-		if ( gdi->frame_style == N_GDI_FRAME_FLUENT_BTN )
-		{
-			n_bmp_cornermask( &bmp_ret, gdi->frame_round, 0, gdi->frame_corner_color );
-		}
-	} else {
-#ifdef _H_NONNON_WIN32_GDI_FRAME
-		n_gdi_frame_draw( gdi, &bmp_ret );
-
-		if ( gdi->frame_style == N_GDI_FRAME_ROUND )
-		{
-			n_bmp_cornermask( &bmp_ret, gdi->frame_round, 0, gdi->frame_corner_color );
-		}
-#endif // #ifdef _H_NONNON_WIN32_GDI_FRAME
+		n_bmp_cornermask( &bmp_ret, gdi->frame_round, 0, gdi->frame_corner_color );
 	}
-
-
 
 
 	// Phase 5 : Cleanup
@@ -1541,5 +1527,5 @@ n_bmp_box( &bmp_ret, gdi->text_x, gdi->text_y, gdi->text_sx, gdi->text_sy, n_bmp
 }
 
 
-#endif // _H_NONNON_WIN32_GDI
+#endif // _H_NONNON_BRIDGE_GDI
 

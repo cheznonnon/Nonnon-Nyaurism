@@ -1558,6 +1558,8 @@ void
 n_string_int2str( n_posix_char *str, n_type_int n )
 {
 
+	if ( str == NULL ) { return; }
+
 	if ( n == 0 )
 	{
 		n_posix_sprintf_literal( str, "%d", 0 );
@@ -1631,7 +1633,13 @@ n_string_int2str( n_posix_char *str, n_type_int n )
 	{
 		//
 	} else {
-		n_posix_sprintf_literal( str, "%s", &str[ 1 ] );
+		// [x] : MinGW-w64 : overlap is forbidden
+
+		n_posix_char *s = n_string_carboncopy( &str[ 1 ] );
+
+		n_posix_sprintf_literal( str, "%s", s );
+
+		n_string_free( s );
 	}
 
 
@@ -2436,7 +2444,13 @@ n_string_commandline_option( const n_posix_char *option, n_posix_char *path )
 
 		ret = n_posix_true;
 
-		n_posix_sprintf_literal( path, "%s", &path[ n_posix_strlen( option ) ] );
+		// [x] : MinGW-w64 : overlap is forbidden
+
+		n_posix_char *s = n_string_carboncopy( &path[ n_posix_strlen( option ) ] );
+
+		n_posix_sprintf_literal( path, "%s", s );
+
+		n_string_free( s );
 
 		n_string_remove_blank( path, path );
 

@@ -113,11 +113,6 @@
 #else  // #ifdef N_POSIX_PLATFORM_MAC
 
 
-// [!] : fallback
-
-//#include "../floss/libjpeg.c"
-
-
 
 
 #ifdef _MSC_VER
@@ -130,9 +125,11 @@
 #else  // #ifdef _MSC_VER
 
 
-#include <jpeglib.h>
+// [!] : fallback
 
 #define N_JPG_NO_MEM_API
+
+#include "../floss/libjpeg.c"
 
 
 #endif // #ifdef _MSC_VER

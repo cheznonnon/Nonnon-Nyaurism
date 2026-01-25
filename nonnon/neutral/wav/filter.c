@@ -154,7 +154,7 @@ n_wav_peak_value( n_wav *wav, u32 x, u32 sx, n_type_real *ret_l, n_type_real *re
 
 		if ( n_wav_sample_is_accessible( wav, xx ) )
 		{
-			n_type_real l,r; n_wav_sample_get( wav, xx, &l, &r );
+			n_type_real l=0,r=0; n_wav_sample_get( wav, xx, &l, &r );
 
 			l = fabs( l );
 			r = fabs( r );
@@ -941,8 +941,9 @@ n_wav_smoother_channel( n_wav *wav, u32 x, u32 count, double *input, double *out
 	{
 		s16 *p = (s16*) N_WAV_PTR( wav );
 
+		int i = 0;
 		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
+		for( i = 0; i < count; i++ )
 		{
 			input[ i ] = (double) p[ j + ch ] / SHRT_MAX;
 			j += 2;
@@ -950,8 +951,9 @@ n_wav_smoother_channel( n_wav *wav, u32 x, u32 count, double *input, double *out
 	} else {
 		float *p = (float*) N_WAV_PTR( wav );
 
+		int i = 0;
 		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
+		for( i = 0; i < count; i++ )
 		{
 			input[ i ] = (double) p[ j + ch ];
 			j += 2;
@@ -959,11 +961,13 @@ n_wav_smoother_channel( n_wav *wav, u32 x, u32 count, double *input, double *out
 	}
 
 
-	for ( int i = 0; i < count; i++ )
+	int i = 0;
+	for( i = 0; i < count; i++ )
 	{
 		output[ i ] = 0.0;
 
-		for ( int j = -half_window; j <= half_window; j++ )
+		int j = 0;
+		for( j = -half_window; j <= half_window; j++ )
 		{
 			int idx = i + j;
 			if ( idx < 0 )
@@ -985,8 +989,9 @@ n_wav_smoother_channel( n_wav *wav, u32 x, u32 count, double *input, double *out
 	{
 		s16 *p = (s16*) N_WAV_PTR( wav );
 
+		int i = 0;
 		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
+		for( i = 0; i < count; i++ )
 		{
 			p[ j + ch ] = output[ i ] * SHRT_MAX;
 			j += 2;
@@ -994,8 +999,9 @@ n_wav_smoother_channel( n_wav *wav, u32 x, u32 count, double *input, double *out
 	} else {
 		float *p = (float*) N_WAV_PTR( wav );
 
+		int i = 0;
 		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
+		for( i = 0; i < count; i++ )
 		{
 			p[ j + ch ] = (float) output[ i ];
 			j += 2;
@@ -1087,7 +1093,10 @@ n_wav_overdrive_engine( double *audio, u32 count )
 	double *oversampled     = n_memory_new_closed( oversampled_len * sizeof( double ) );
 
 
-	for( int i = 0; i < oversampled_len; i++ )
+	int i = 0;
+
+
+	for( i = 0; i < oversampled_len; i++ )
 	{
 		double pos = (double) i / factor;
 
@@ -1103,7 +1112,7 @@ n_wav_overdrive_engine( double *audio, u32 count )
 	}
 
 
-	for( int i = 0; i < oversampled_len; i++ )
+	for( i = 0; i < oversampled_len; i++ )
 	{
 		double x = oversampled[ i ] * drive;
  
@@ -1116,11 +1125,12 @@ n_wav_overdrive_engine( double *audio, u32 count )
 	}
 
 
-	for ( int i = 0; i < count; i++ )
+	for( i = 0; i < count; i++ )
 	{
 		double sum = 0.0;
 
-		for( int j = 0; j < factor; j++ )
+		int j = 0;
+		for( j = 0; j < factor; j++ )
 		{
 			sum += oversampled[ i * factor + j ];
 		}
@@ -1144,8 +1154,9 @@ n_wav_overdrive_channel( n_wav *wav, u32 x, u32 count, double *audio, int ch )
 	{
 		s16 *ptr = (s16*) N_WAV_PTR( wav );
 
+		int i = 0;
 		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
+		for( i = 0; i < count; i++ )
 		{
 			audio[ i ] = (double) ptr[ j + ch ] / SHRT_MAX;
 			j += 2;
@@ -1153,8 +1164,9 @@ n_wav_overdrive_channel( n_wav *wav, u32 x, u32 count, double *audio, int ch )
 	} else {
 		float *ptr = (float*) N_WAV_PTR( wav );
 
+		int i = 0;
 		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
+		for( i = 0; i < count; i++ )
 		{
 			audio[ i ] = (double) ptr[ j + ch ];
 			j += 2;
@@ -1169,8 +1181,9 @@ n_wav_overdrive_channel( n_wav *wav, u32 x, u32 count, double *audio, int ch )
 	{
 		s16 *ptr = (s16*) N_WAV_PTR( wav );
 
+		int i = 0;
 		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
+		for( i = 0; i < count; i++ )
 		{
 			ptr[ j + ch ] = (float) audio[ i ] * SHRT_MAX;
 			j += 2;
@@ -1178,8 +1191,9 @@ n_wav_overdrive_channel( n_wav *wav, u32 x, u32 count, double *audio, int ch )
 	} else {
 		float *ptr = (float*) N_WAV_PTR( wav );
 
+		int i = 0;
 		u32 j = x * 2;
-		for ( int i = 0; i < count; i++ )
+		for( i = 0; i < count; i++ )
 		{
 			ptr[ j + ch ] = (float) audio[ i ];
 			j += 2;
@@ -1349,7 +1363,7 @@ n_wav_insert( n_wav *wav, n_wav *ins, u32 x, u32 sx )
 			( n_wav_sample_is_accessible( &ret, j ) )
 		)
 		{
-			n_type_real l,r;
+			n_type_real l=0,r=0;
 			n_wav_sample_get(  wav, i, &l, &r );
 			n_wav_sample_set( &ret, j,  l,  r );
 		}
@@ -1372,7 +1386,7 @@ n_wav_insert( n_wav *wav, n_wav *ins, u32 x, u32 sx )
 			( n_wav_sample_is_accessible( &ret, j ) )
 		)
 		{
-			n_type_real l,r;
+			n_type_real l=0,r=0;
 			n_wav_sample_get(  ins, i, &l, &r );
 			n_wav_sample_set( &ret, j,  l,  r );
 		}
@@ -1395,7 +1409,7 @@ n_wav_insert( n_wav *wav, n_wav *ins, u32 x, u32 sx )
 			( n_wav_sample_is_accessible( &ret, j ) )
 		)
 		{
-			n_type_real l,r;
+			n_type_real l=0,r=0;
 			n_wav_sample_get(  wav, i, &l, &r );
 			n_wav_sample_set( &ret, j,  l,  r );
 		}

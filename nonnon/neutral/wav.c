@@ -1079,7 +1079,10 @@ n_wav_load_internal( n_wav *wav, void *ptr, n_type_int ptrsize, n_posix_bool is_
 	i = 0;
 	ret += n_wav_search_chunk_onmemory( p, ptrsize, "fmt ", &i );
 
-	n_memory_copy( &p[ i + 8 ], &N_WAV_FMT( &check ), N_WAV_FMTSIZE );
+	if ( ( i + 8 ) < ptrsize )
+	{
+		n_memory_copy( &p[ i + 8 ], &N_WAV_FMT( &check ), N_WAV_FMTSIZE );
+	}
 
 
 	// Subchunk : "data" : WAVEHDR

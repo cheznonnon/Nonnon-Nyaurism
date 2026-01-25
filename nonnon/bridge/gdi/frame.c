@@ -376,10 +376,10 @@ n_gdi_frame_draw( n_gdi *gdi, n_bmp *bmp )
 	if ( gdi->style & N_GDI_SYSTEMCOLOR )
 	{
 
-		darker  = n_gdi_systemcolor( COLOR_3DDKSHADOW );
-		dark    = n_gdi_systemcolor( COLOR_3DSHADOW   );
-		light   = n_gdi_systemcolor( COLOR_3DLIGHT    );
-		lighter = n_gdi_systemcolor( COLOR_3DHILIGHT  );
+		darker  = GetSysColor( COLOR_3DDKSHADOW );
+		dark    = GetSysColor( COLOR_3DSHADOW   );
+		light   = GetSysColor( COLOR_3DLIGHT    );
+		lighter = GetSysColor( COLOR_3DHILIGHT  );
 
 		if ( darker  == n_bmp_trans ) { darker  = black; }
 		if ( dark    == n_bmp_trans ) { dark    = black; }
@@ -460,55 +460,6 @@ n_gdi_frame_draw( n_gdi *gdi, n_bmp *bmp )
 
 		n_gdi_frame_roundframe( bmp, 0,0,-1,-1, gdi->frame_round, gdi->frame_size, bg, round, 0.1 );
 
-	} else
-	if ( gdi->frame_style == N_GDI_FRAME_FLUENT_CHK )
-	{
-#ifdef N_POSIX_PLATFORM_WINDOWS
-
-		// [!] : currently hard-coded
-
-		u32 base = n_win_darkmode_systemcolor_colorref2argb_ui( COLOR_BTNFACE );
-
-		u32 accnent;
-		if ( gdi->frame_is_hot )
-		{
-			accnent = n_win_fluent_ui_accent_color();
-		} else {
-			accnent = dark;
-		}
-
-		if ( n_string_is_empty( gdi->text ) )
-		{
-			n_gdi_frame_roundframe_mask( bmp, 0,0,-1,-1, gdi->frame_round, gdi->frame_size, accnent, round, 0.0, base );
-		} else {
-			n_bmp_box( bmp, 0,0,gdi->sx,gdi->sy, base );
-			n_bmp_roundrect( bmp, 0,0,gdi->sx,gdi->sy, accnent, gdi->frame_round );
-		}
-
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
-	} else
-	if ( gdi->frame_style == N_GDI_FRAME_FLUENT_BTN )
-	{
-#ifdef N_POSIX_PLATFORM_WINDOWS
-
-		n_type_gfx sx = gdi->sx;
-		n_type_gfx sy = gdi->sy;
-
-		u32 outer = gdi->base_color_fg;
-		u32 inner = gdi->base_color_bg;
-
-		n_bmp b; n_bmp_zero( &b ); n_bmp_1st_fast( &b, sx,sy );
-		n_bmp_flush( &b, n_bmp_white_invisible );
-
-		b.transparent_onoff = FALSE;
-
-		n_bmp_ui_roundframe( &b, 0,0,sx,sy, gdi->frame_round, gdi->frame_size, outer, inner );
-
-		n_bmp_transcopy( &b, bmp, 0,0,sx,sy, 0,0 );
-
-		n_bmp_free( &b );
-
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 	} else
 	if ( gdi->frame_style == N_GDI_FRAME_AQUA )
 	{

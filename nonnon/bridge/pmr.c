@@ -99,7 +99,7 @@ n_game_pmr_gdi
 	gdi.text_fxsize    = 0;
 
 
-	n_posix_char name[ N_PATH_MAX ];
+	n_posix_char name[ N_PATH_MAX * 4 ];
 
 	n_type_int i = 0;
 	n_posix_loop
@@ -155,7 +155,7 @@ n_game_pmr_resize( n_posix_char *path, n_type_real ratio_x, n_type_real ratio_y,
 		if ( n_string_is_same_literal( ".bmp", n_dir_ext( &d, i ) ) )
 		{
 
-			n_posix_char path[ N_PATH_MAX ];
+			n_posix_char path[ N_PATH_MAX * 4 ];
 			n_path_maker( n_dir_path( &d, i ), n_dir_name( &d, i ), path );
 
 			n_bmp bmp;
@@ -231,7 +231,7 @@ n_game_pmr_draw_internal
 	if ( n_string_is_empty( str ) ) { return; }
 
 
-	n_posix_char f[ N_PATH_MAX ];
+	n_posix_char f[ N_PATH_MAX * 4 ];
 
 	if ( n_path_is_abspath( folder ) )
 	{
@@ -249,7 +249,7 @@ n_game_pmr_draw_internal
 #endif // #ifdef UNICODE
 
 
-	n_posix_char name[ N_PATH_MAX ];
+	n_posix_char name[ N_PATH_MAX * 4 * 4 ];
 
 	n_type_gfx xx = 0;
 	n_type_gfx yy = 0;

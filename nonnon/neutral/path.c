@@ -873,8 +873,8 @@ n_posix_bool
 n_path_is_childfolder( const n_posix_char *parent, const n_posix_char *child )
 {
 
-	n_posix_char p[ N_PATH_MAX ];
-	n_posix_char c[ N_PATH_MAX ];
+	n_posix_char p[ N_PATH_MAX ] = N_STRING_EMPTY;
+	n_posix_char c[ N_PATH_MAX ] = N_STRING_EMPTY;
 
 	n_string_copy( parent, p );
 	n_string_copy( child,  c );

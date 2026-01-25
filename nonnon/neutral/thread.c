@@ -51,11 +51,6 @@ static n_posix_bool n_thread_is_available = n_posix_false;
 
 
 
-#include "../win32/sysinfo/version.c"
-
-
-
-
 n_posix_bool
 n_thread_onoff( void )
 {
@@ -70,7 +65,7 @@ n_thread_onoff( void )
 		is_first = n_posix_false;
 
 		n_thread_core_count   = n_posix_cpu_count();
-		n_thread_is_available = n_sysinfo_version_2000_or_later();
+		n_thread_is_available = n_posix_thread_is_available();
 
 		ret = ( ( n_thread_is_available )&&( n_thread_core_count > 1 ) );
 	}
@@ -128,6 +123,78 @@ n_thread_exit( n_thread thread )
 	CloseHandle( thread );
 
 	return;
+}
+
+
+
+
+#ifdef UNICODE
+
+#define	n_thread_mutex_literal( q ) L##q
+#define n_thread_mutex_char         wchar_t
+
+#else // #ifdef UNICODE
+
+#define	n_thread_mutex_literal( q ) q
+#define n_thread_mutex_char         char
+
+#endif // #ifdef UNICODE
+
+
+
+
+HANDLE
+n_thread_mutex_exit( HANDLE hmutex )
+{
+
+	ReleaseMutex( hmutex );
+	CloseHandle ( hmutex );
+
+	hmutex = NULL;
+
+
+	return hmutex;
+}
+
+#define n_thread_mutex_init_literal( h, n ) n_thread_mutex_init( h, n_thread_mutex_literal( n ) )
+
+HANDLE
+n_thread_mutex_init( HANDLE hmutex, const n_thread_mutex_char *name )
+{
+
+	if ( name == NULL ) { return hmutex; }
+
+
+	HANDLE h = CreateMutex( NULL, FALSE, name );
+
+	if ( ERROR_ALREADY_EXISTS == GetLastError() )
+	{
+		n_thread_mutex_exit( h );
+		h = hmutex;
+	} else {
+		n_thread_mutex_exit( hmutex );
+	}
+
+
+	return h;
+}
+
+#define n_thread_mutex_init_and_wait_literal( h, n ) n_thread_mutex_init_and_wait( h, n_thread_mutex_literal( n ) )
+
+HANDLE
+n_thread_mutex_init_and_wait( HANDLE hmutex, const n_thread_mutex_char *name )
+{
+
+	n_posix_loop
+	{
+		// [x] : don't use WaitForSingleObject()
+
+		hmutex = n_thread_mutex_init( hmutex, name );
+		if ( hmutex != NULL ) { break; } else { Sleep( 1 ); }
+	}
+
+
+	return hmutex;
 }
 
 

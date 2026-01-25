@@ -114,6 +114,9 @@
 #ifdef __MINGW_H
 
 
+#define N_POSIX_PLATFORM_MINGW
+
+
 // [!] : MinGW only
 
 //#include <dirent.h>
@@ -125,7 +128,27 @@
 #endif // #ifdef __MINGW_H
 
 
-#if defined( __MINGW_H ) || defined( _MSC_VER )
+
+#ifdef  __MINGW32__
+
+
+#define N_POSIX_PLATFORM_MINGW64
+
+
+// [x] : suppress stupid sprintf() warning
+
+//#pragma GCC diagnostic ignored "-Wrestrict"
+
+
+#endif // #ifdef  __MINGW32__
+
+
+
+
+// [!] : __MINGW_H  : good old MinGW
+// [!] :__MINGW32__ : MinGW64 : compatibility hell
+
+#if defined( N_POSIX_PLATFORM_MINGW ) || defined( N_POSIX_PLATFORM_MINGW64 ) || defined( _MSC_VER )
 
 #undef  _WIN32_IE
 #undef  _WIN32_WINDOWS
@@ -149,7 +172,7 @@
 //#error  "Windows"
 
 
-#endif // #if defined( __MINGW_H ) && defined( _MSC_VER )
+#endif
 
 
 
@@ -170,7 +193,9 @@
 
 #else  // #ifdef N_POSIX_PLATFORM_MAC
 
-#define n_posix_inline inline
+// [x] : MinGW64 : incompatible
+
+#define n_posix_inline
 
 #endif // #ifdef N_POSIX_PLATFORM_MAC
 
@@ -200,6 +225,7 @@
 #define n_posix_fgets      fgetws
 #define n_posix_printf     wprintf
 #define n_posix_sprintf    swprintf
+//#define n_posix_snprintf    swnprintf
 #define n_posix_vsprintf   vswprintf
 //#define n_posix_sscanf     swscanf
 #define n_posix_rename     _wrename
@@ -256,6 +282,7 @@
 #define n_posix_fgets      fgets
 #define n_posix_printf     printf
 #define n_posix_sprintf    sprintf
+//#define n_posix_snprintf    snprintf
 #define n_posix_vsprintf   vsprintf
 //#define n_posix_sscanf     sscanf
 #define n_posix_rename     rename
@@ -327,11 +354,11 @@
 
 
 
-#ifdef N_POSIX_PLATFORM_WINDOWS
+#ifdef N_POSIX_PLATFORM_MINGW
 
 #include "../win32/sysinfo/version.c"
 
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
+#endif
 
 
 
@@ -443,8 +470,9 @@ n_posix_inline n_type_real n_posix_max_n_type_real( n_type_real a, n_type_real b
 
 
 
-#define n_posix_printf_literal(      a, ... ) n_posix_printf(      n_posix_literal( a ), ##__VA_ARGS__ )
-#define n_posix_sprintf_literal(  s, a, ... ) n_posix_sprintf(  s, n_posix_literal( a ), ##__VA_ARGS__ )
+#define n_posix_printf_literal( a, ... ) n_posix_printf( n_posix_literal( a ), ##__VA_ARGS__ )
+
+#define n_posix_sprintf_literal(  s, a, ... ) n_posix_sprintf( s, n_posix_literal( a ), ##__VA_ARGS__ )
 
 //#define n_posix_sscanf_literal(   s, a, ... ) n_posix_sprintf(  s, n_posix_literal( a ), ##__VA_ARGS__ )
 
@@ -1559,6 +1587,8 @@ n_posix_cpu_count( void )
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
+#ifdef N_POSIX_PLATFORM_MINGW
+
 	HMODULE hmod = LoadLibrary( n_posix_literal( "kernel32.dll" ) );
 	if ( hmod == NULL ) { return ret; }
 
@@ -1675,6 +1705,18 @@ n_posix_cpu_count( void )
 
 	FreeLibrary( hmod );
 
+
+#else  // #ifdef N_POSIX_PLATFORM_MINGW
+
+	SYSTEM_INFO system_info; memset( &system_info, 0, sizeof( SYSTEM_INFO ) );
+
+	GetSystemInfo( &system_info );
+
+	ret = system_info.dwNumberOfProcessors;
+
+#endif // #ifdef N_POSIX_PLATFORM_MINGW
+
+
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
@@ -1691,6 +1733,21 @@ n_posix_cpu_count( void )
 
 	return ret;
 }
+
+#ifdef N_POSIX_PLATFORM_MINGW
+
+#include "../win32/sysinfo/version.c"
+
+#define n_posix_thread_is_available() n_sysinfo_version_2000_or_later()
+
+#else
+
+#define n_posix_thread_is_available() TRUE
+
+#endif
+
+
+
 
 #define n_posix_strftime_literal( a,b,c,d ) n_posix_strftime( a, b, n_posix_literal( c ), d )
 

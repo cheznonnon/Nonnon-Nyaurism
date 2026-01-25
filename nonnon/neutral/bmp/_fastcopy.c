@@ -22,8 +22,7 @@
 
 
 
-//#define n_bmp_flush_fastcopy( fr,to ) \
-//	n_bmp_fastcopy( fr,to, 0,0,N_BMP_SX( fr ),N_BMP_SY( fr ), 0,0 )
+//#define n_bmp_flush_fastcopy( fr,to ) n_bmp_fastcopy( fr,to, 0,0,N_BMP_SX( fr ),N_BMP_SY( fr ), 0,0 )
 
 #define n_bmp_flush_fastcopy( fr,to ) memcpy( N_BMP_PTR( to ), N_BMP_PTR( fr ), N_BMP_SIZE( fr ) )
 
