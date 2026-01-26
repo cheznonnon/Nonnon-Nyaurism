@@ -14,19 +14,10 @@
 
 // [!] : C99 only
 //
-//	"inline" is used for performance
 //	on-the-fly variable declaration is used for readability
 
 
-// [!] : inclusion order
-//
-//	1 : #define UNICODE
-//	2 : #define N_POSIX_TIMEGETTIME
-//	3 : #include "Nonnon Base Layer"
-//	4 : #include <other headers>
-//
-//	you need to link "-lwinmm" when you include <windows.h> before the base layer
-//	N_POSIX_TIMEGETTIME also needs "-lwinmm"
+// [!] : Link : "-lwinmm"
 
 
 
@@ -166,6 +157,7 @@
 
 #include <objbase.h>
 #include <windows.h>
+#include <mmsystem.h>
 
 
 #define N_POSIX_PLATFORM_WINDOWS
@@ -177,27 +169,9 @@
 
 
 
-#if defined( N_POSIX_PLATFORM_WINDOWS ) && defined( N_POSIX_TIMEGETTIME )
-
-#include <mmsystem.h>
-//#error   "timeGetTime()"
-
-#endif // #if defined( N_POSIX_PLATFORM_WINDOWS ) && defined( N_POSIX_TIMEGETTIME )
-
-
-
-
-#ifdef N_POSIX_PLATFORM_MAC
+// [x] : for backward compatibility
 
 #define n_posix_inline
-
-#else  // #ifdef N_POSIX_PLATFORM_MAC
-
-// [x] : MinGW64 : incompatible
-
-#define n_posix_inline
-
-#endif // #ifdef N_POSIX_PLATFORM_MAC
 
 
 
@@ -417,14 +391,14 @@
 	)
 */
 
-n_posix_inline int    n_posix_min       ( int    a, int    b ) { return a < b ? a : b; }
-n_posix_inline s32    n_posix_min_s32   ( s32    a, s32    b ) { return a < b ? a : b; }
-n_posix_inline s64    n_posix_min_s64   ( s64    a, s64    b ) { return a < b ? a : b; }
+int n_posix_min    ( int a, int b ) { return a < b ? a : b; }
+s32 n_posix_min_s32( s32 a, s32 b ) { return a < b ? a : b; }
+s64 n_posix_min_s64( s64 a, s64 b ) { return a < b ? a : b; }
 //n_posix_inline double n_posix_min_double( double a, double b ) { return a < b ? a : b; }
 
-n_posix_inline int    n_posix_max       ( int    a, int    b ) { return a > b ? a : b; }
-n_posix_inline s32    n_posix_max_s32   ( s32    a, s32    b ) { return a > b ? a : b; }
-n_posix_inline s64    n_posix_max_s64   ( s64    a, s64    b ) { return a > b ? a : b; }
+int n_posix_max    ( int a, int b ) { return a > b ? a : b; }
+s32 n_posix_max_s32( s32 a, s32 b ) { return a > b ? a : b; }
+s64 n_posix_max_s64( s64 a, s64 b ) { return a > b ? a : b; }
 //n_posix_inline double n_posix_max_double( double a, double b ) { return a > b ? a : b; }
 
 #define n_posix_minmax(        minim, maxim, n ) n_posix_max(        minim, n_posix_min(        maxim, n ) )
@@ -432,12 +406,12 @@ n_posix_inline s64    n_posix_max_s64   ( s64    a, s64    b ) { return a > b ? 
 //#define n_posix_minmax_double( minim, maxim, n ) n_posix_max_double( minim, n_posix_min_double( maxim, n ) )
 
 
-n_posix_inline n_type_int n_posix_min_n_type_int( n_type_int a, n_type_int b ) { return a < b ? a : b; }
-n_posix_inline n_type_int n_posix_max_n_type_int( n_type_int a, n_type_int b ) { return a > b ? a : b; }
+n_type_int n_posix_min_n_type_int( n_type_int a, n_type_int b ) { return a < b ? a : b; }
+n_type_int n_posix_max_n_type_int( n_type_int a, n_type_int b ) { return a > b ? a : b; }
 
 #define n_posix_minmax_n_type_int( minim, maxim, n ) n_posix_max_n_type_int( minim, n_posix_min_n_type_int( maxim, n ) )
 
-n_posix_inline n_type_int
+n_type_int
 n_posix_abs_n_type_int( n_type_int v )
 {
 
@@ -446,7 +420,7 @@ n_posix_abs_n_type_int( n_type_int v )
 	return v;
 }
 
-n_posix_inline n_type_gfx
+n_type_gfx
 n_posix_abs_n_type_gfx( n_type_gfx v )
 {
 
@@ -456,14 +430,14 @@ n_posix_abs_n_type_gfx( n_type_gfx v )
 }
 
 
-n_posix_inline n_type_gfx n_posix_min_n_type_gfx( n_type_gfx a, n_type_gfx b ) { return a < b ? a : b; }
-n_posix_inline n_type_gfx n_posix_max_n_type_gfx( n_type_gfx a, n_type_gfx b ) { return a > b ? a : b; }
+n_type_gfx n_posix_min_n_type_gfx( n_type_gfx a, n_type_gfx b ) { return a < b ? a : b; }
+n_type_gfx n_posix_max_n_type_gfx( n_type_gfx a, n_type_gfx b ) { return a > b ? a : b; }
 
 #define n_posix_minmax_n_type_gfx( minim, maxim, n ) n_posix_max_n_type_gfx( minim, n_posix_min_n_type_gfx( maxim, n ) )
 
 
-n_posix_inline n_type_real n_posix_min_n_type_real( n_type_real a, n_type_real b ) { return a < b ? a : b; }
-n_posix_inline n_type_real n_posix_max_n_type_real( n_type_real a, n_type_real b ) { return a > b ? a : b; }
+n_type_real n_posix_min_n_type_real( n_type_real a, n_type_real b ) { return a < b ? a : b; }
+n_type_real n_posix_max_n_type_real( n_type_real a, n_type_real b ) { return a > b ? a : b; }
 
 #define n_posix_minmax_n_type_real( minim, maxim, n ) n_posix_max_n_type_real( minim, n_posix_min_n_type_real( maxim, n ) )
 
@@ -519,6 +493,35 @@ n_posix_strlen( const n_posix_char *str )
 
 
 
+#ifdef N_POSIX_PLATFORM_WINDOWS
+
+static BOOL     n_posix_timegettime_onoff = FALSE;
+static TIMECAPS n_posix_timegettime_instance;
+
+void
+n_posix_timegettime_init( void )
+{
+
+	ZeroMemory( &n_posix_timegettime_instance, sizeof( TIMECAPS ) );
+
+	timeGetDevCaps( &n_posix_timegettime_instance, sizeof( TIMECAPS ) );
+	timeBeginPeriod( n_posix_timegettime_instance.wPeriodMin );
+
+
+	return;
+}
+
+void
+n_posix_timegettime_exit( void )
+{
+
+	timeEndPeriod( n_posix_timegettime_instance.wPeriodMin );
+
+	return;
+}
+
+#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
+
 u32
 n_posix_tickcount( void )
 {
@@ -528,9 +531,13 @@ n_posix_tickcount( void )
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
+	if ( n_posix_timegettime_onoff == FALSE )
+	{
+		n_posix_timegettime_onoff = TRUE;
 
-#ifdef N_POSIX_TIMEGETTIME
-
+		n_posix_timegettime_init();
+		atexit( n_posix_timegettime_exit );
+	}
 /*
 	// [x] : run on Win95 but slow
 
@@ -540,13 +547,10 @@ n_posix_tickcount( void )
 	ret = (u32) ( ( 1000LL * li_now.QuadPart ) / li_frq.QuadPart );
 */
 
+	// [!] : low precision
+	//ret = GetTickCount();
+
 	ret = timeGetTime();
-
-#else  // #ifdef N_POSIX_TIMEGETTIME
-
-	ret = GetTickCount();
-
-#endif // #ifdef N_POSIX_TIMEGETTIME
 
 
 #else // #ifdef N_POSIX_PLATFORM_WINDOWS

@@ -94,15 +94,15 @@
 //static u32 tick_prv = 0;
 
 	static u32 timer = 0;
-	if ( n_game_timer( &timer, 12 ) )
+	if ( n_bmp_ui_timer( &timer, 12 ) )
 	{
 		n_bmp_box
 		(
 			&canvas,
-			n_game_random( N_BMP_SX( &canvas ) ),
-			n_game_random( N_BMP_SY( &canvas ) ),
+			n_random_range( N_BMP_SX( &canvas ) ),
+			n_random_range( N_BMP_SY( &canvas ) ),
 			12, 12,
-			n_game_randomcolor()
+			n_bmp_rgb_mac( 0,200,255 )
 		);
 
 		refresh = TRUE;
@@ -141,7 +141,7 @@
 {
 NSLog( @"mouseDown" );
 
-	n_bmp_flush( &canvas, n_game_randomcolor() );
+	n_bmp_flush( &canvas, n_bmp_rgb_mac( 255,255,255 ) );
 
 }
 

@@ -17,22 +17,22 @@
 
 
 
-#ifndef _H_NONNON_WIN32_GAME_PMR
-#define _H_NONNON_WIN32_GAME_PMR
+#ifndef _H_NONNON_NEUTRAL_BMP_UI_PMR
+#define _H_NONNON_NEUTRAL_BMP_UI_PMR
 
 
 
 
-#include "../neutral/bmp/all.c"
+#include "../all.c"
 
 
-#include "../neutral/path.c"
+#include "../../path.c"
 
 
 
 /*
 void
-n_game_pmr_gdi
+n_bmp_ui_pmr_gdi
 (
 	const n_posix_char *folder,
 	const n_posix_char *str,
@@ -133,7 +133,7 @@ n_game_pmr_gdi
 */
 /*
 void
-n_game_pmr_resize( n_posix_char *path, n_type_real ratio_x, n_type_real ratio_y, BOOL resample_onoff )
+n_bmp_ui_pmr_resize( n_posix_char *path, n_type_real ratio_x, n_type_real ratio_y, BOOL resample_onoff )
 {
 
 	// [ Mechanisnm ] : copy and paste then use it
@@ -200,14 +200,14 @@ n_game_pmr_resize( n_posix_char *path, n_type_real ratio_x, n_type_real ratio_y,
 
 // [ Mechanism ]
 //
-//	n_game_pmr_calc( pmr_folder, string, size_needed, &sx, &sy, &ratio, direction );
-//	n_game_pmr_draw( pmr_folder, string, &bmp_canvas, x, y, ratio, direction );
+//	n_bmp_ui_pmr_calc( pmr_folder, string, size_needed, &sx, &sy, &ratio, direction );
+//	n_bmp_ui_pmr_draw( pmr_folder, string, &bmp_canvas, x, y, ratio, direction );
 
-#define n_game_pmr_calc( f,s, z, sx,sy, r,    d ) n_game_pmr_draw_internal( f,s, z, TRUE ,   sx,  sy,   r, NULL, 0,0, 0, 0, d )
-#define n_game_pmr_draw( f,s,    b,x,y, r, c, d ) n_game_pmr_draw_internal( f,s, 0, FALSE, NULL,NULL,NULL,    b, x,y, r, c, d )
+#define n_bmp_ui_pmr_calc( f,s, z, sx,sy, r,    d ) n_bmp_ui_pmr_draw_internal( f,s, z, TRUE ,   sx,  sy,   r, NULL, 0,0, 0, 0, d )
+#define n_bmp_ui_pmr_draw( f,s,    b,x,y, r, c, d ) n_bmp_ui_pmr_draw_internal( f,s, 0, FALSE, NULL,NULL,NULL,    b, x,y, r, c, d )
 
 void
-n_game_pmr_draw_internal
+n_bmp_ui_pmr_draw_internal
 (
 	const n_posix_char *folder,
 	const n_posix_char *str,
@@ -334,5 +334,5 @@ n_game_pmr_draw_internal
 }
 
 
-#endif // _H_NONNON_WIN32_GAME_PMR
+#endif // _H_NONNON_NEUTRAL_BMP_UI_PMR
 

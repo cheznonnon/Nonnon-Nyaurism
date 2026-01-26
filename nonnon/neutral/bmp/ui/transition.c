@@ -12,48 +12,48 @@
 
 
 
-#ifndef _H_NONNON_WIN32_GAME_TRANSITION
-#define _H_NONNON_WIN32_GAME_TRANSITION
+#ifndef _H_NONNON_NEUTRAL_BMP_UI_TRANSITION
+#define _H_NONNON_NEUTRAL_BMP_UI_TRANSITION
 
 
 
 
-#include "../neutral/bmp/all.c"
-#include "../neutral/random.c"
+#include "../../random.c"
 
+#include "../all.c"
 
-#include "./helper.c"
-
-
-
-
-#define N_GAME_TRANSITION_NOTHING   0
-#define N_GAME_TRANSITION_WIPE_X    1
-#define N_GAME_TRANSITION_WIPE_Y    2
-#define N_GAME_TRANSITION_SHUTTER   3
-#define N_GAME_TRANSITION_INFLATE   4
-#define N_GAME_TRANSITION_CIRCLE    5
-#define N_GAME_TRANSITION_FADE      6
-#define N_GAME_TRANSITION_DIZZY     7
-#define N_GAME_TRANSITION_MOSAIC    8
-#define N_GAME_TRANSITION_WHIRL     9
-#define N_GAME_TRANSITION_SCROLL_U 10
-#define N_GAME_TRANSITION_SCROLL_D 11
-#define N_GAME_TRANSITION_SCROLL_L 12
-#define N_GAME_TRANSITION_SCROLL_R 13
-#define N_GAME_TRANSITION_LAST     13
+#include "./timer.c"
 
 
 
 
-static n_type_gfx n_game_transition_circle_x = 0;
-static n_type_gfx n_game_transition_circle_y = 0;
+#define N_BMP_UI_TRANSITION_NOTHING   0
+#define N_BMP_UI_TRANSITION_WIPE_X    1
+#define N_BMP_UI_TRANSITION_WIPE_Y    2
+#define N_BMP_UI_TRANSITION_SHUTTER   3
+#define N_BMP_UI_TRANSITION_INFLATE   4
+#define N_BMP_UI_TRANSITION_CIRCLE    5
+#define N_BMP_UI_TRANSITION_FADE      6
+#define N_BMP_UI_TRANSITION_DIZZY     7
+#define N_BMP_UI_TRANSITION_MOSAIC    8
+#define N_BMP_UI_TRANSITION_WHIRL     9
+#define N_BMP_UI_TRANSITION_SCROLL_U 10
+#define N_BMP_UI_TRANSITION_SCROLL_D 11
+#define N_BMP_UI_TRANSITION_SCROLL_L 12
+#define N_BMP_UI_TRANSITION_SCROLL_R 13
+#define N_BMP_UI_TRANSITION_LAST     13
 
-static n_type_gfx n_game_transition_offset_x = 0;
-static n_type_gfx n_game_transition_offset_y = 0;
 
 
-static BOOL n_game_transition_percent_smooth = FALSE;
+
+static n_type_gfx n_bmp_ui_transition_circle_x = 0;
+static n_type_gfx n_bmp_ui_transition_circle_y = 0;
+
+static n_type_gfx n_bmp_ui_transition_offset_x = 0;
+static n_type_gfx n_bmp_ui_transition_offset_y = 0;
+
+
+static BOOL n_bmp_ui_transition_percent_smooth = FALSE;
 
 
 
@@ -67,10 +67,10 @@ typedef struct {
 	n_type_real  blend;
 	u32          oy, cores;
 
-} n_game_transition_fade_thread_struct;
+} n_bmp_ui_transition_fade_thread_struct;
 
 void
-n_game_transition_fade_thread_main( n_game_transition_fade_thread_struct *p )
+n_bmp_ui_transition_fade_thread_main( n_bmp_ui_transition_fade_thread_struct *p )
 {
 
 	// [!] : no error check available
@@ -105,17 +105,17 @@ n_game_transition_fade_thread_main( n_game_transition_fade_thread_struct *p )
 }
 
 n_thread_return
-n_game_transition_fade_thread( n_thread_argument p )
+n_bmp_ui_transition_fade_thread( n_thread_argument p )
 {
 
-	n_game_transition_fade_thread_main( (void*) p );
+	n_bmp_ui_transition_fade_thread_main( (void*) p );
 
 	return 0;
 }
 
 // internal
 void
-n_game_transition_fade( n_bmp *bmp_old, n_bmp *bmp_new, n_bmp *bmp_ret, n_type_gfx x, n_type_gfx y, n_type_real blend )
+n_bmp_ui_transition_fade( n_bmp *bmp_old, n_bmp *bmp_new, n_bmp *bmp_ret, n_type_gfx x, n_type_gfx y, n_type_real blend )
 {
 
 	n_type_gfx sx = N_BMP_SX( bmp_old );
@@ -132,7 +132,7 @@ n_game_transition_fade( n_bmp *bmp_old, n_bmp *bmp_new, n_bmp *bmp_ret, n_type_g
 	u32               cores = n_posix_cpu_count();
 
 
-	n_game_transition_fade_thread_struct *p = (void*) n_memory_new( cores * sizeof( n_game_transition_fade_thread_struct ) );
+	n_bmp_ui_transition_fade_thread_struct *p = (void*) n_memory_new( cores * sizeof( n_bmp_ui_transition_fade_thread_struct ) );
 
 
 	NSOperation *o = [NSBlockOperation blockOperationWithBlock:^{
@@ -141,10 +141,10 @@ n_game_transition_fade( n_bmp *bmp_old, n_bmp *bmp_new, n_bmp *bmp_ret, n_type_g
 	n_posix_loop
 	{
 
-		n_game_transition_fade_thread_struct tmp = { bmp_old, bmp_new, bmp_ret, x,y,sx,sy, blend, i,cores };
-		n_memory_copy( &tmp, &p[ i ], sizeof( n_game_transition_fade_thread_struct ) );
+		n_bmp_ui_transition_fade_thread_struct tmp = { bmp_old, bmp_new, bmp_ret, x,y,sx,sy, blend, i,cores };
+		n_memory_copy( &tmp, &p[ i ], sizeof( n_bmp_ui_transition_fade_thread_struct ) );
 
-		n_game_transition_fade_thread_main( &p[ i ]);
+		n_bmp_ui_transition_fade_thread_main( &p[ i ]);
 
 		i++;
 		if ( i >= cores ) { break; }
@@ -177,7 +177,7 @@ n_game_transition_fade( n_bmp *bmp_old, n_bmp *bmp_new, n_bmp *bmp_ret, n_type_g
 
 #ifdef N_BMP_MULTITHREAD_DEBUG
 
-		n_posix_debug_literal( " n_game_transition_fade() " );
+		n_posix_debug_literal( " n_bmp_ui_transition_fade() " );
 
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
@@ -188,18 +188,18 @@ n_game_transition_fade( n_bmp *bmp_old, n_bmp *bmp_new, n_bmp *bmp_ret, n_type_g
 
 		u32 cores = n_thread_core_count;
 
-		n_thread                             *h = (void*) n_memory_new( cores * sizeof( n_thread                             ) );
-		n_game_transition_fade_thread_struct *p = (void*) n_memory_new( cores * sizeof( n_game_transition_fade_thread_struct ) );
+		n_thread                               *h = (void*) n_memory_new( cores * sizeof( n_thread                               ) );
+		n_bmp_ui_transition_fade_thread_struct *p = (void*) n_memory_new( cores * sizeof( n_bmp_ui_transition_fade_thread_struct ) );
 
 
 		u32 i = 0;
 		n_posix_loop
 		{
 
-			n_game_transition_fade_thread_struct tmp = { bmp_old, bmp_new, bmp_ret, x,y,sx,sy, blend, i,cores };
-			n_memory_copy( &tmp, &p[ i ], sizeof( n_game_transition_fade_thread_struct ) );
+			n_bmp_ui_transition_fade_thread_struct tmp = { bmp_old, bmp_new, bmp_ret, x,y,sx,sy, blend, i,cores };
+			n_memory_copy( &tmp, &p[ i ], sizeof( n_bmp_ui_transition_fade_thread_struct ) );
 
-			h[ i ] = n_thread_init( n_game_transition_fade_thread, &p[ i ] );
+			h[ i ] = n_thread_init( n_bmp_ui_transition_fade_thread, &p[ i ] );
 
 			i++;
 			if ( i >= cores ) { break; }
@@ -234,8 +234,8 @@ n_game_transition_fade( n_bmp *bmp_old, n_bmp *bmp_new, n_bmp *bmp_ret, n_type_g
 
 	} else {
 
-		n_game_transition_fade_thread_struct tmp = { bmp_old, bmp_new, bmp_ret, x,y,sx,sy, blend, 0,1 };
-		n_game_transition_fade_thread_main( &tmp );
+		n_bmp_ui_transition_fade_thread_struct tmp = { bmp_old, bmp_new, bmp_ret, x,y,sx,sy, blend, 0,1 };
+		n_bmp_ui_transition_fade_thread_main( &tmp );
 
 	}
 
@@ -267,15 +267,15 @@ typedef struct {
 
 	int         error_code;
 
-} n_game_transition_struct;
+} n_bmp_ui_transition_struct;
 
-#define n_game_transition_struct_zero( p ) n_memory_zero( p, sizeof( n_game_transition_struct ) )
+#define n_bmp_ui_transition_struct_zero( p ) n_memory_zero( p, sizeof( n_bmp_ui_transition_struct ) )
 
 
 
 
 BOOL
-n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old, n_bmp *bmp_new, u32 msec, int type )
+n_bmp_ui_transition_main( n_bmp_ui_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old, n_bmp *bmp_new, u32 msec, int type )
 {
 
 	// [Mechanism]
@@ -303,13 +303,13 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 	if ( N_BMP_PTR( bmp_old ) == N_BMP_PTR( bmp_new ) ) { p->error_code = 6; return TRUE; }
 	if ( N_BMP_PTR( bmp     ) == N_BMP_PTR( bmp_new ) ) { p->error_code = 7; return TRUE; }
 
-	if ( msec == 0 ) { return p->error_code = 8; TRUE; }
+	if ( msec == 0 ) { p->error_code = 8; return TRUE; }
 
-	if ( ( type < 0 )||( type > N_GAME_TRANSITION_LAST ) ) { p->error_code = 9; return TRUE; }
+	if ( ( type < 0 )||( type > N_BMP_UI_TRANSITION_LAST ) ) { p->error_code = 9; return TRUE; }
 
 
-	const n_type_real ox = n_game_transition_offset_x;
-	const n_type_real oy = n_game_transition_offset_y;
+	const n_type_real ox = n_bmp_ui_transition_offset_x;
+	const n_type_real oy = n_bmp_ui_transition_offset_y;
 
 	const n_type_gfx bmpsx = N_BMP_SX( bmp_new );
 	const n_type_gfx bmpsy = N_BMP_SY( bmp_new );
@@ -317,13 +317,13 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 	n_type_real pc = p->percent;
 
-	if ( n_game_transition_percent_smooth )
+	if ( n_bmp_ui_transition_percent_smooth )
 	{
 		pc = 100 * fabs( sin( 2.0 * M_PI * ( 0.25 / 100 * p->percent ) ) );
 	}
 
 
-	if ( type == N_GAME_TRANSITION_NOTHING )
+	if ( type == N_BMP_UI_TRANSITION_NOTHING )
 	{
 
 		// Performance : fastest
@@ -339,7 +339,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 	} else
 
-	if ( type == N_GAME_TRANSITION_WIPE_X )
+	if ( type == N_BMP_UI_TRANSITION_WIPE_X )
 	{
 
 		// Performance : WIPE_X:WIPE_X = 1:1
@@ -372,7 +372,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 	} else
 
-	if ( type == N_GAME_TRANSITION_WIPE_Y )
+	if ( type == N_BMP_UI_TRANSITION_WIPE_Y )
 	{
 
 		// Performance : WIPE_X:WIPE_Y = 1:1
@@ -408,7 +408,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 	} else
 
-	if ( type == N_GAME_TRANSITION_SHUTTER )
+	if ( type == N_BMP_UI_TRANSITION_SHUTTER )
 	{
 
 		// Performance : WIPE_X:SHUTTER = 1:1.5
@@ -460,7 +460,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 	} else
 
-	if ( type == N_GAME_TRANSITION_INFLATE )
+	if ( type == N_BMP_UI_TRANSITION_INFLATE )
 	{
 
 		// Performance : WIPE_X:INFLATE = 1:1.5
@@ -501,7 +501,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 	} else
 
-	if ( type == N_GAME_TRANSITION_CIRCLE )
+	if ( type == N_BMP_UI_TRANSITION_CIRCLE )
 	{
 
 		// Performance : WIPE_X:CIRCLE = 1:3
@@ -513,8 +513,8 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 			n_type_gfx half_sx   = bmpsx / 2;
 			n_type_gfx half_sy   = bmpsy / 2;
-			n_type_gfx radius_sx = half_sx + abs( half_sx - n_game_transition_circle_x );
-			n_type_gfx radius_sy = half_sy + abs( half_sy - n_game_transition_circle_y );
+			n_type_gfx radius_sx = half_sx + abs( half_sx - n_bmp_ui_transition_circle_x );
+			n_type_gfx radius_sy = half_sy + abs( half_sy - n_bmp_ui_transition_circle_y );
 			n_type_gfx radius    = n_posix_max_n_type_gfx( radius_sx, radius_sy );
 
 			// [!] : Copilot : Optimization
@@ -536,12 +536,12 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 #ifdef N_POSIX_PLATFORM_MAC
 
-#define N_GAME_TRANSITION_CIRCLE_MAC_MULTITHREAD
+#define N_BMP_UI_TRANSITION_CIRCLE_MAC_MULTITHREAD
 
 #endif // #ifdef N_POSIX_PLATFORM_MAC
 
 
-#ifdef N_GAME_TRANSITION_CIRCLE_MAC_MULTITHREAD
+#ifdef N_BMP_UI_TRANSITION_CIRCLE_MAC_MULTITHREAD
 
 //NSLog( @"multihreaded" );
 
@@ -561,20 +561,20 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 		n_posix_loop
 		{
 
-#else  // #ifdef N_GAME_TRANSITION_CIRCLE_MAC_MULTITHREAD
+#else  // #ifdef N_BMP_UI_TRANSITION_CIRCLE_MAC_MULTITHREAD
 
 		n_type_gfx y = 0;
 		n_posix_loop
 		{
 
-#endif // #ifdef N_GAME_TRANSITION_CIRCLE_MAC_MULTITHREAD
+#endif // #ifdef N_BMP_UI_TRANSITION_CIRCLE_MAC_MULTITHREAD
 
 			n_type_gfx x = 0;
 			n_posix_loop
 			{
 
-				n_type_gfx center_x = (n_type_gfx) x - n_game_transition_circle_x;
-				n_type_gfx center_y = (n_type_gfx) y - n_game_transition_circle_y;
+				n_type_gfx center_x = (n_type_gfx) x - n_bmp_ui_transition_circle_x;
+				n_type_gfx center_y = (n_type_gfx) y - n_bmp_ui_transition_circle_y;
 
 				BOOL outer = n_bmp_hoop_detect( center_x,center_y, size );
 				BOOL inner = FALSE;//n_bmp_hoop_detect( center_x,center_y, p_size );
@@ -619,7 +619,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 				if ( x >= bmpsx ) { break; }
 			}
 
-#ifdef N_GAME_TRANSITION_CIRCLE_MAC_MULTITHREAD
+#ifdef N_BMP_UI_TRANSITION_CIRCLE_MAC_MULTITHREAD
 
 			y += cores;
 			if ( y >= bmpsy ) { break; }
@@ -632,28 +632,28 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 			if ( i >= cores ) { break; }
 		}
 
-#else  // #ifdef N_GAME_TRANSITION_CIRCLE_MAC_MULTITHREAD
+#else  // #ifdef N_BMP_UI_TRANSITION_CIRCLE_MAC_MULTITHREAD
 
 			y++;
 			if ( y >= bmpsy ) { break; }
 		}
 
-#endif // #ifdef N_GAME_TRANSITION_CIRCLE_MAC_MULTITHREAD
+#endif // #ifdef N_BMP_UI_TRANSITION_CIRCLE_MAC_MULTITHREAD
 
-#ifdef N_GAME_TRANSITION_CIRCLE_MAC_MULTITHREAD
+#ifdef N_BMP_UI_TRANSITION_CIRCLE_MAC_MULTITHREAD
 
 		[queue waitUntilAllOperationsAreFinished];
 
 		n_bmp_is_multithread = prv;
 
-#endif // #ifdef N_GAME_TRANSITION_CIRCLE_MAC_MULTITHREAD
+#endif // #ifdef N_BMP_UI_TRANSITION_CIRCLE_MAC_MULTITHREAD
 
 
 		p->circle_prev_size = size;
 
 	} else
 
-	if ( type == N_GAME_TRANSITION_FADE )
+	if ( type == N_BMP_UI_TRANSITION_FADE )
 	{
 
 		// WIPE_X:FADE = 1:12
@@ -678,11 +678,11 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 		// [!] : fast
 
-		n_game_transition_fade( bmp_old, bmp_new, bmp, (n_type_gfx) ox, (n_type_gfx) oy, (n_type_real) pc * 0.01 );
+		n_bmp_ui_transition_fade( bmp_old, bmp_new, bmp, (n_type_gfx) ox, (n_type_gfx) oy, (n_type_real) pc * 0.01 );
 
 	} else
 
-	if ( type == N_GAME_TRANSITION_DIZZY )
+	if ( type == N_BMP_UI_TRANSITION_DIZZY )
 	{
 
 		// Performance : WIPE_X:DIZZY = 1:4
@@ -773,7 +773,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 	} else
 
-	if ( type == N_GAME_TRANSITION_MOSAIC )
+	if ( type == N_BMP_UI_TRANSITION_MOSAIC )
 	{
 
 		// Performance : WIPE_X:MOSAIC = 1:4
@@ -853,7 +853,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 	} else
 
-	if ( type == N_GAME_TRANSITION_WHIRL )
+	if ( type == N_BMP_UI_TRANSITION_WHIRL )
 	{
 
 		// Performance : WIPE_X:WHIRL = 1:8
@@ -887,8 +887,8 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 		(
 			&b, bmp,
 			0,0,bmpsx,bmpsy,
-			(n_type_gfx) ox + n_game_centering( bmpsx, N_BMP_SX( &b ) ),
-			(n_type_gfx) oy + n_game_centering( bmpsy, N_BMP_SY( &b ) )
+			(n_type_gfx) ox + ( ( bmpsx - N_BMP_SX( &b ) ) / 2 ),
+			(n_type_gfx) oy + ( ( bmpsy - N_BMP_SY( &b ) ) / 2 )
 		);
 
 		n_bmp_free( &b );
@@ -903,7 +903,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 
 	} else
 
-	if ( ( type >= N_GAME_TRANSITION_SCROLL_U )&&( type <= N_GAME_TRANSITION_SCROLL_R ) )
+	if ( ( type >= N_BMP_UI_TRANSITION_SCROLL_U )&&( type <= N_BMP_UI_TRANSITION_SCROLL_R ) )
 	{
 
 		// Performance : WIPE_X:SCROLL = 1:1
@@ -929,7 +929,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 		n_type_gfx iox = (n_type_gfx) ox;
 		n_type_gfx ioy = (n_type_gfx) oy;
 
-		if ( type == N_GAME_TRANSITION_SCROLL_U )
+		if ( type == N_BMP_UI_TRANSITION_SCROLL_U )
 		{
 
 			n_type_gfx fy  = (n_type_gfx) p->y;
@@ -941,7 +941,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 			n_bmp_fastcopy( bmp_new, bmp, 0,ty,bmpsx,tsy, iox,fsy + ioy );
 
 		} else
-		if ( type == N_GAME_TRANSITION_SCROLL_D )
+		if ( type == N_BMP_UI_TRANSITION_SCROLL_D )
 		{
 
 			n_type_gfx fy  = (n_type_gfx) 0;
@@ -953,7 +953,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 			n_bmp_fastcopy( bmp_new, bmp, 0,ty,bmpsx,tsy, iox, 0 + ioy );
 
 		} else
-		if ( type == N_GAME_TRANSITION_SCROLL_L )
+		if ( type == N_BMP_UI_TRANSITION_SCROLL_L )
 		{
 
 			n_type_gfx fx  = (n_type_gfx) p->x;
@@ -965,7 +965,7 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 			n_bmp_fastcopy( bmp_new, bmp, tx,0,tsx,bmpsy, fsx + iox,ioy );
 
 		} else
-		if ( type == N_GAME_TRANSITION_SCROLL_R )
+		if ( type == N_BMP_UI_TRANSITION_SCROLL_R )
 		{
 
 			n_type_gfx fx  = (n_type_gfx) 0;
@@ -1036,18 +1036,18 @@ n_game_transition_main( n_game_transition_struct *p, n_bmp *bmp, n_bmp *bmp_old,
 }
 
 BOOL
-n_game_transition( n_bmp *bmp, n_bmp *bmp_old, n_bmp *bmp_new, u32 msec, n_type_real *percent, int type )
+n_bmp_ui_transition( n_bmp *bmp, n_bmp *bmp_old, n_bmp *bmp_new, u32 msec, n_type_real *percent, int type )
 {
 
-	static n_game_transition_struct t;
+	static n_bmp_ui_transition_struct t;
 
 	if ( (*percent) == 0 )
 	{
-		n_game_transition_struct_zero( &t );
+		n_bmp_ui_transition_struct_zero( &t );
 		t.percent = 0;
 	}
 
-	BOOL ret = n_game_transition_main( &t, bmp, bmp_old, bmp_new, msec, type );
+	BOOL ret = n_bmp_ui_transition_main( &t, bmp, bmp_old, bmp_new, msec, type );
 
 	(*percent) = t.percent;
 
@@ -1056,5 +1056,5 @@ n_game_transition( n_bmp *bmp, n_bmp *bmp_old, n_bmp *bmp_new, u32 msec, n_type_
 }
 
 
-#endif // _H_NONNON_WIN32_GAME_TRANSITION
+#endif // _H_NONNON_NEUTRAL_BMP_UI_TRANSITION
 

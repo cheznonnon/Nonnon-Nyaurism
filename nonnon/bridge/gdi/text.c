@@ -136,7 +136,7 @@ n_gdi_text_precalc
 	{
 
 		n_type_gfx sx,sy;
-		n_game_pmr_calc( gdi->text_font, str, gdi->text_size, &sx, &sy, &gdi->text_cache_ratio, N_GAME_PMR_DRAW_L2R );
+		n_bmp_ui_pmr_calc( gdi->text_font, str, gdi->text_size, &sx, &sy, &gdi->text_cache_ratio, N_GAME_PMR_DRAW_L2R );
 
 		size.cx = sx;
 		size.cy = sy;
@@ -435,7 +435,7 @@ n_gdi_text_draw_line
 		n_type_gfx x = gdi->effect_margin / 2;
 		n_type_gfx y = gdi->effect_margin / 2;
 
-		n_game_pmr_draw( gdi->text_font, str, &text, x,y, gdi->text_cache_ratio, n_bmp_white, N_GAME_PMR_DRAW_L2R );
+		n_bmp_ui_pmr_draw( gdi->text_font, str, &text, x,y, gdi->text_cache_ratio, n_bmp_white, N_GAME_PMR_DRAW_L2R );
 
 	} else {
 		// [Needed] : multi-thread

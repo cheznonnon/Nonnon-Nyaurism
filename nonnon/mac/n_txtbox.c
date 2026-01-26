@@ -35,10 +35,10 @@
 
 #include "../neutral/bmp/ui/rectframe.c"
 #include "../neutral/bmp/ui/roundframe.c"
+#include "../neutral/bmp/ui/timer.c"
 
 #include "../neutral/txt.c"
 
-#include "../bridge/helper.c"
 #include "../bridge/gdi.c"
 
 
@@ -953,7 +953,7 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 	}
 
 
-	if ( n_game_timer( &caret_blink_interval, 500 ) )
+	if ( n_bmp_ui_timer( &caret_blink_interval, 500 ) )
 	{
 		n_bmp_fade_init( &caret_blink_fade, n_bmp_black );
 		if ( caret_blink_onoff )
@@ -1142,7 +1142,7 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 					go = TRUE;
 				}
 			} else
-			if ( n_game_timer( &smooth_wheel_animation_timer, smooth_wheel_animation_msec ) )
+			if ( n_bmp_ui_timer( &smooth_wheel_animation_timer, smooth_wheel_animation_msec ) )
 			{
 //NSLog( @"fast" );
 				go = TRUE;

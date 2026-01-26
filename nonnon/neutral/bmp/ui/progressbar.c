@@ -5,16 +5,16 @@
 
 
 
-#ifndef _H_NONNON_WIN32_GAME_PROGRESSBAR
-#define _H_NONNON_WIN32_GAME_PROGRESSBAR
+#ifndef _H_NONNON_NEUTRAL_BMP_UI_PROGRESSBAR
+#define _H_NONNON_NEUTRAL_BMP_UI_PROGRESSBAR
 
 
 
 
-#include "../neutral/bmp/all.c"
+#include "../all.c"
 
 
-#include "./helper.c"
+#include "./timer.c"
 
 
 
@@ -24,27 +24,27 @@
 
 // [!] : zero == OFF
 
-static u32  n_game_progressbar_animation_interval = 10;
+static u32  n_bmp_ui_progressbar_animation_interval = 10;
 
 
-#define N_GAME_PROGRESSBAR_ANIMATION_OFF     0
-#define N_GAME_PROGRESSBAR_ANIMATION_ON_UP   1
-#define N_GAME_PROGRESSBAR_ANIMATION_ON_DOWN 2
+#define N_BMP_UI_PROGRESSBAR_ANIMATION_OFF     0
+#define N_BMP_UI_PROGRESSBAR_ANIMATION_ON_UP   1
+#define N_BMP_UI_PROGRESSBAR_ANIMATION_ON_DOWN 2
 
-static int n_game_progressbar_animation = N_GAME_PROGRESSBAR_ANIMATION_OFF;
+static int n_bmp_ui_progressbar_animation = N_BMP_UI_PROGRESSBAR_ANIMATION_OFF;
 
 
-static BOOL         n_game_progressbar_solid        = FALSE;
-static BOOL         n_game_progressbar_no_round     = FALSE;
-static n_type_gfx   n_game_progressbar_round_div    = 2;
-static n_type_gfx   n_game_progressbar_border       = 0;
-static u32          n_game_progressbar_border_color = n_bmp_black + 1;
+static BOOL         n_bmp_ui_progressbar_solid        = FALSE;
+static BOOL         n_bmp_ui_progressbar_no_round     = FALSE;
+static n_type_gfx   n_bmp_ui_progressbar_round_div    = 2;
+static n_type_gfx   n_bmp_ui_progressbar_border       = 0;
+static u32          n_bmp_ui_progressbar_border_color = n_bmp_black + 1;
 
 
 
 
 BOOL
-n_game_progressbar_stripe_detect( n_type_gfx x, n_type_gfx y, n_type_gfx animation, n_type_gfx stripe )
+n_bmp_ui_progressbar_stripe_detect( n_type_gfx x, n_type_gfx y, n_type_gfx animation, n_type_gfx stripe )
 {
 
 	// [Mechanism]
@@ -61,11 +61,11 @@ n_game_progressbar_stripe_detect( n_type_gfx x, n_type_gfx y, n_type_gfx animati
 	n += stripe;
 
 
-	if ( n_game_progressbar_animation == N_GAME_PROGRESSBAR_ANIMATION_ON_UP   )
+	if ( n_bmp_ui_progressbar_animation == N_BMP_UI_PROGRESSBAR_ANIMATION_ON_UP   )
 	{
 		n -= animation;
 	} else
-	if ( n_game_progressbar_animation == N_GAME_PROGRESSBAR_ANIMATION_ON_DOWN )
+	if ( n_bmp_ui_progressbar_animation == N_BMP_UI_PROGRESSBAR_ANIMATION_ON_DOWN )
 	{
 		n += animation;
 	}
@@ -77,14 +77,14 @@ n_game_progressbar_stripe_detect( n_type_gfx x, n_type_gfx y, n_type_gfx animati
 	return FALSE;
 }
 
-#define N_GAME_PROGRESSBAR_HORIZONTAL 0
-#define N_GAME_PROGRESSBAR_VERTICAL   1
+#define N_BMP_UI_PROGRESSBAR_HORIZONTAL 0
+#define N_BMP_UI_PROGRESSBAR_VERTICAL   1
 
-#define n_game_progressbar_vert( b, x,y,sx,sy, fg,bg, pc, s ) n_game_progressbar( b, x,y,sx,sy, fg,bg, pc, s, N_GAME_PROGRESSBAR_VERTICAL   )
-#define n_game_progressbar_horz( b, x,y,sx,sy, fg,bg, pc, s ) n_game_progressbar( b, x,y,sx,sy, fg,bg, pc, s, N_GAME_PROGRESSBAR_HORIZONTAL )
+#define n_bmp_ui_progressbar_vert( b, x,y,sx,sy, fg,bg, pc, s ) n_bmp_ui_progressbar( b, x,y,sx,sy, fg,bg, pc, s, N_BMP_UI_PROGRESSBAR_VERTICAL   )
+#define n_bmp_ui_progressbar_horz( b, x,y,sx,sy, fg,bg, pc, s ) n_bmp_ui_progressbar( b, x,y,sx,sy, fg,bg, pc, s, N_BMP_UI_PROGRESSBAR_HORIZONTAL )
 
 void
-n_game_progressbar
+n_bmp_ui_progressbar
 (
 	n_bmp          *bmp,
 	n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx sy,
@@ -112,7 +112,7 @@ n_game_progressbar
 		n_type_gfx tx,ty,tsx,tsy;
 
 
-		if ( mode == N_GAME_PROGRESSBAR_HORIZONTAL )
+		if ( mode == N_BMP_UI_PROGRESSBAR_HORIZONTAL )
 		{
 
 			fx  = x;
@@ -141,35 +141,35 @@ n_game_progressbar
 		n_bmp_box( bmp, tx,ty,tsx,tsy, bg );
 
 	} else
-	if ( n_game_progressbar_solid )
+	if ( n_bmp_ui_progressbar_solid )
 	{
 
 		// [!] : metrics
 
-		if ( mode == N_GAME_PROGRESSBAR_HORIZONTAL )
+		if ( mode == N_BMP_UI_PROGRESSBAR_HORIZONTAL )
 		{
 			sx = n_posix_max_n_type_gfx( sx, sy );
 		} else {
 			sy = n_posix_max_n_type_gfx( sx, sy );
 		}
 
-		if ( n_game_progressbar_round_div < 2 ) { n_game_progressbar_round_div = 2; }
+		if ( n_bmp_ui_progressbar_round_div < 2 ) { n_bmp_ui_progressbar_round_div = 2; }
 
 		const n_type_gfx minim  = n_posix_min_n_type_gfx( sx, sy );
-		const n_type_gfx round  = ( minim / n_game_progressbar_round_div ) + ( minim % 2 );
-		const n_type_gfx border = n_game_progressbar_border;
+		const n_type_gfx round  = ( minim / n_bmp_ui_progressbar_round_div ) + ( minim % 2 );
+		const n_type_gfx border = n_bmp_ui_progressbar_border;
 
 
 		// [!] : color scheme
 
-		const u32 color_fr = n_game_progressbar_border_color;
+		const u32 color_fr = n_bmp_ui_progressbar_border_color;
 		const u32 color_bg = bg;
 		const u32 color_fg = fg;
 
 
 		// [!] : frame
 
-		if ( n_game_progressbar_no_round )
+		if ( n_bmp_ui_progressbar_no_round )
 		{
 
 			n_bmp_box( bmp, x,y,sx,sy, color_fr );
@@ -198,7 +198,7 @@ n_game_progressbar
 		// [!] : progress
 
 		n_type_gfx fsx,fsy;
-		if ( mode == N_GAME_PROGRESSBAR_HORIZONTAL )
+		if ( mode == N_BMP_UI_PROGRESSBAR_HORIZONTAL )
 		{
 			fsx = (n_type_gfx) ( (n_type_real) sx * pc );
 			fsy = sy;
@@ -213,14 +213,14 @@ n_game_progressbar
 
 		// Debug Center
 
-		//n_game_progressbar_animation = N_GAME_PROGRESSBAR_ANIMATION_ON_DOWN;
-		//n_game_hwndprintf_literal( "%d", n_game_progressbar_animation );
+		//n_bmp_ui_progressbar_animation = N_BMP_UI_PROGRESSBAR_ANIMATION_ON_DOWN;
+		//n_bmp_ui_hwndprintf_literal( "%d", n_bmp_ui_progressbar_animation );
 		//percent = 0;
 
 
 		// [!] : metrics
 
-		if ( mode == N_GAME_PROGRESSBAR_HORIZONTAL )
+		if ( mode == N_BMP_UI_PROGRESSBAR_HORIZONTAL )
 		{
 			sx = n_posix_max_n_type_gfx( sx, sy );
 		} else {
@@ -228,7 +228,7 @@ n_game_progressbar
 		}
 
 
-		if ( n_game_progressbar_round_div < 2 ) { n_game_progressbar_round_div = 2; }
+		if ( n_bmp_ui_progressbar_round_div < 2 ) { n_bmp_ui_progressbar_round_div = 2; }
 
 
 		const n_type_gfx bar_sx = (n_type_gfx) ( pc * sx );
@@ -239,8 +239,8 @@ n_game_progressbar
 		//const n_type_gfx    maxim  = n_posix_max_n_type_gfx( sx, sy );
 		const n_type_real   sugar  = (n_type_real) 1.0 / minim;
 		const n_type_gfx    half   = minim / 2;
-		const n_type_gfx    round  = ( minim / n_game_progressbar_round_div ) + ( minim % 2 );
-		//const n_type_gfx    border = n_game_progressbar_border;
+		const n_type_gfx    round  = ( minim / n_bmp_ui_progressbar_round_div ) + ( minim % 2 );
+		//const n_type_gfx    border = n_bmp_ui_progressbar_border;
 
 
 		static n_type_gfx animation = 0;
@@ -256,7 +256,7 @@ n_game_progressbar
 
 			u32 color = bg;
 
-			if ( n_game_progressbar_no_round )
+			if ( n_bmp_ui_progressbar_no_round )
 			{
 
 				if ( percent != 0 )
@@ -266,7 +266,7 @@ n_game_progressbar
 
 					n_type_real d = 1.0;
 
-					if ( mode == N_GAME_PROGRESSBAR_HORIZONTAL )
+					if ( mode == N_BMP_UI_PROGRESSBAR_HORIZONTAL )
 					{
 						onoff = ( tx < bar_sx );
 					} else {
@@ -286,7 +286,7 @@ n_game_progressbar
 
 					n_type_real d = 1.0;
 
-					if ( mode == N_GAME_PROGRESSBAR_HORIZONTAL )
+					if ( mode == N_BMP_UI_PROGRESSBAR_HORIZONTAL )
 					{
 						onoff = n_bmp_roundrect_detect_coeff( tx + round, ty, bar_sx + round, sy, round, &d );
 					} else {
@@ -302,7 +302,7 @@ n_game_progressbar
 
 			// [!] : stripe main
 
-			if ( n_game_progressbar_stripe_detect( tx,ty, animation, stripe ) )
+			if ( n_bmp_ui_progressbar_stripe_detect( tx,ty, animation, stripe ) )
 			{
 				color = n_bmp_blend_pixel( color, n_bmp_white, 0.25 );
 			}
@@ -311,9 +311,9 @@ n_game_progressbar
 			// [!] : pipe-like effect
 
 			if (
-				( ( mode == N_GAME_PROGRESSBAR_HORIZONTAL )&&( ty <= half ) )
+				( ( mode == N_BMP_UI_PROGRESSBAR_HORIZONTAL )&&( ty <= half ) )
 				||
-				( ( mode == N_GAME_PROGRESSBAR_VERTICAL   )&&( tx <= half ) )
+				( ( mode == N_BMP_UI_PROGRESSBAR_VERTICAL   )&&( tx <= half ) )
 			)
 			{
 				color = n_bmp_blend_pixel( color, n_bmp_white, 0.5 - pipe );
@@ -322,7 +322,7 @@ n_game_progressbar
 			}
 
 
-			if ( n_game_progressbar_no_round )
+			if ( n_bmp_ui_progressbar_no_round )
 			{
 				n_bmp_ptr_set( bmp, tx + x, ty + y, color );
 			} else {
@@ -339,7 +339,7 @@ n_game_progressbar
 			}
 
 
-			if ( mode == N_GAME_PROGRESSBAR_VERTICAL ) { pipe += sugar; }
+			if ( mode == N_BMP_UI_PROGRESSBAR_VERTICAL ) { pipe += sugar; }
 
 			tx++;
 			if ( tx >= sx )
@@ -350,7 +350,7 @@ n_game_progressbar
 				ty++;
 				if ( ty >= sy ) { break; }
 
-				if ( mode == N_GAME_PROGRESSBAR_HORIZONTAL ) { pipe += sugar; } else { pipe = 0; }
+				if ( mode == N_BMP_UI_PROGRESSBAR_HORIZONTAL ) { pipe += sugar; } else { pipe = 0; }
 
 			}
 		}
@@ -358,9 +358,9 @@ n_game_progressbar
 		static u32 timer = 0;
 
 		if (
-			( n_game_progressbar_animation_interval != 0 )
+			( n_bmp_ui_progressbar_animation_interval != 0 )
 			&&
-			( n_game_timer( &timer, n_game_progressbar_animation_interval ) )
+			( n_bmp_ui_timer( &timer, n_bmp_ui_progressbar_animation_interval ) )
 		)
 		{
 			animation++;
@@ -374,5 +374,5 @@ n_game_progressbar
 }
 
 
-#endif // _H_NONNON_WIN32_GAME_PROGRESSBAR
+#endif // _H_NONNON_NEUTRAL_BMP_UI_PROGRESSBAR
 

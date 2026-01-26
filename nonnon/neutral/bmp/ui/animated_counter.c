@@ -12,7 +12,9 @@
 
 
 #include "../../../bridge/gdi.c"
-#include "../../../bridge/transition.c"
+
+
+#include "./transition.c"
 
 
 
@@ -45,7 +47,7 @@ typedef struct {
 	n_bmp        *bmp_old[ 10 ];
 	n_bmp        *bmp_new[ 10 ];
 
-	n_game_transition_struct t[ 10 ];
+	n_bmp_ui_transition_struct t[ 10 ];
 
 
 	// [!] : cache for speeding up
@@ -213,17 +215,15 @@ n_bmp_ui_animated_counter_loop_draw( n_bmp_ui_animated_counter *p, n_bmp *canvas
 	int i = 0;
 	n_posix_loop
 	{
-//n_bmp_flush( &bmp2, n_game_randomcolor() );
 
-
-		BOOL ret = n_game_transition_main
+		BOOL ret = n_bmp_ui_transition_main
 		(
 			&p->t[ i ],
 			&p->bmp_cache,
 			 p->bmp_old[ i ],
 			 p->bmp_new[ i ],
 			 p->msec,
-			 N_GAME_TRANSITION_SCROLL_U
+			 N_BMP_UI_TRANSITION_SCROLL_U
 		);
 
 //if ( p->t[ i ].error_code ) { if ( p->t[ i ].error_code != 6 ) { NSLog( @"%d %d", i, p->t[ i ].error_code ); } }

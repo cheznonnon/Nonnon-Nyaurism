@@ -1864,7 +1864,7 @@ n_win_scrollbar_on_drag( n_win_scrollbar *p, int reason )
 
 
 	//static u32 timer = 0;
-	//if ( FALSE == n_game_timer( &timer, 500 ) ) { return; }
+	//if ( FALSE == n_bmp_ui_timer( &timer, 500 ) ) { return; }
 
 
 	CGFloat unit = 0;

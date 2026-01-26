@@ -20,7 +20,7 @@
 #include "../neutral/string_path.c"
 #include "../neutral/txt.c"
 
-#include "../bridge/helper.c"
+#include "../neutral/bmp/ui/timer.c"
 
 
 
@@ -499,7 +499,7 @@ n_mac_doubleclick_detect( int *phase, u32 *msec )
 	} else
 	if ( (*phase) == 1 )
 	{
-		if ( FALSE == n_game_timer_once( msec, 500 ) )
+		if ( FALSE == n_bmp_ui_timer_once( msec, 500 ) )
 		{
 			onoff = TRUE;
 			(*phase) = 0;

@@ -18,8 +18,8 @@
 
 #include "../neutral/txt.c"
 
-#include "../bridge/pmr.c"
-#include "../bridge/progressbar.c"
+#include "../neutral/bmp/ui/pmr.c"
+#include "../neutral/bmp/ui/progressbar.c"
 
 
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
@@ -1250,9 +1250,9 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 			n_bmp_flush( &bmp_ret, bg );
 
-			n_game_progressbar_horz( &bmp_ret, 0,0,gdi->sx,gdi->sy, fg,bg, gdi->percent, gdi->sy );
+			n_bmp_ui_progressbar_horz( &bmp_ret, 0,0,gdi->sx,gdi->sy, fg,bg, gdi->percent, gdi->sy );
 
-			if ( n_game_progressbar_no_round )
+			if ( n_bmp_ui_progressbar_no_round )
 			{
 				u32 color_frame = n_bmp_blend_pixel( fg, n_bmp_rgb( 10,10,10 ), 0.125 );
 				n_gdi_frame_lineframe( gdi, &bmp_ret, 0,0,gdi->sx,gdi->sy, color_frame );
@@ -1266,9 +1266,9 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 			n_bmp_flush( &bmp_ret, bg );
 
-			n_game_progressbar_vert( &bmp_ret, 0,0,gdi->sx,gdi->sy, fg,bg, gdi->percent, gdi->sx );
+			n_bmp_ui_progressbar_vert( &bmp_ret, 0,0,gdi->sx,gdi->sy, fg,bg, gdi->percent, gdi->sx );
 
-			if ( n_game_progressbar_no_round )
+			if ( n_bmp_ui_progressbar_no_round )
 			{
 				u32 color_frame = n_bmp_blend_pixel( fg, n_bmp_rgb( 10,10,10 ), 0.125 );
 				n_gdi_frame_lineframe( gdi, &bmp_ret, 0,0,gdi->sx,gdi->sy, color_frame );
