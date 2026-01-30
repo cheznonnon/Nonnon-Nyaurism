@@ -335,11 +335,6 @@
 	case N_MAC_KEYCODE_SPACE:
 	{
 
-		if ( event.keyCode == N_MAC_KEYCODE_SPACE )
-		{
-			[self NonnonTxtboxUndo:N_TXTBOX_UNDO_REGISTER];
-		}
-
 		[self NonnonTxtboxRedraw];
 
 	}
@@ -663,8 +658,6 @@
 
 		}
 
-		[self NonnonTxtboxUndo:N_TXTBOX_UNDO_REGISTER];
-
 		n_edited = TRUE;
 		if ( delegate_option & N_MAC_TXTBOX_DELEGATE_EDITED )
 		{
@@ -694,66 +687,6 @@
 
 		[self NonnonTxtboxUndo:N_TXTBOX_UNDO_REGISTER];
 
-		if ( event.modifierFlags & NSEventModifierFlagOption )
-		{
-
-			n_type_int count = llabs( caret_fr.cch.y - caret_to.cch.y ) + 1;
-			n_type_int min_y =   MIN( caret_fr.cch.y,  caret_to.cch.y );
-
-			n_type_int y = 0;
-			n_posix_loop
-			{
-				if ( y >= count ) { break; }
-
-				n_posix_char *line = n_txt_get( n_txt_data, min_y + y );
-
-				if ( line[ 0 ] == N_STRING_CHAR_TAB )
-				{
-					n_posix_char *str = n_string_new( n_posix_strlen( line ) );
-					n_posix_sprintf_literal( str, "%s", &line[ 1 ] );
-
-					n_txt_mod_fast( n_txt_data, min_y + y, str );
-				}
-
-				y++;
-			}
-
-			caret_fr.cch.x--;
-			caret_to.cch.x--;
-
-			n_type_int cch;
-			if ( shift_selection_is_tail )
-			{
-				cch = caret_to.cch.x;
-			} else {
-				cch = caret_fr.cch.x;
-			}
-
-			n_type_int fr_cch_y = caret_fr.cch.y;
-			n_type_int to_cch_y = caret_to.cch.y;
-
-			caret_fr = caret_to = n_txtbox_caret_detect_cch2pixel
-			(
-				n_txt_data,
-				n_focus,
-				font,
-				font_size,
-				cch
-			);
-
-			caret_fr.cch.y = fr_cch_y;
-			caret_to.cch.y = to_cch_y;
-
-			n_edited = TRUE;
-			if ( delegate_option & N_MAC_TXTBOX_DELEGATE_EDITED )
-			{
-				[self.delegate NonnonTxtbox_delegate_edited:self onoff:n_edited];
-			}
-
-			[self NonnonTxtboxRedraw];
-
-			break;
-		}
 
 //n_caret_debug_cch( caret_fr ,caret_to );// break;
 
@@ -889,12 +822,86 @@
 	case N_MAC_KEYCODE_TAB:
 	{
 
-		// [x] : you cannot use Ctrl + Tab : system uses
+		if ( n_txt_data->readonly ) { break; }
+
+
+		// [!] : same as Xcode
+
+		BOOL selected = ( 1 <= llabs( caret_fr.cch.y - caret_to.cch.y ) );
+
+		[self NonnonTxtboxUndo:N_TXTBOX_UNDO_REGISTER];
+
+
+		// [x] : you cannot use Cmd + Tab : system uses
 
 		//if ( event.modifierFlags & NSEventModifierFlagCommand )
-		if ( event.modifierFlags & NSEventModifierFlagOption )
+		if ( event.modifierFlags & NSEventModifierFlagShift )
 		{
-			if ( n_txt_data->readonly ) { break; }
+			// [!] : multi-line tab remover
+
+			if ( selected == FALSE )
+			{
+				[self NonnonTxtboxKeyboardInputMethod:[event characters]];
+				break;
+			}
+
+			n_type_int count = llabs( caret_fr.cch.y - caret_to.cch.y ) + 1;
+			n_type_int min_y = MIN( caret_fr.cch.y,  caret_to.cch.y );
+
+			n_type_int y = 0;
+			n_posix_loop
+			{
+				if ( y >= count ) { break; }
+
+				n_posix_char *line = n_txt_get( n_txt_data, min_y + y );
+
+				if ( line[ 0 ] == N_STRING_CHAR_TAB )
+				{
+					n_posix_char *str = n_string_new( n_posix_strlen( line ) );
+					n_posix_sprintf_literal( str, "%s", &line[ 1 ] );
+
+					n_txt_mod_fast( n_txt_data, min_y + y, str );
+				}
+
+				y++;
+			}
+
+
+//NSLog( @"%lld %lld", caret_fr.cch.y, caret_to.cch.y );
+			if ( caret_fr.cch.y < caret_to.cch.y )
+			{
+				caret_fr.cch.x = 0;
+				caret_fr.pxl.x = 0;
+
+				caret_to.cch.x = n_txt_data->sx;
+				caret_to.pxl.x = font_size.width * caret_to.cch.x;
+			} else
+			if ( caret_fr.cch.y > caret_to.cch.y )
+			{
+				caret_to.cch.x = 0;
+				caret_to.pxl.x = 0;
+
+				caret_fr.cch.x = n_txt_data->sx;
+				caret_fr.pxl.x = font_size.width * caret_fr.cch.x;
+
+			}
+
+
+			n_edited = TRUE;
+			if ( delegate_option & N_MAC_TXTBOX_DELEGATE_EDITED )
+			{
+				[self.delegate NonnonTxtbox_delegate_edited:self onoff:n_edited];
+			}
+
+			[self NonnonTxtboxRedraw];
+		} else {
+			// [!] : multi-line tab adder
+
+			if ( selected == FALSE )
+			{
+				[self NonnonTxtboxKeyboardInputMethod:[event characters]];
+				break;
+			}
 
 			n_type_int count = llabs( caret_fr.cch.y - caret_to.cch.y ) + 1;
 			n_type_int min_y =   MIN( caret_fr.cch.y,  caret_to.cch.y );
@@ -917,31 +924,26 @@
 				y++;
 			}
 
-			caret_fr.cch.x++;
-			caret_to.cch.x++;
 
-			n_type_int cch;
-			if ( shift_selection_is_tail )
+//NSLog( @"%lld %lld", caret_fr.cch.y, caret_to.cch.y );
+			if ( caret_fr.cch.y < caret_to.cch.y )
 			{
-				cch = caret_to.cch.x;
-			} else {
-				cch = caret_fr.cch.x;
+				caret_fr.cch.x = 0;
+				caret_fr.pxl.x = 0;
+
+				caret_to.cch.x = n_txt_data->sx;
+				caret_to.pxl.x = font_size.width * caret_to.cch.x;
+			} else
+			if ( caret_fr.cch.y > caret_to.cch.y )
+			{
+				caret_to.cch.x = 0;
+				caret_to.pxl.x = 0;
+
+				caret_fr.cch.x = n_txt_data->sx;
+				caret_fr.pxl.x = font_size.width * caret_fr.cch.x;
+
 			}
 
-			n_type_int fr_cch_y = caret_fr.cch.y;
-			n_type_int to_cch_y = caret_to.cch.y;
-
-			caret_fr = caret_to = n_txtbox_caret_detect_cch2pixel
-			(
-				n_txt_data,
-				n_focus,
-				font,
-				font_size,
-				cch
-			);
-
-			caret_fr.cch.y = fr_cch_y;
-			caret_to.cch.y = to_cch_y;
 
 			n_edited = TRUE;
 			if ( delegate_option & N_MAC_TXTBOX_DELEGATE_EDITED )
@@ -951,10 +953,8 @@
 
 			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 			[self NonnonTxtboxRedraw];
-		} else {
-			[self NonnonTxtboxKeyboardInputMethod:[event characters]];
 		}
-	
+
 	}
 	break;
 
@@ -1224,15 +1224,11 @@ n_posix_loop
 
 		if ( event.modifierFlags & NSEventModifierFlagCommand )
 		{
-
 			if ( self.n_mode == N_MAC_TXTBOX_MODE_LISTBOX ) { break; }
 
 			[self NonnonTxtboxSelectAll:TRUE];
-
 		} else {
-
 			[self NonnonTxtboxKeyboardInputMethod:[event characters]];
-
 		}
 
 	}
@@ -1254,9 +1250,7 @@ n_posix_loop
 
 			[self NonnonTxtboxRedraw];
 		} else {
-
 			[self NonnonTxtboxKeyboardInputMethod:[event characters]];
-
 		}
 
 	}
@@ -1336,6 +1330,8 @@ n_posix_loop
 	case N_MAC_KEYCODE_NUMBER_6:
 	{
 
+		[self NonnonTxtboxUndo:N_TXTBOX_UNDO_REGISTER];
+
 		// [x] : function keys used by system globally
 
 		if ( event.modifierFlags & NSEventModifierFlagCommand )
@@ -1374,12 +1370,19 @@ n_posix_loop
 	break;
 
 	default :
+//NSLog( @"pressed" );
 
 		if ( event.modifierFlags & NSEventModifierFlagCommand )
 		{
 			//
 		} else {
+//NSLog( @"%s", n_txt_get( n_txt_data, n_focus ) );
+
+			// [!] : IME ON : see insertText@n_txtbox.c
+#ifndef N_TXTBOX_IME_ENABLE
+			[self NonnonTxtboxUndo:N_TXTBOX_UNDO_REGISTER];
 			[self NonnonTxtboxKeyboardInputMethod:[event characters]];
+#endif
 		}
 	
 	break;

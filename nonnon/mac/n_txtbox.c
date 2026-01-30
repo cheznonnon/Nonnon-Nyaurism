@@ -1178,6 +1178,9 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 {
 //return;
 
+	// [x] : don't make undo buffer : [self NonnonTxtboxUndo:N_TXTBOX_UNDO_REGISTER];
+
+
 	if ( n_txt_data->readonly ) { return; }
 
 
@@ -1246,9 +1249,6 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 	n_string_free( line_f );
 	n_string_free( line_m );
 	n_string_free( line_t );
-
-
-	[self NonnonTxtboxUndo:N_TXTBOX_UNDO_REGISTER];
 
 
 	n_edited = TRUE;
@@ -1982,6 +1982,7 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 	ime_nsstr = @"";
 	ime_onoff = FALSE;
 
+	[self NonnonTxtboxUndo:N_TXTBOX_UNDO_REGISTER];
 	[self NonnonTxtboxInsert:string];
 
 

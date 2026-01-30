@@ -16,7 +16,7 @@
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
-#include "../win32/win.c"
+#include "../win64/_windows.c"
 
 void
 n_game_click_debug( char *str )
@@ -134,15 +134,7 @@ n_game_click_mouse_threshold( n_game_click *p )
 	n_type_gfx threshold_sx = 0;
 	n_type_gfx threshold_sy = 0;
 
-#ifdef N_POSIX_PLATFORM_WINDOWS
-
-	n_win_mouse_threshold( NULL, &threshold_sx, &threshold_sy );
-
-#else  // #ifdef N_POSIX_PLATFORM_WINDOWS
-
 	threshold_sx = threshold_sy = 8;
-
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 
 	p->threshold.x = threshold_sx * 2;
 	p->threshold.y = threshold_sy * 2;

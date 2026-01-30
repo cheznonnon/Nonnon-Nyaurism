@@ -116,7 +116,7 @@ n_unicode_alloccopy_with_bom( n_type_int *byte, const void *stream, const u8 *bo
 	//	[ BOM(0/2/3/4) + String + NUL(1/2/4) ]
 
 	n_type_int  b = 4 + ( (*byte) * 4 ) + 4;
-	void       *s = n_memory_new( b );
+	void       *s = n_memory_new( b * 4 );
 
 
 	if ( stream == NULL )

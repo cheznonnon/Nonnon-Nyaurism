@@ -992,13 +992,10 @@ n_bmp_ui_transition_main( n_bmp_ui_transition_struct *p, n_bmp *bmp, n_bmp *bmp_
 
 		// Auto-adjuster
 
-		static n_type_real step = 0;
-
 		if ( p->percent == 0 )
 		{
 			p->frame_msec = (n_type_real) msec / 100;
 			p->tick_count = n_posix_tickcount();
-			         step = 0;
 		}
 
 		n_type_real tick_count_cur   = n_posix_tickcount();

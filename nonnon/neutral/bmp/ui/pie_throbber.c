@@ -64,6 +64,7 @@ n_bmp_ui_pie_throbber( n_bmp *bmp, n_type_gfx fx, n_type_gfx fy, n_type_gfx size
 		n_bmp_circle( &bmp_p, 0,0,size,size, n_bmp_white );
 	}
 
+	// [!] : make monochrome
 	n_bmp_ui_pie_throbber_white_on_black( &bmp_p );
 
 
@@ -80,8 +81,11 @@ n_bmp_ui_pie_throbber( n_bmp *bmp, n_type_gfx fx, n_type_gfx fy, n_type_gfx size
 		return;
 	}
 
-
+#ifdef N_POSIX_PLATFORM_MAC
 	u32 color_indicator = n_bmp_rgb_mac( 0,0,255 );
+#else
+	u32 color_indicator = n_bmp_rgb    ( 0,0,255 );
+#endif
 
 	n_type_gfx half = size / 2;
 
@@ -98,7 +102,7 @@ n_bmp_ui_pie_throbber( n_bmp *bmp, n_type_gfx fx, n_type_gfx fy, n_type_gfx size
 
 //n_bmp_transcopy( &bmp_p, bmp, 0,0,size,size, fx,fy ); return;
 
-	n_bmp_flush_antialias( &bmp_p, 0.5 );
+	//n_bmp_flush_antialias( &bmp_p, 0.5 );
 
 
 	n_type_gfx x = 0;
@@ -106,26 +110,22 @@ n_bmp_ui_pie_throbber( n_bmp *bmp, n_type_gfx fx, n_type_gfx fy, n_type_gfx size
 	n_posix_loop
 	{
 		u32 color; n_bmp_ptr_get_fast( &bmp_p, x,y, &color );
-		if ( ( color == n_bmp_black )||( color == n_bmp_white ) )
+		if ( color == color_indicator )
 		{
-			//
-		} else {
-			if ( color == color_indicator )
-			{
-				n_bmp_ptr_get_fast( &bmp_t, x,y, &color );
-				n_bmp_ptr_set_fast( &bmp_f, x,y,  color );
-			} else {
-				u32 c_f; n_bmp_ptr_get_fast( &bmp_f, x,y, &c_f );
-				u32 c_t; n_bmp_ptr_get_fast( &bmp_t, x,y, &c_t );
-				u32 c_p; n_bmp_ptr_get_fast( &bmp_p, x,y, &c_p );
+			n_bmp_ptr_get_fast( &bmp_t, x,y, &color );
+			n_bmp_ptr_set_fast( &bmp_f, x,y,  color );
+		}/* else {
+			u32 c_f; n_bmp_ptr_get_fast( &bmp_f, x,y, &c_f );
+			u32 c_t; n_bmp_ptr_get_fast( &bmp_t, x,y, &c_t );
+			u32 c_p; n_bmp_ptr_get_fast( &bmp_p, x,y, &c_p );
 
-				n_type_real coeff = ( 255 - n_bmp_b( c_p ) ) * n_bmp_coeff_channel;
+			n_type_real coeff = ( 255 - n_bmp_b( c_p ) ) * n_bmp_coeff_channel;
 
-				color = n_bmp_blend_pixel( c_f, c_t, coeff );
+			color = n_bmp_blend_pixel( c_f, c_t, coeff );
 
-				n_bmp_ptr_set_fast( &bmp_f, x,y, color );
-			}
-		}
+			n_bmp_ptr_set_fast( &bmp_f, x,y, color );
+
+		}*/
 
 		x++;
 		if ( x >= size )

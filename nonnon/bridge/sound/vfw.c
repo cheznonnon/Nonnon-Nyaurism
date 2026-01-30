@@ -23,7 +23,47 @@
 
 
 
-#define N_VFW_CCH_MAX ( 100 )
+#define N_VFW_CCH_MAX ( 1024 )
+
+
+
+
+RECT
+n_vfw_rect_max( RECT *r, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx sy )
+{
+
+	// [!] : don't return "r" directly
+
+	RECT ret = { 0,0,0,0 };
+
+	if ( r != NULL ) { ret = (*r); }
+
+	ret.left   = n_posix_max_n_type_gfx( ret.left,    x );
+	ret.top    = n_posix_max_n_type_gfx( ret.top,     y );
+	ret.right  = n_posix_max_n_type_gfx( ret.right,  sx );
+	ret.bottom = n_posix_max_n_type_gfx( ret.bottom, sy );
+
+	if ( r != NULL ) { (*r) = ret; }
+
+
+	return ret;
+}
+
+void
+n_vfw_rect_expand_size( RECT *r, n_type_gfx *x, n_type_gfx *y, n_type_gfx *sx, n_type_gfx *sy )
+{
+
+	RECT r_zero = { 0,0,0,0 };
+	if ( r == NULL ) { r = &r_zero; }
+
+	if (  x != NULL ) { (* x) = r->left;             }
+	if (  y != NULL ) { (* y) = r->top;              }
+	if ( sx != NULL ) { (*sx) = r->right  - r->left; }
+	if ( sy != NULL ) { (*sy) = r->bottom - r->top;  }
+
+
+	return;
+}
 
 
 
@@ -122,7 +162,11 @@ n_vfw_load( n_vfw *vfw, HWND hwnd, const n_posix_char *fname )
 //if ( MCIWndCanWindow( vfw->hwnd ) ) { n_posix_debug_literal( "VIDEO" ); }
 
 
+#ifdef N_POSIX_PLATFORM_MINGW
 	n_win_style_del( vfw->hwnd, WS_BORDER );
+#else
+	n_win64_style_del( vfw->hwnd, WS_BORDER );
+#endif
 
 
 	n_posix_char str[ N_VFW_CCH_MAX ];
@@ -192,11 +236,11 @@ n_vfw_load( n_vfw *vfw, HWND hwnd, const n_posix_char *fname )
 		RECT r; MCIWndGetDest( vfw->hwnd, &r );
 //n_win_rect_debug( &rc );
 
-		n_win_rect_max( &r, 0, 0, 128, 128 );
+		n_vfw_rect_max( &r, 0, 0, 128, 128 );
 
 		MCIWndPutDest( vfw->hwnd, &r );
 
-		n_win_rect_expand_size( &r, NULL, NULL, &vfw->csx, &vfw->csy );
+		n_vfw_rect_expand_size( &r, NULL, NULL, &vfw->csx, &vfw->csy );
 
 	} else {
 
@@ -206,7 +250,8 @@ n_vfw_load( n_vfw *vfw, HWND hwnd, const n_posix_char *fname )
 
 	}
 
-	n_win_move_simple( vfw->hwnd, 0,0, vfw->csx, vfw->csy, n_posix_false );
+
+	MoveWindow( vfw->hwnd, 0,0, vfw->csx, vfw->csy, FALSE );
 
 
 	return n_posix_false;
@@ -226,7 +271,7 @@ void
 n_vfw_refresh( n_vfw *vfw )
 {
 
-	if ( n_posix_false == n_vfw_is_active( vfw ) ) { return; }
+	if ( FALSE == n_vfw_is_active( vfw ) ) { return; }
 
 
 	MCIWndRealize( vfw->hwnd, n_posix_true );
@@ -241,7 +286,7 @@ n_posix_char*
 n_vfw_string_status( n_vfw *vfw )
 {
 
-	if ( n_posix_false == n_vfw_is_active( vfw ) ) { return N_STRING_EMPTY; }
+	if ( FALSE == n_vfw_is_active( vfw ) ) { return N_STRING_EMPTY; }
 
 
 	static n_posix_char status[ N_VFW_CCH_MAX ];
@@ -261,7 +306,7 @@ n_type_real
 n_vfw_percent( n_vfw *vfw )
 {
 
-	if ( n_posix_false == n_vfw_is_active( vfw ) ) { return 0; }
+	if ( FALSE == n_vfw_is_active( vfw ) ) { return 0; }
 
 
 	n_type_real a = MCIWndGetPosition( vfw->hwnd );
@@ -294,7 +339,7 @@ n_vfw_resume( n_vfw *vfw )
 	// [x] : MCIWndResume() cannot resume MIDI files
 
 
-	if ( n_posix_false == n_vfw_is_active( vfw ) ) { return; }
+	if ( FALSE == n_vfw_is_active( vfw ) ) { return; }
 
 
 	MCIWndPlayFrom( vfw->hwnd, MCIWndGetPosition( vfw->hwnd ) );
@@ -307,7 +352,7 @@ void
 n_vfw_stop( n_vfw *vfw )
 {
 
-	if ( n_posix_false == n_vfw_is_active( vfw ) ) { return; }
+	if ( FALSE == n_vfw_is_active( vfw ) ) { return; }
 
 
 	MCIWndStop( vfw->hwnd );
@@ -321,7 +366,7 @@ void
 n_vfw_rewind( n_vfw *vfw )
 {
 
-	if ( n_posix_false == n_vfw_is_active( vfw ) ) { return; }
+	if ( FALSE == n_vfw_is_active( vfw ) ) { return; }
 
 
 	MCIWndSeek( vfw->hwnd, MCIWND_START );
@@ -334,7 +379,7 @@ void
 n_vfw_play( n_vfw *vfw )
 {
 
-	if ( n_posix_false == n_vfw_is_active( vfw ) ) { return; }
+	if ( FALSE == n_vfw_is_active( vfw ) ) { return; }
 
 
 	// [MSDN] : Default
@@ -357,7 +402,7 @@ void
 n_vfw_seek( n_vfw *vfw, n_type_real ratio )
 {
 
-	if ( n_posix_false == n_vfw_is_active( vfw ) ) { return; }
+	if ( FALSE == n_vfw_is_active( vfw ) ) { return; }
 
 	n_posix_bool resume = n_posix_false;
 	if ( n_vfw_is_playing( vfw ) ) { resume = n_posix_true; }

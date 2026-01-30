@@ -87,7 +87,9 @@ n_win_is_input( int vk )
 
 #else  // #ifndef N_POSIX_PLATFORM_MAC
 
-#include "../win32/win/input.c"
+#include "../win64/_windows.c"
+
+#define n_win_is_input n_win64_is_input
 
 #endif // #ifndef N_POSIX_PLATFORM_MAC
 

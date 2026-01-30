@@ -23,7 +23,9 @@
 #include "../../neutral/posix.c"
 #include "../../neutral/wav.c"
 
+#ifdef N_POSIX_PLATFORM_MINGW
 #include "../../win32/sysinfo/version.c"
+#endif
 
 #ifdef _MSC_VER
 #pragma comment( lib, "winmm" )
@@ -34,9 +36,9 @@
 
 typedef struct {
 
-	HWAVEOUT     hwo;
-	WAVEHDR      wh;
-	n_posix_bool is_chicago;
+	HWAVEOUT hwo;
+	WAVEHDR  wh;
+	BOOL     is_chicago;
 
 } n_waveout;
 
@@ -75,12 +77,16 @@ n_waveout_hwaveout_init( void )
 
 #define n_waveout_zero( p ) n_memory_zero( p, sizeof( n_waveout ) )
 
-n_posix_bool
+BOOL
 n_waveout_init( n_waveout *p, n_wav *wav )
 {
 
 	p->wh         = N_WAV_WH( wav );
+#ifdef N_POSIX_PLATFORM_MINGW
 	p->is_chicago = n_sysinfo_version_9x();
+#else
+	p->is_chicago = FALSE;
+#endif
 
 	if ( p->is_chicago )
 	{
@@ -103,10 +109,10 @@ n_waveout_init( n_waveout *p, n_wav *wav )
 	waveOutPrepareHeader( p->hwo, &p->wh, sizeof( WAVEHDR ) );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_waveout_loop( n_waveout *p )
 {
 
@@ -114,20 +120,20 @@ n_waveout_loop( n_waveout *p )
 	waveOutWrite( p->hwo, &p->wh, sizeof( WAVEHDR ) );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_waveout_stop( n_waveout *p )
 {
 
 	waveOutReset( p->hwo );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_waveout_exit( n_waveout *p )
 {
 
@@ -155,27 +161,27 @@ n_waveout_exit( n_waveout *p )
 	n_waveout_zero( p );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_waveout_pause( n_waveout *p )
 {
 
 	waveOutPause( p->hwo );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_waveout_resume( n_waveout *p )
 {
 
 	waveOutRestart( p->hwo );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 

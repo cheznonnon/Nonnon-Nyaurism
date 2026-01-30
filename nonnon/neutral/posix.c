@@ -126,18 +126,13 @@
 #define N_POSIX_PLATFORM_MINGW64
 
 
-// [x] : suppress stupid sprintf() warning
-
-//#pragma GCC diagnostic ignored "-Wrestrict"
-
-
 #endif // #ifdef  __MINGW32__
 
 
 
 
 // [!] : __MINGW_H  : good old MinGW
-// [!] :__MINGW32__ : MinGW64 : compatibility hell
+// [!] :__MINGW32__ : MinGW-w64 : compatibility hell
 
 #if defined( N_POSIX_PLATFORM_MINGW ) || defined( N_POSIX_PLATFORM_MINGW64 ) || defined( _MSC_VER )
 
@@ -199,7 +194,7 @@
 #define n_posix_fgets      fgetws
 #define n_posix_printf     wprintf
 #define n_posix_sprintf    swprintf
-//#define n_posix_snprintf    swnprintf
+#define n_posix_snprintf   snwprintf
 #define n_posix_vsprintf   vswprintf
 //#define n_posix_sscanf     swscanf
 #define n_posix_rename     _wrename
@@ -256,7 +251,7 @@
 #define n_posix_fgets      fgets
 #define n_posix_printf     printf
 #define n_posix_sprintf    sprintf
-//#define n_posix_snprintf    snprintf
+#define n_posix_snprintf   snprintf
 #define n_posix_vsprintf   vsprintf
 //#define n_posix_sscanf     sscanf
 #define n_posix_rename     rename
@@ -446,10 +441,6 @@ n_type_real n_posix_max_n_type_real( n_type_real a, n_type_real b ) { return a >
 
 #define n_posix_printf_literal( a, ... ) n_posix_printf( n_posix_literal( a ), ##__VA_ARGS__ )
 
-#define n_posix_sprintf_literal(  s, a, ... ) n_posix_sprintf( s, n_posix_literal( a ), ##__VA_ARGS__ )
-
-//#define n_posix_sscanf_literal(   s, a, ... ) n_posix_sprintf(  s, n_posix_literal( a ), ##__VA_ARGS__ )
-
 
 
 
@@ -636,6 +627,9 @@ n_posix_unicode2ansi( const wchar_t *wstr )
 	return ansi;
 }
 
+
+
+
 #define n_posix_debug_literal( a, ... ) n_posix_debug( n_posix_literal( a ), ##__VA_ARGS__ )
 
 void
@@ -650,7 +644,19 @@ n_posix_debug( const n_posix_char *format, ... )
 
 	va_start( vl, format );
 
-	n_posix_vsprintf( str, format, vl );
+#ifdef N_POSIX_PLATFORM_MINGW64
+
+#ifdef UNICODE
+	n_posix_vsprintf( str, 1024, format, vl );
+#else
+	n_posix_vsprintf( str,       format, vl );
+#endif
+
+#else
+
+	n_posix_vsprintf( str,       format, vl );
+
+#endif
 
 	va_end( vl );
 
@@ -672,6 +678,16 @@ n_posix_debug( const n_posix_char *format, ... )
 
 	return;
 }
+
+
+
+
+#define n_posix_snprintf_literal( s, c, f, ... ) n_posix_snprintf( s, c, n_posix_literal( f ), ##__VA_ARGS__ )
+
+#define n_posix_sprintf_literal( s, f, ... ) n_posix_sprintf( s, n_posix_literal( f ), ##__VA_ARGS__ )
+
+
+
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
@@ -832,7 +848,7 @@ n_posix_stat( const n_posix_char *name_arg, n_posix_structstat *st )
 	)
 	{
 		name = (n_posix_char*) n_memory_new( 4 * sizeof( n_posix_char ) );
-		n_posix_sprintf_literal( name, "%s%s", name_arg, N_POSIX_SLASH );
+		n_posix_snprintf_literal( name, 4, "%s%s", name_arg, N_POSIX_SLASH );
 	}
 
 
@@ -1158,9 +1174,9 @@ n_posix_opendir( const n_posix_char *folder_name )
 		( folder_name[ 3 ] == n_posix_literal( '\0' ) )
 	)
 	{
-		n_posix_sprintf_literal( name, "%s*.*",   folder_name );
+		n_posix_snprintf_literal( name, cch, "%s*.*",   folder_name );
 	} else {
-		n_posix_sprintf_literal( name, "%s\\*.*", folder_name );
+		n_posix_snprintf_literal( name, cch, "%s\\*.*", folder_name );
 	}
 //n_posix_debug_literal( "%s", name );
 

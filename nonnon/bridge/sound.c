@@ -29,11 +29,21 @@
 //	DirectSound |      WAVE | resource/file | many | Effects
 
 
-// [!] : HowTo : loading from resources
+// [!] : HowTo : Win32 : loading from resources
 //
 //	when using n_game_rc_load_wav() in n_game_sound_init()
 //
 //	first  : #include "rc.c"
+//	second : #include "sound.c"
+//
+//	resource section name needs to be "DATA"
+
+
+// [!] : HowTo : Win64 : loading from resources
+//
+//	when using n_win64_resource_load_nwav() in n_game_sound_init()
+//
+//	first  : #include "nonnon/win64/resource.c"
 //	second : #include "sound.c"
 //
 //	resource section name needs to be "DATA"
@@ -52,7 +62,11 @@
 
 
 
+#ifdef N_POSIX_PLATFORM_MINGW
+
 #include "../win32/sysinfo/version.c"
+
+#endif
 
 
 #include "./sound/directsound.c"
@@ -128,6 +142,10 @@ n_game_sound_init( n_game_sound *s, HWND hwnd_parent, const n_posix_char *fname 
 #ifdef _H_NONNON_WIN32_GAME_RC
 	ret = n_game_rc_load_wav( &s->wav, fname );
 #endif
+
+#ifdef _H_NONNON_WIN64_RESOURCE
+	ret = n_win64_resource_load_nwav( fname, &s->wav );
+#endif
 	if ( ret ) { n_wav_load( &s->wav, fname ); }
 
 
@@ -149,7 +167,9 @@ n_game_sound_init( n_game_sound *s, HWND hwnd_parent, const n_posix_char *fname 
 
 		n_posix_bool ret = n_posix_true;
 
+#ifdef N_POSIX_PLATFORM_MINGW
 		if ( n_sysinfo_version_vista_or_later() )
+#endif
 		{
 			s->mode = N_GAME_SOUND_MODE_DIRECTSOUND;
 			ret = n_directsound_init( &s->ds, hwnd_parent, &s->wav );
