@@ -26,19 +26,19 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 {
 
 //NSLog( @"NonnonTxtboxMouseClamp : %f %f", scroll, scroll_step );
-//NSLog( @"NonnonTxtboxMouseClamp : %f %lld", scroll + scroll_page, n_txt_data->sy );
-//NSLog( @"NonnonTxtboxMouseClamp : %f %lld", scroll + scroll_page + scroll_step, n_txt_data->sy );
+//NSLog( @"NonnonTxtboxMouseClamp : %f %lld", scroll + scroll_page, txtbox->txt_data->sy );
+//NSLog( @"NonnonTxtboxMouseClamp : %f %lld", scroll + scroll_page + scroll_step, txtbox->txt_data->sy );
 
-	CGFloat line_sy = n_txt_data->sy;
+	CGFloat line_sy = txtbox->txt_data->sy;
 
-	if ( scroll < 1.0 )
+	if ( txtbox->scroll < 1.0 )
 	{
-		scroll = 0;
+		txtbox->scroll = 0;
 	} else
-	if ( ( scroll + scroll_page + scroll_step ) > line_sy )
+	if ( ( txtbox->scroll + txtbox->scroll_page + txtbox->scroll_step ) > line_sy )
 	{
 //NSLog( @"overshoot" );
-		scroll = line_sy - scroll_page;
+		txtbox->scroll = line_sy - txtbox->scroll_page;
 	}
 
 	return;
@@ -57,30 +57,30 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 	//if ( n_txtbox_focus != self ) { return; }
 
 
-	if ( self.n_mode == N_MAC_TXTBOX_MODE_LISTBOX )
+	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 	{
 
-		if ( n_txt_data->readonly ) { return; }
+		if ( txtbox->txt_data->readonly ) { return; }
 
 		NSPoint local_point = n_mac_cursor_position_get( self );
 
-		n_focus = [self NonnonTxtboxFocusCalculate:local_point];
-		if ( n_focus >= n_txt_data->sy )
+		txtbox->focus = [self NonnonTxtboxFocusCalculate:local_point];
+		if ( txtbox->focus >= txtbox->txt_data->sy )
 		{
-			if ( n_listbox_no_selection_onoff )
+			if ( txtbox->listbox_no_selection_onoff )
 			{
 				[self NonnonTxtboxCaretReset];
 				[self NonnonTxtboxRedraw];
 				return;
 			} else {
-				n_focus = n_txt_data->sy - 1;
+				txtbox->focus = txtbox->txt_data->sy - 1;
 			}
 		}
-//NSLog( @"%f", n_focus );
+//NSLog( @"%f", txtbox->focus );
 
-		thumb_is_hovered = FALSE;
+		txtbox->scrollbar_thumb_is_hovered = FALSE;
 
-		if ( ( self.n_listbox_edit_onoff )&&( listbox_edit_index == n_focus ) )
+		if ( ( self.txtbox->listbox_edit_onoff )&&( txtbox->listbox_edit_index == txtbox->focus ) )
 		{
 			if ( ( [theEvent clickCount] == 3 )&&( prev == [theEvent buttonNumber] ) )
 			{
@@ -93,14 +93,14 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 			if ( [theEvent clickCount] == 1 )
 			{
 				prev = [theEvent buttonNumber];
-				caret_fr = caret_to = [self NonnonTxtboxMouseCursorDetect];
+				txtbox->caret_fr = txtbox->caret_to = [self NonnonTxtboxMouseCursorDetect];
 			}
 
 			[self NonnonTxtboxRedraw];
 		} else {
-			self.n_listbox_edit_onoff = FALSE;
+			self.txtbox->listbox_edit_onoff = FALSE;
 
-			caret_fr = caret_to = [self NonnonTxtboxMouseCursorDetect];
+			txtbox->caret_fr = txtbox->caret_to = [self NonnonTxtboxMouseCursorDetect];
 
 			[self NonnonTxtboxRedraw];
 		}
@@ -115,17 +115,17 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 		}
 
 	} else
-	if ( self.n_mode == N_MAC_TXTBOX_MODE_FINDBOX )
+	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 	{
 //NSLog( @"!" );
 
-		if ( n_mac_window_is_hovered_offset_by_rect( self, find_icon_rect ) )
+		if ( n_mac_window_is_hovered_offset_by_rect( self, txtbox->find_icon_rect ) )
 		{
-			find_icon_is_pressed = TRUE;
+			txtbox->find_icon_is_pressed = TRUE;
 		} else
-		if ( n_mac_window_is_hovered_offset_by_rect( self, delete_circle_rect ) )
+		if ( n_mac_window_is_hovered_offset_by_rect( self, txtbox->delete_circle_rect ) )
 		{
-			delete_circle_is_pressed = TRUE;
+			txtbox->delete_circle_is_pressed = TRUE;
 		} else {
 			if ( ( [theEvent clickCount] == 3 )&&( prev == [theEvent buttonNumber] ) )
 			{
@@ -138,13 +138,13 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 			if ( [theEvent clickCount] == 1 )
 			{
 				prev = [theEvent buttonNumber];
-				caret_fr = caret_to = [self NonnonTxtboxMouseCursorDetect];
+				txtbox->caret_fr = txtbox->caret_to = [self NonnonTxtboxMouseCursorDetect];
 			}
 		}
 
-		thumb_is_hovered = FALSE;
+		txtbox->scrollbar_thumb_is_hovered = FALSE;
 
-		caret_blink_force_onoff = TRUE;
+		txtbox->caret_blink_force_onoff = TRUE;
 
 	} else {
 
@@ -159,12 +159,12 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 		if ( [theEvent clickCount] == 1 )
 		{
 			prev = [theEvent buttonNumber];
-			caret_fr = caret_to = [self NonnonTxtboxMouseCursorDetect];
+			txtbox->caret_fr = txtbox->caret_to = [self NonnonTxtboxMouseCursorDetect];
 		}
 
-		thumb_is_hovered = FALSE;
+		txtbox->scrollbar_thumb_is_hovered = FALSE;
 
-		caret_blink_force_onoff = TRUE;
+		txtbox->caret_blink_force_onoff = TRUE;
 
 
 		[self NonnonTxtboxRedraw];
@@ -174,7 +174,7 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 - (BOOL) acceptsFirstMouse:(NSEvent *)event
 {
-	return self.n_direct_click_onoff;
+	return txtbox->direct_click_onoff;
 }
 
 - (void) updateTrackingAreas
@@ -204,23 +204,23 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 	// [Needed] : NSTrackingMouseMoved 
 
-	if ( self.n_mode == N_MAC_TXTBOX_MODE_FINDBOX )
+	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 	{
-		if ( n_mac_window_is_hovered_offset_by_rect( self, delete_circle_rect ) )
+		if ( n_mac_window_is_hovered_offset_by_rect( self, txtbox->delete_circle_rect ) )
 		{
-			if ( delete_circle_is_hovered == FALSE )
+			if ( txtbox->delete_circle_is_hovered == FALSE )
 			{
 //NSLog( @"In" );
-				delete_circle_is_hovered = TRUE;
-				n_bmp_fade_always_on( &delete_circle_fade_hovered, n_bmp_black, n_bmp_white );
+				txtbox->delete_circle_is_hovered = TRUE;
+				n_bmp_fade_always_on( &txtbox->delete_circle_fade_hovered, n_bmp_black, n_bmp_white );
 				[self NonnonTxtboxRedraw];
 			}
 		} else {
-			if ( delete_circle_is_hovered != FALSE )
+			if ( txtbox->delete_circle_is_hovered != FALSE )
 			{
 //NSLog( @"Out" );
-				delete_circle_is_hovered = FALSE;
-				n_bmp_fade_always_on( &delete_circle_fade_hovered, n_bmp_white, n_bmp_black );
+				txtbox->delete_circle_is_hovered = FALSE;
+				n_bmp_fade_always_on( &txtbox->delete_circle_fade_hovered, n_bmp_white, n_bmp_black );
 				[self NonnonTxtboxRedraw];
 			}
 		}
@@ -235,13 +235,13 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 	// [Needed] : NSTrackingMouseEnteredAndExited
 
-	if ( self.n_mode == N_MAC_TXTBOX_MODE_FINDBOX )
+	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 	{
-		if ( delete_circle_is_hovered != FALSE )
+		if ( txtbox->delete_circle_is_hovered != FALSE )
 		{
 //NSLog( @"Out" );
-			delete_circle_is_hovered = FALSE;
-			n_bmp_fade_always_on( &delete_circle_fade_hovered, n_bmp_white, n_bmp_black );
+			txtbox->delete_circle_is_hovered = FALSE;
+			n_bmp_fade_always_on( &txtbox->delete_circle_fade_hovered, n_bmp_white, n_bmp_black );
 			[self NonnonTxtboxRedraw];
 		}
 	}
@@ -256,35 +256,35 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 	[self NonnonTxtboxMouseClamp];
 
 
-	BOOL is_dragged = drag_timer_queue;
+	BOOL is_dragged = txtbox->drag_timer_queue;
 
-	drag_timer_queue = FALSE;
+	txtbox->drag_timer_queue = FALSE;
 
 
-	if ( thumb_is_captured )
+	if ( txtbox->scrollbar_thumb_is_captured )
 	{
-		thumb_is_captured = FALSE;
+		txtbox->scrollbar_thumb_is_captured = FALSE;
 
-		scrollbar_fade_captured_onoff = TRUE;
-		n_bmp_fade_always_on( &scrollbar_fade, n_bmp_black, n_bmp_white );
+		txtbox->scrollbar_fade_captured_onoff = TRUE;
+		n_bmp_fade_always_on( &txtbox->scrollbar_fade, n_bmp_black, n_bmp_white );
 	}
 
 
-	if ( thumb_is_hovered ) { return; }
-	if ( shaft_is_hovered ) { return; }
+	if ( txtbox->scrollbar_thumb_is_hovered ) { return; }
+	if ( txtbox->scrollbar_shaft_is_hovered ) { return; }
 
-	if ( self.n_mode == N_MAC_TXTBOX_MODE_LISTBOX )
+	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 	{
 
 		//
 
 	} else {
 
-		if ( self.n_mode == N_MAC_TXTBOX_MODE_FINDBOX )
+		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 		{
-			if ( find_icon_is_pressed )
+			if ( txtbox->find_icon_is_pressed )
 			{
-				if ( n_mac_window_is_hovered_offset_by_rect( self, find_icon_rect ) )
+				if ( n_mac_window_is_hovered_offset_by_rect( self, txtbox->find_icon_rect ) )
 				{
 					if ( delegate_option & N_MAC_TXTBOX_DELEGATE_F3 )
 					{
@@ -299,15 +299,15 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 				[self NonnonTxtboxRedraw];
 
-				find_icon_is_pressed = FALSE;
+				txtbox->find_icon_is_pressed = FALSE;
 			} else
-			if ( delete_circle_is_pressed )
+			if ( txtbox->delete_circle_is_pressed )
 			{
-				delete_circle_is_pressed = FALSE;
+				txtbox->delete_circle_is_pressed = FALSE;
 
-				if ( n_mac_window_is_hovered_offset_by_rect( self, delete_circle_rect ) )
+				if ( n_mac_window_is_hovered_offset_by_rect( self, txtbox->delete_circle_rect ) )
 				{
-					delete_circle_fade_pressed_phase = 1;
+					txtbox->delete_circle_fade_pressed_phase = 1;
 				}
 			}
 		}
@@ -330,45 +330,45 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 {
 //NSLog(@"mouseDown");
 
-	pt               = [NSEvent mouseLocation];
-	thumb_is_hovered = n_mac_window_is_hovered_offset_by_rect( self, scroller_rect_thumb );
-	shaft_is_hovered = n_mac_window_is_hovered_offset_by_rect( self, scroller_rect_shaft );
+	txtbox->pt                         = [NSEvent mouseLocation];
+	txtbox->scrollbar_thumb_is_hovered = n_mac_window_is_hovered_offset_by_rect( self, txtbox->scrollbar_thumb_rect );
+	txtbox->scrollbar_shaft_is_hovered = n_mac_window_is_hovered_offset_by_rect( self, txtbox->scrollbar_shaft_rect );
 //if ( thumb_is_hovered ) { NSLog( @"!" ); }
 
-	NSPoint pt_cur   = n_mac_cursor_position_get( self );
-	thumb_offset     = scroller_rect_thumb.origin.y - pt_cur.y;
+	NSPoint pt_cur                 = n_mac_cursor_position_get( self );
+	txtbox->scrollbar_thumb_offset = txtbox->scrollbar_thumb_rect.origin.y - pt_cur.y;
 //NSLog( @"%f : %f %f", thumb_offset, scroller_rect_thumb.origin.y, pt_cur.y );
 
-	if ( thumb_is_hovered )
+	if ( txtbox->scrollbar_thumb_is_hovered )
 	{
 
-		if ( thumb_is_captured == FALSE )
+		if ( txtbox->scrollbar_thumb_is_captured == FALSE )
 		{
-			thumb_is_captured = TRUE;
+			txtbox->scrollbar_thumb_is_captured = TRUE;
 
-			scrollbar_fade_captured_onoff = TRUE;
-			n_bmp_fade_always_on( &scrollbar_fade, n_bmp_black, n_bmp_white );
+			txtbox->scrollbar_fade_captured_onoff = TRUE;
+			n_bmp_fade_always_on( &txtbox->scrollbar_fade, n_bmp_black, n_bmp_white );
 		}
 
 	} else
-	if ( shaft_is_hovered )
+	if ( txtbox->scrollbar_shaft_is_hovered )
 	{
 
 		CGFloat sy               = [self frame].size.height;
-		CGFloat csy              = sy - ( offset_y * 2 );
-		CGFloat items_per_canvas = csy / font_size.height;
+		CGFloat csy              = sy - ( txtbox->offset_y * 2 );
+		CGFloat items_per_canvas = csy / txtbox->font_size.height;
 
-		if ( pt_cur.y < scroller_rect_thumb.origin.y )
+		if ( pt_cur.y < txtbox->scrollbar_thumb_rect.origin.y )
 		{
 //NSLog( @"upper" );
-			scroll -= items_per_canvas;
+			txtbox->scroll -= items_per_canvas;
 		} else {
 //NSLog( @"lower" );
-			scroll += items_per_canvas;
+			txtbox->scroll += items_per_canvas;
 		}
 
-//NSLog( @"%f / %f", scroll, scroll_step );
-		scroll = trunc( scroll );
+//NSLog( @"%f / %f", txtbox->scroll, scroll_step );
+		txtbox->scroll = trunc( txtbox->scroll );
 
 		[self NonnonTxtboxRedraw];
 
@@ -388,61 +388,61 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 	CGPoint pt_cur = [NSEvent mouseLocation];
 
-	CGFloat dy = pt.y - pt_cur.y;
+	CGFloat dy = txtbox->pt.y - pt_cur.y;
 //NSLog( @"%f %f", dy, [theEvent deltaY] );
 
-	pt = pt_cur;
+	txtbox->pt = pt_cur;
 
 //scroll -= dy / font_size.height;
 
-	if ( thumb_is_captured )
+	if ( txtbox->scrollbar_thumb_is_captured )
 	{
 //NSLog( @"%f", scroll );
 
-		n_type_gfx scroll_csy = (n_type_gfx) self.frame.size.height - ( offset_y * 2 );
+		n_type_gfx scroll_csy = (n_type_gfx) self.frame.size.height - ( txtbox->offset_y * 2 );
 
 
-		CGFloat max_c = (CGFloat) n_txt_data->sy;
-		CGFloat step  = scroll_csy / ( max_c * font_size.height );
+		CGFloat max_c = (CGFloat) txtbox->txt_data->sy;
+		CGFloat step  = scroll_csy / ( max_c * txtbox->font_size.height );
 
 
-		scroll += dy / ( font_size.height * step );
+		txtbox->scroll += dy / ( txtbox->font_size.height * step );
 
 		[self NonnonTxtboxRedraw];
 
 	} else
-	if ( self.n_mode == N_MAC_TXTBOX_MODE_LISTBOX )
+	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 	{
 
-		if ( thumb_is_hovered ) { return; }
-		if ( shaft_is_hovered ) { return; }
+		if ( txtbox->scrollbar_thumb_is_hovered ) { return; }
+		if ( txtbox->scrollbar_shaft_is_hovered ) { return; }
 
 		[self NonnonTxtboxRedraw];
 
 	} else {
 
-		if ( thumb_is_hovered ) { return; }
-		if ( shaft_is_hovered ) { return; }
+		if ( txtbox->scrollbar_thumb_is_hovered ) { return; }
+		if ( txtbox->scrollbar_shaft_is_hovered ) { return; }
 
-		if ( find_icon_is_pressed ) { return; }
+		if ( txtbox->find_icon_is_pressed ) { return; }
 
 
 //NSLog( @"%ld", [theEvent clickCount] ); return;
 		if ( [theEvent clickCount] != 1 ) { return; }
 
 
-		caret_to = [self NonnonTxtboxMouseCursorDetect];
+		txtbox->caret_to = [self NonnonTxtboxMouseCursorDetect];
 //n_caret_debug_cch( caret_fr, caret_to );
 
-		if ( caret_fr.cch.x < caret_to.cch.x )
+		if ( txtbox->caret_fr.cch.x < txtbox->caret_to.cch.x )
 		{
-			shift_selection_is_tail = TRUE;
+			txtbox->shift_selection_is_tail = TRUE;
 		} else {
-			shift_selection_is_tail = FALSE;
+			txtbox->shift_selection_is_tail = FALSE;
 		}
 
 
-		drag_timer_queue = TRUE;
+		txtbox->drag_timer_queue = TRUE;
 
 
 		// [x] : partially redraw : impossible
@@ -465,11 +465,11 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 	//if ( shaft_is_hovered ) { return; }
 
 
-	smooth_wheel_delta = [theEvent deltaY];
-	if ( smooth_wheel_delta == 0 ) { return; }
+	txtbox->smooth_wheel_delta = [theEvent deltaY];
+	if ( txtbox->smooth_wheel_delta == 0 ) { return; }
 
 
-	if ( [theEvent scrollingDeltaY] == 0.0 ) { smooth_wheel_is_mos = TRUE; }
+	if ( [theEvent scrollingDeltaY] == 0.0 ) { txtbox->smooth_wheel_is_mos = TRUE; }
 
 
 	BOOL is_trackpad;
@@ -491,48 +491,48 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 	if ( is_trackpad )
 	{
 
-		smooth_wheel_delta = [theEvent scrollingDeltaY];
+		txtbox->smooth_wheel_delta = [theEvent scrollingDeltaY];
 
 		CGFloat step;
 
-		step = fabs( smooth_wheel_delta );
+		step = fabs( txtbox->smooth_wheel_delta );
 		step = MIN( step, 2.0 );
 
-		if ( smooth_wheel_delta < 0 )
+		if ( txtbox->smooth_wheel_delta < 0 )
 		{
-			scroll += step;
+			txtbox->scroll += step;
 		} else {
-			scroll -= step;
+			txtbox->scroll -= step;
 		}
 
 		[self NonnonTxtboxRedraw];
 
 	} else
-	if ( smooth_wheel_is_mos )
+	if ( txtbox->smooth_wheel_is_mos )
 	{
 
 		CGFloat step;
 
-		step = fabs( smooth_wheel_delta );
+		step = fabs( txtbox->smooth_wheel_delta );
 		step = MIN( step, 2.0 );
 
-		if ( smooth_wheel_delta < 0 )
+		if ( txtbox->smooth_wheel_delta < 0 )
 		{
-			scroll += step;
+			txtbox->scroll += step;
 		} else {
-			scroll -= step;
+			txtbox->scroll -= step;
 		}
 
 		[self NonnonTxtboxRedraw];
 
 	} else {
 
-		smooth_wheel_delta = [theEvent scrollingDeltaY];
+		txtbox->smooth_wheel_delta = [theEvent scrollingDeltaY];
 
-		if ( smooth_wheel_onoff == FALSE )
+		if ( txtbox->smooth_wheel_onoff == FALSE )
 		{
-			smooth_wheel_onoff = TRUE;
-			smooth_wheel_mutex = TRUE;
+			txtbox->smooth_wheel_onoff = TRUE;
+			txtbox->smooth_wheel_mutex = TRUE;
 		}
 
 	}
@@ -546,11 +546,11 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 {
 //NSLog( @"rightMouseUp" );
 
-	if ( self.n_mode == N_MAC_TXTBOX_MODE_FINDBOX )
+	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 	{
-		if ( find_icon_is_pressed )
+		if ( txtbox->find_icon_is_pressed )
 		{
-			if ( n_mac_window_is_hovered_offset_by_rect( self, find_icon_rect ) )
+			if ( n_mac_window_is_hovered_offset_by_rect( self, txtbox->find_icon_rect ) )
 			{
 				if ( delegate_option & N_MAC_TXTBOX_DELEGATE_F3 )
 				{
@@ -560,15 +560,15 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 			[self NonnonTxtboxRedraw];
 
-			find_icon_is_pressed = FALSE;
+			txtbox->find_icon_is_pressed = FALSE;
 		} else
-		if ( delete_circle_is_pressed )
+		if ( txtbox->delete_circle_is_pressed )
 		{
-			delete_circle_is_pressed = FALSE;
+			txtbox->delete_circle_is_pressed = FALSE;
 
-			if ( n_mac_window_is_hovered_offset_by_rect( self, delete_circle_rect ) )
+			if ( n_mac_window_is_hovered_offset_by_rect( self, txtbox->delete_circle_rect ) )
 			{
-				delete_circle_fade_pressed_phase = 1;
+				txtbox->delete_circle_fade_pressed_phase = 1;
 			}
 		}
 	}
@@ -584,9 +584,9 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 {
 //NSLog( @"rightMouseDown : %ld", [theEvent clickCount] );
 
-	pt = [NSEvent mouseLocation];
+	txtbox->pt = [NSEvent mouseLocation];
 
-	if ( self.n_mode == N_MAC_TXTBOX_MODE_LISTBOX )
+	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 	{
 		//
 	} else {
@@ -612,7 +612,7 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 		// [!] : middle button
 
-		grab_n_drag_onoff = FALSE;
+		txtbox->grab_n_drag_onoff = FALSE;
 
 		[[NSCursor arrowCursor] set];
 
@@ -631,10 +631,10 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 		// [!] : middle button
 
-		grab_n_drag_onoff = TRUE;
+		txtbox->grab_n_drag_onoff = TRUE;
 
-		pt             = [NSEvent mouseLocation];
-		pt_grag_n_drag = [theEvent locationInWindow];
+		txtbox->pt             = [NSEvent mouseLocation];
+		txtbox->pt_grab_n_drag = [theEvent locationInWindow];
 
 		[[NSCursor closedHandCursor] set];
 
@@ -653,13 +653,13 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 		CGPoint pt_cur = [NSEvent mouseLocation];
 
-		CGFloat dy = pt.y - pt_cur.y;
+		CGFloat dy = txtbox->pt.y - pt_cur.y;
 //NSLog( @"%f %f", dy, [theEvent deltaY] );
 
-		pt = pt_cur;
+		txtbox->pt = pt_cur;
 
 
-		scroll -= dy / font_size.height;
+		txtbox->scroll -= dy / txtbox->font_size.height;
 
 
 		[self NonnonTxtboxRedraw];

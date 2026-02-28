@@ -16,28 +16,28 @@
 
 
 
-n_posix_inline n_posix_bool
+n_posix_inline BOOL
 n_bmp_error( const n_bmp *bmp )
 {
 
 	// [Needed] : Win32 : some concurrency makes timing error
 
-	if ( NULL ==            bmp   ) { return n_posix_true; }
-	if ( NULL == N_BMP_PTR( bmp ) ) { return n_posix_true; }
+	if ( NULL ==            bmp   ) { return TRUE; }
+	if ( NULL == N_BMP_PTR( bmp ) ) { return TRUE; }
 
 
 	if ( n_bmp_safemode )
 	{
-		if ( 32 != N_BMP_DEPTH( bmp ) ) { return n_posix_true; }
-		if (  0 >= N_BMP_SX   ( bmp ) ) { return n_posix_true; }
-		if (  0 >= N_BMP_SY   ( bmp ) ) { return n_posix_true; }
+		if ( 32 != N_BMP_DEPTH( bmp ) ) { return TRUE; }
+		if (  0 >= N_BMP_SX   ( bmp ) ) { return TRUE; }
+		if (  0 >= N_BMP_SY   ( bmp ) ) { return TRUE; }
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_bmp_error_clipping
 (
 	const n_bmp *bmp_f,
@@ -47,11 +47,11 @@ n_bmp_error_clipping
 )
 {
 
-	if ( n_bmp_error( bmp_f ) ) { return n_posix_true; }
+	if ( n_bmp_error( bmp_f ) ) { return TRUE; }
 
 	if ( bmp_t != NULL )
 	{
-		if ( n_bmp_error( bmp_t ) ) { return n_posix_true; }
+		if ( n_bmp_error( bmp_t ) ) { return TRUE; }
 	}
 
 
@@ -91,19 +91,19 @@ n_bmp_error_clipping
 		if ( ty < 0 ) { fsy -= n_posix_abs_n_type_gfx( ty ); fy += n_posix_abs_n_type_gfx( ty ); ty = 0; }
 	}
 
-	if ( fsx <= 0 ) { return n_posix_true; }
-	if ( fsy <= 0 ) { return n_posix_true; }
+	if ( fsx <= 0 ) { return TRUE; }
+	if ( fsy <= 0 ) { return TRUE; }
 
 
 	// Phase 2 : out of bottom-right corner
 
-	if ( fx >= bmp_fsx ) { return n_posix_true; }
-	if ( fy >= bmp_fsy ) { return n_posix_true; }
+	if ( fx >= bmp_fsx ) { return TRUE; }
+	if ( fy >= bmp_fsy ) { return TRUE; }
 
 	if ( bmp_t != NULL )
 	{
-		if ( tx >= bmp_tsx ) { return n_posix_true; }
-		if ( ty >= bmp_tsy ) { return n_posix_true; }
+		if ( tx >= bmp_tsx ) { return TRUE; }
+		if ( ty >= bmp_tsy ) { return TRUE; }
 	}
 
 	if ( ( fx + fsx ) > bmp_fsx ) { fsx = bmp_fsx - fx; }
@@ -115,8 +115,8 @@ n_bmp_error_clipping
 		if ( ( ty + fsy ) > bmp_tsy ) { fsy = bmp_tsy - ty; }
 	}
 
-	if ( fsx <= 0 ) { return n_posix_true; }
-	if ( fsy <= 0 ) { return n_posix_true; }
+	if ( fsx <= 0 ) { return TRUE; }
+	if ( fsy <= 0 ) { return TRUE; }
 
 
 	if ( arg_fx  != NULL ) { *arg_fx  = fx;  }
@@ -127,7 +127,7 @@ n_bmp_error_clipping
 	if ( arg_ty  != NULL ) { *arg_ty  = ty;  }
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 

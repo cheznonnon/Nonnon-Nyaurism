@@ -64,7 +64,7 @@ n_bmp_fill( n_bmp *bmp, n_type_gfx x, n_type_gfx y, u32 color )
 	{
 
 		if (
-			( n_posix_false == n_bmp_ptr_get( bmp, x,y, &t ) )
+			( FALSE == n_bmp_ptr_get( bmp, x,y, &t ) )
 			&&
 			( t == color_to )
 		)
@@ -331,8 +331,8 @@ n_bmp_box( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx sy,
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -407,14 +407,14 @@ n_bmp_box( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx sy,
 
 typedef struct {
 
-	n_bmp        *bmp;
-	n_type_gfx    x,y,sx,sy;
-	n_type_gfx    size;
-	n_type_gfx    centerx, centery;
-	int           type, mode;
-	u32           from, to;
-	n_posix_bool  fast_onoff;
-	u32           oy, cores;
+	n_bmp      *bmp;
+	n_type_gfx  x,y,sx,sy;
+	n_type_gfx  size;
+	n_type_gfx  centerx, centery;
+	int         type, mode;
+	u32         from, to;
+	BOOL        fast_onoff;
+	u32         oy, cores;
 
 } n_bmp_gradient_thread_struct;
 
@@ -618,8 +618,8 @@ n_bmp_gradient
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -730,12 +730,12 @@ n_bmp_roundrect_thread_main( n_bmp_roundrect_thread_struct *p )
 		if ( n_bmp_ptr_is_accessible( p->bmp, p->x + fx, p->y + fy ) )
 		{
 
-			n_posix_bool onoff = n_posix_true;
+			BOOL onoff = TRUE;
 			if ( n_bmp_roundrect_bmp_map != NULL )
 			{
 				u32 map;
 				n_bmp_ptr_get_fast( n_bmp_roundrect_bmp_map, p->x + fx, p->y + fy, &map );
-				if ( map == n_bmp_white ) { onoff = n_posix_false; }
+				if ( map == n_bmp_white ) { onoff = FALSE; }
 			}
 
 			n_type_real coeff = 0;
@@ -870,8 +870,8 @@ n_bmp_roundrect_main
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;

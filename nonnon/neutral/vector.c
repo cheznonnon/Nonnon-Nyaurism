@@ -1,5 +1,4 @@
 // Nonnon String Vector
-// Nonnon String Vector
 // copyright (c) nonnon all rights reserved
 // License : GPL http://www.gnu.org/copyleft/gpl.html
 
@@ -41,17 +40,17 @@ typedef struct {
 #define n_vector_alias( f, t ) n_memory_copy( f, t, sizeof( n_vector ) )
 
 // internal
-n_posix_inline n_posix_bool
+n_posix_inline BOOL
 n_vector_error( const n_vector *v )
 {
 
-	if ( v            == NULL ) { return n_posix_true; }
-	if ( v->line      == NULL ) { return n_posix_true; }
-	if ( v->line[ 0 ] == NULL ) { return n_posix_true; }
-	if ( v->sy        <=    0 ) { return n_posix_true; }
+	if ( v            == NULL ) { return TRUE; }
+	if ( v->line      == NULL ) { return TRUE; }
+	if ( v->line[ 0 ] == NULL ) { return TRUE; }
+	if ( v->sy        <=    0 ) { return TRUE; }
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 void
@@ -152,16 +151,17 @@ n_vector_stream( n_vector *v, const n_posix_char *newline )
 
 	n_posix_char *strm = (void*) v->stream;
 
+	n_type_int start_cch = cch;
 
 	i = cch = 0;
 	n_posix_loop
 	{
 
-		cch += n_posix_sprintf_literal( &strm[ cch ], "%s", (n_posix_char*) v->line[ i ] );
+		cch += n_posix_snprintf_literal( &strm[ cch ], start_cch - cch + 1, "%s", (n_posix_char*) v->line[ i ] );
 
 		if ( newline != NULL )
 		{
-			cch += n_posix_sprintf_literal( &strm[ cch ], "%s", newline );
+			cch += n_posix_snprintf_literal( &strm[ cch ], start_cch - cch + 1, "%s", newline );
 		}
 
 
@@ -293,25 +293,25 @@ n_vector_new( n_vector *v )
 	return;
 }
 
-#define n_vector_load(          v, fname        ) n_vector_load_internal( v, (void*) fname,    0, n_posix_true  )
-#define n_vector_load_onmemory( v, stream, byte ) n_vector_load_internal( v,        stream, byte, n_posix_false )
+#define n_vector_load(          v, fname        ) n_vector_load_internal( v, (void*) fname,    0, TRUE  )
+#define n_vector_load_onmemory( v, stream, byte ) n_vector_load_internal( v,        stream, byte, FALSE )
 
 // internal
-n_posix_bool
-n_vector_load_internal( n_vector *v, void *stream, n_type_int byte, n_posix_bool is_file )
+BOOL
+n_vector_load_internal( n_vector *v, void *stream, n_type_int byte, BOOL is_file )
 {
 
 	// [!] : load_onmemory() : don't free "stream" after calling this function
 
 
-	if ( v == NULL ) { return n_posix_true; }
+	if ( v == NULL ) { return TRUE; }
 
 
 	if ( is_file )
 	{
 
 		FILE *fp = n_posix_fopen_read( stream );
-		if ( fp == NULL ) { return n_posix_true; }
+		if ( fp == NULL ) { return TRUE; }
 
 		byte   = n_posix_stat_size( stream );
 		stream = n_memory_new( byte );
@@ -383,20 +383,20 @@ n_vector_load_internal( n_vector *v, void *stream, n_type_int byte, n_posix_bool
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #define n_vector_save_literal( v, fname, nl ) n_vector_save( v, n_posix_literal( fname ), nl )
 
-n_posix_bool
+BOOL
 n_vector_save( n_vector *v, const n_posix_char *fname, const n_posix_char *newline )
 {
 
-	if ( n_vector_error( v ) ) { return n_posix_true; }
+	if ( n_vector_error( v ) ) { return TRUE; }
 
 
 	FILE *fp = n_posix_fopen_write( fname );
-	if ( fp == NULL ) { return n_posix_true; }
+	if ( fp == NULL ) { return TRUE; }
 
 
 	n_vector_stream( v, newline );
@@ -406,7 +406,7 @@ n_vector_save( n_vector *v, const n_posix_char *fname, const n_posix_char *newli
 	n_posix_fclose( fp );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #define n_vector_add_literal( a,b,c ) n_vector_add( a, b, n_posix_literal( c ) )
@@ -689,7 +689,7 @@ n_vector_del( n_vector *v, n_type_int index )
 	return;
 }
 
-//n_posix_bool n_vector_get_debug_onoff = 0;
+//BOOL n_vector_get_debug_onoff = 0;
 
 n_posix_char*
 n_vector_get( const n_vector *v, n_type_int index )
@@ -717,7 +717,7 @@ n_vector_set( n_vector *v, n_type_int index, const n_posix_char *s )
 	//	out-of-bound : Add to tail
 	//	empty        : Modify / Replace
 	//	not empty    : Add    / Insert
-
+//NSLog( @"%s", s );
 
 	if ( n_vector_error( v ) ) { return; }
 
@@ -747,11 +747,11 @@ n_vector_set( n_vector *v, n_type_int index, const n_posix_char *s )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_vector_is_empty( const n_vector *v )
 {
 
-	if ( n_vector_error( v ) ) { return n_posix_false; }
+	if ( n_vector_error( v ) ) { return FALSE; }
 
 
 	if (
@@ -760,11 +760,11 @@ n_vector_is_empty( const n_vector *v )
 		( n_string_is_empty( n_vector_get( v, 0 ) ) )
 	)
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 void

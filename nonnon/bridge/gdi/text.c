@@ -21,7 +21,7 @@
 
 
 // internal
-n_posix_bool
+BOOL
 n_gdi_text_is_fullwidth( n_posix_char c )
 {
 
@@ -36,7 +36,7 @@ n_gdi_text_is_fullwidth( n_posix_char c )
 
 		// [!] : ASCII compatible code
 
-		return n_posix_false;
+		return FALSE;
 
 	} else
 	if (
@@ -53,7 +53,7 @@ n_gdi_text_is_fullwidth( n_posix_char c )
 		( ( c >= 0xff00 )&&( c <= 0xff60 ) )		// 65280 - 65376 : 0xff61 or above : includes "half-width kana"
 	)
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -62,7 +62,7 @@ n_gdi_text_is_fullwidth( n_posix_char c )
 
 	WideCharToMultiByte( CP_ACP, 0, w,2, a,3, NULL,NULL );
 
-	if ( 1 < strlen( a ) ) { return n_posix_true; } 
+	if ( 1 < strlen( a ) ) { return TRUE; } 
 
 #else  // #ifdef UNICODE
 
@@ -71,18 +71,18 @@ n_gdi_text_is_fullwidth( n_posix_char c )
 
 		// [!] : ASCII compatible code
 
-		return n_posix_false;
+		return FALSE;
 
 	} else {
 
-		return n_posix_true;
+		return TRUE;
 
 	}
 
 #endif // #ifdef UNICODE
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 // internal
@@ -312,7 +312,7 @@ n_gdi_text_precalc_unit( n_gdi *gdi, const n_txt *txt )
 
 			n_type_int cch = n_string_doublebyte_increment( s[ i ] );
 
-			if ( n_posix_false == n_gdi_text_is_fullwidth( s[ i ] ) )
+			if ( FALSE == n_gdi_text_is_fullwidth( s[ i ] ) )
 			{
 				SIZE size;
 				GetTextExtentPoint32( hdc_compat, &s[ i ], (int) cch, &size );
@@ -624,13 +624,13 @@ n_gdi_text_draw
 
 	// Phase 1 : initialization
 
-	n_posix_bool draw;
+	BOOL draw;
 
 	if ( ( ret_sx != NULL )||( ret_sy != NULL ) )
 	{
-		draw = n_posix_false;
+		draw = FALSE;
 	} else {
-		draw = n_posix_true;
+		draw = TRUE;
 	}
 
 
@@ -678,7 +678,7 @@ n_gdi_text_draw
 	const n_type_int    ellipsis_dot_cch = 3;//n_posix_strlen( ellipsis_dot );
 	n_type_gfx          ellipsis_min     = 0;
 	n_type_gfx          ellipsis_max     = 0;
-	n_posix_bool        ellipsis_onoff   = n_posix_false;
+	BOOL                ellipsis_onoff   = FALSE;
 
 	n_type_gfx          text_y           = gdi->text_y;
 	n_type_gfx          text_sy          = 0;
@@ -718,7 +718,7 @@ n_gdi_text_draw
 			SIZE ellipsis_size = n_gdi_text_precalc( gdi, ellipsis_dot, 0 );
 			ellipsis_min -= ellipsis_size.cx;
 
-			if ( gdi_sx > 0 ) { ellipsis_onoff = n_posix_true; }
+			if ( gdi_sx > 0 ) { ellipsis_onoff = TRUE; }
 
 		}
 
@@ -768,13 +768,13 @@ n_gdi_text_draw
 				SIZE cur_size = { 0, 0 };
 				SIZE prv_size = { 0, 0 };
 
-				n_posix_bool use_ellipsis_str = n_posix_true;
+				BOOL use_ellipsis_str = TRUE;
 
 				n_type_int cch = 0;
 				n_posix_loop
 				{//break;
 
-					cur_cch = n_posix_sprintf_literal( ellipsis_str, "%.*s%s", (int) cch, s, ellipsis_dot );
+					cur_cch = n_posix_snprintf_literal( ellipsis_str, ellipsis_len + 1, "%.*s%s", (int) cch, s, ellipsis_dot );
 //n_posix_debug( ellipsis_str );
 
 					cur_size = n_gdi_text_precalc( gdi, ellipsis_str, cur_cch );
@@ -783,7 +783,7 @@ n_gdi_text_draw
 					{
 						if ( cch != 0 )
 						{
-							use_ellipsis_str = n_posix_false;
+							use_ellipsis_str = FALSE;
 							cur_cch  = prv_cch;
 							cur_size = prv_size;
 						}

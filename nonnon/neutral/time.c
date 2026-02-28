@@ -97,13 +97,13 @@ n_time_get( const n_posix_char *name, int type )
 	return ret;
 }
 
-#define n_time_string_atime( name, ret ) n_time_string( name, ret, N_TIME_ACCESS )
-#define n_time_string_ctime( name, ret ) n_time_string( name, ret, N_TIME_CREATE )
-#define n_time_string_mtime( name, ret ) n_time_string( name, ret, N_TIME_MODIFY )
-#define n_time_string_stime(       ret ) n_time_string( NULL, ret, N_TIME_SYSTEM )
+#define n_time_string_atime( name, ret, cch ) n_time_string( name, ret, cch, N_TIME_ACCESS )
+#define n_time_string_ctime( name, ret, cch ) n_time_string( name, ret, cch, N_TIME_CREATE )
+#define n_time_string_mtime( name, ret, cch ) n_time_string( name, ret, cch, N_TIME_MODIFY )
+#define n_time_string_stime(       ret, cch ) n_time_string( NULL, ret, cch, N_TIME_SYSTEM )
 
 void
-n_time_string( const n_posix_char *name, n_posix_char *ret, int type )
+n_time_string( const n_posix_char *name, n_posix_char *ret, n_type_int cch, int type )
 {
 
 	if ( ret == NULL ) { return; }
@@ -132,13 +132,13 @@ n_time_string( const n_posix_char *name, n_posix_char *ret, int type )
 	GetTimeFormat( LOCALE_USER_DEFAULT,              0, &s, frmt, time, 255 );
 
 
-	n_posix_sprintf_literal( ret, "%s %s", date, time );
+	n_posix_snprintf_literal( ret, cch, "%s %s", date, time );
 
 
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
-	n_posix_sprintf_literal( ret, "%s", n_posix_ctime( &t ) );
+	n_posix_snprintf_literal( ret, cch, "%s", n_posix_ctime( &t ) );
 
 
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
@@ -172,8 +172,20 @@ n_time_compare( const n_posix_char *f, const n_posix_char *t, int type )
 	if ( type == N_TIME_CREATE ) { nt_f = n_time_ctime( f ); nt_t = n_time_ctime( t ); }
 	if ( type == N_TIME_MODIFY ) { nt_f = n_time_mtime( f ); nt_t = n_time_mtime( t ); }
 
-	int ret = CompareFileTime( &nt_f, &nt_t );
+	//int ret = CompareFileTime( &nt_f, &nt_t );
 
+	const ULONGLONG resolution = 20000000ULL;
+
+	ULONGLONG t1 = ( (ULONGLONG) nt_f.dwHighDateTime << 32 ) | nt_f.dwLowDateTime;
+	ULONGLONG t2 = ( (ULONGLONG) nt_t.dwHighDateTime << 32 ) | nt_t.dwLowDateTime;
+
+	int ret = 0;
+	if ( resolution >= labs( (LONGLONG) t1 - t2 ) )
+	{
+		ret = 0;
+	} else {
+		ret = ( t1 < t2 ) ? -1 : 1;
+	}
 
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
 

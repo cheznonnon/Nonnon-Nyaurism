@@ -75,7 +75,7 @@ typedef struct {
 
 	// [!] : for logging
 
-	n_posix_bool  log_onoff;
+	BOOL          log_onoff;
 	n_posix_char  log_name[ N_MIDI_CCH ];
 	n_txt         log;
 	int           zero_pause;
@@ -91,7 +91,7 @@ void
 n_midi_logging( const n_midi *midi, const n_posix_char *format, ... )
 {
 
-	if ( midi->log_onoff == n_posix_false ) { return; }
+	if ( midi->log_onoff == FALSE ) { return; }
 
 
 	n_posix_char str[ N_MIDI_CCH ];
@@ -102,7 +102,19 @@ n_midi_logging( const n_midi *midi, const n_posix_char *format, ... )
 
 	va_start( vl, format );
 
-	n_posix_vsprintf( str, format, vl );
+#ifdef N_POSIX_PLATFORM_MINGW64
+
+#ifdef UNICODE
+	n_posix_vsprintf( str, 1024, format, vl );
+#else
+	n_posix_vsprintf( str,       format, vl );
+#endif
+
+#else
+
+	n_posix_vsprintf( str,       format, vl );
+
+#endif
 
 	va_end( vl );
 
@@ -115,14 +127,14 @@ n_midi_logging( const n_midi *midi, const n_posix_char *format, ... )
 
 #define n_midi_zero( midi ) n_memory_zero( midi, sizeof( n_midi ) )
 
-n_posix_bool
+BOOL
 n_midi_error( const n_midi *midi )
 {
 
-	if ( midi == NULL ) { return n_posix_true; }
+	if ( midi == NULL ) { return TRUE; }
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 u32
@@ -297,20 +309,20 @@ n_midi_token( const n_posix_char *token, n_posix_char *p1, n_posix_char *p2 )
 #define n_midi_write_panpot( v ) n_endian_big( n_midi_note( 0, 0xb0, i,  10,   v ) , 4 )
 #define n_midi_write_sound(  v ) n_endian_big( n_midi_note( 0, 0xc0, i,   v,   0 ) , 4 )
 
-n_posix_bool
+BOOL
 n_midi_write( const n_midi *midi, const n_posix_char *name )
 {
 
-	if ( n_midi_error( midi ) ) { return n_posix_true; }
+	if ( n_midi_error( midi ) ) { return TRUE; }
 
 
-	n_posix_bool debug_onoff = n_posix_false;//n_posix_true;
+	BOOL debug_onoff = FALSE;//TRUE;
 
 
 if ( debug_onoff ) { n_posix_debug_literal( " n_posix_fopen_write() " ); }
 
 	FILE *fp = n_posix_fopen_write( name );
-	if ( fp == NULL ) { return n_posix_true; }
+	if ( fp == NULL ) { return TRUE; }
 
 
 	// [Mechanism]
@@ -350,7 +362,7 @@ if ( debug_onoff ) { n_posix_debug_literal( " Headers " ); }
 	// Author
 if ( debug_onoff ) { n_posix_debug_literal( " Author " ); }
 
-	if ( n_posix_false == n_string_is_empty( midi->author ) )
+	if ( FALSE == n_string_is_empty( midi->author ) )
 	{
 
 #ifdef UNICODE
@@ -376,7 +388,7 @@ if ( debug_onoff ) { n_posix_debug_literal( " Author " ); }
 	// Title
 if ( debug_onoff ) { n_posix_debug_literal( " Title " ); }
 
-	if ( n_posix_false == n_string_is_empty( midi->title ) )
+	if ( FALSE == n_string_is_empty( midi->title ) )
 	{
 
 #ifdef UNICODE
@@ -493,27 +505,27 @@ n_midi_log( midi, "%s", N_STRING_EMPTY );
 
 
 if ( debug_onoff ) { n_posix_debug_literal( " Done! " ); }
-	return n_posix_false;
+	return FALSE;
 }
 
 // internal
-n_posix_bool
+BOOL
 n_midi_txt( n_midi *midi, n_txt *txt )
 {
 
 	// [!] : "txt" will be touched
 
 
-	if ( n_midi_error( midi ) ) { return n_posix_true; }
+	if ( n_midi_error( midi ) ) { return TRUE; }
 
-	if ( n_txt_error( txt ) ) { return n_posix_true; }
+	if ( n_txt_error( txt ) ) { return TRUE; }
 
 
 	{ // Phase 1 : Sanitizing
 
 
 	u32 i,ii;
-	n_posix_bool multiline_comment = n_posix_false;
+	BOOL multiline_comment = FALSE;
 
 
 	i = 0;
@@ -526,11 +538,11 @@ n_midi_txt( n_midi *midi, n_txt *txt )
 
 		if ( n_string_is_same_literal( "/*", l ) )
 		{
-			multiline_comment = n_posix_true;
+			multiline_comment = TRUE;
 		} else
 		if ( n_string_is_same_literal( "*/", l ) )
 		{
-			multiline_comment = n_posix_false;
+			multiline_comment = FALSE;
 		}
 
 		if ( multiline_comment )
@@ -787,7 +799,7 @@ n_midi_log( midi, "Token #%04d : %s : %s : %s", i, token, prm_1, prm_2 );
 
 			u32 n = 0;
 
-			n_posix_bool is_single_param = ( p2 == 0 );
+			BOOL is_single_param = ( p2 == 0 );
 
 			p1 = n_posix_minmax( 0, N_MIDI_PARAM_MAX - 1, p1               );
 			p2 = n_posix_minmax( 0, N_MIDI_PARAM_MAX - 1, p2 + tweak_tempo );
@@ -889,11 +901,11 @@ n_midi_log
 	} // Phase 2 : Tokenization
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 // internal
-n_posix_bool
+BOOL
 n_midi_bmp( n_midi *midi, const n_bmp *bmp )
 {
 
@@ -911,9 +923,9 @@ n_midi_bmp( n_midi *midi, const n_bmp *bmp )
 	//	volume zero means pause (note-off)
 
 
-	if ( n_midi_error( midi ) ) { return n_posix_true; }
+	if ( n_midi_error( midi ) ) { return TRUE; }
 
-	if ( n_bmp_error( bmp ) ) { return n_posix_true; }
+	if ( n_bmp_error( bmp ) ) { return TRUE; }
 
 
 	const n_type_gfx sx = N_BMP_SX( bmp );
@@ -1012,11 +1024,11 @@ n_midi_bmp( n_midi *midi, const n_bmp *bmp )
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 void
-n_midi_encode( const n_posix_char *abspath, n_posix_bool log_onoff )
+n_midi_encode( const n_posix_char *abspath, BOOL log_onoff )
 {
 
 	n_posix_char *dir = n_string_path_folder_current_new();
@@ -1049,7 +1061,7 @@ n_midi_encode( const n_posix_char *abspath, n_posix_bool log_onoff )
 	n_bmp bmp; n_bmp_zero( &bmp );
 	n_txt txt; n_txt_zero( &txt );
 
-	n_posix_bool is_bmp = n_posix_false;
+	BOOL is_bmp = FALSE;
 
 	if (
 		( n_bmp_load( &bmp, abspath ) )
@@ -1065,7 +1077,7 @@ n_midi_encode( const n_posix_char *abspath, n_posix_bool log_onoff )
 		return;
 	}
 
-	if ( NULL != N_BMP_PTR( &bmp ) ) { is_bmp = n_posix_true; }
+	if ( NULL != N_BMP_PTR( &bmp ) ) { is_bmp = TRUE; }
 
 
 	n_midi midi; n_midi_zero( &midi );
@@ -1298,7 +1310,7 @@ n_midi_log( &midi, "Max Step   : %d", max_step );
 
 	{
 
-		n_posix_bool not_found = n_posix_true;
+		BOOL not_found = TRUE;
 
 		int last = 0;
 		int unit = 0;
@@ -1317,7 +1329,7 @@ n_midi_log( &midi, "Max Step   : %d", max_step );
 				if ( not_found )
 				{
 
-					not_found = n_posix_false;
+					not_found = FALSE;
 
 					int delta = ( unit - last ) / N_MIDI_MAP_MAX;
 
@@ -1340,7 +1352,7 @@ n_midi_log( &midi, "Max Step   : %d", max_step );
 
 				i = 0;
 
-				not_found = n_posix_true;
+				not_found = TRUE;
 
 				unit += N_MIDI_MAP_MAX;
 				if ( unit >= map_count ) { break; }

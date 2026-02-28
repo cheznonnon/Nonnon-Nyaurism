@@ -198,7 +198,7 @@ n_txt_load_utf8_internal( n_txt *txt, const n_posix_char *fname, void *stream, n
 
 		byte   = strlen( &ptr[ 3 ] );
 		stream = n_string_new( byte );
-		sprintf( stream, "%s", &ptr[ 3 ] );
+		snprintf( stream, ( byte / sizeof( char ) ) + 1, "%s", &ptr[ 3 ] );
 
 
 		txt->newline = n_txt_newline_check( stream, byte );
@@ -274,7 +274,7 @@ n_txt_save_utf8( n_txt *txt, const n_posix_char *fname )
 		byte = cch * sizeof( u16 ) * 10;
 		ptr  = n_memory_new( byte );
 
-		n_posix_sprintf_literal( ptr, "%s", (char*) txt->stream );
+		snprintf( ptr, ( byte / sizeof( n_posix_char ) ) + 1, "%s", (char*) txt->stream );
 //NSLog( @"PTR %s", (char*) ptr );
 
 		n_unicode_utf8_decode_no_bom( ptr, byte );
@@ -299,7 +299,7 @@ n_txt_save_utf8( n_txt *txt, const n_posix_char *fname )
 		byte = n_posix_strlen( txt->stream ) + 3;
 		ptr  = n_memory_new( byte );
 
-		n_posix_sprintf_literal( ptr, "%s", (char*) txt->stream );
+		snprintf( ptr, ( byte / sizeof( n_posix_char ) ) + 1, "%s", (char*) txt->stream );
 
 		n_unicode_bom_restore_utf8( ptr, byte );
 

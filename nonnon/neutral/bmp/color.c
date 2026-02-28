@@ -825,9 +825,9 @@ n_bmp_antialias_pixel( const n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_real
 		u32 color;
 
 		if (
-			( n_posix_false == n_bmp_ptr_get( bmp, tx,ty, &color ) )
+			( FALSE == n_bmp_ptr_get( bmp, tx,ty, &color ) )
 			&&
-			( n_posix_false == n_bmp_is_trans( bmp, color ) )
+			( FALSE == n_bmp_is_trans( bmp, color ) )
 		)
 		{
 
@@ -911,9 +911,9 @@ n_bmp_blur_pixel( const n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx size,
 		if (
 			( ( tx != 0 )&&( ty != 0 ) )
 			&&
-			( n_posix_false == n_bmp_ptr_get( bmp, x + tx, y + ty, &color ) )
+			( FALSE == n_bmp_ptr_get( bmp, x + tx, y + ty, &color ) )
 			&&
-			( n_posix_false == n_bmp_is_trans( bmp, color ) )
+			( FALSE == n_bmp_is_trans( bmp, color ) )
 		)
 		{
 
@@ -1058,7 +1058,7 @@ n_bmp_bilinear_pixel_x( n_bmp *bmp, n_type_gfx fx, n_type_gfx fy, n_type_real ra
 
 	// [!] : comment-out for performance
 
-	//if ( n_posix_false == n_bmp_ptr_is_accessible( bmp, fx,fy ) ) { return color_trans; }
+	//if ( FALSE == n_bmp_ptr_is_accessible( bmp, fx,fy ) ) { return color_trans; }
 
 
 	u32 ret = n_bmp_white_invisible;
@@ -1097,9 +1097,9 @@ n_bmp_bilinear_pixel_x( n_bmp *bmp, n_type_gfx fx, n_type_gfx fy, n_type_real ra
 			{
 				u32 color;
 
-				n_posix_bool ret = n_bmp_ptr_get( bmp, fx + i,fy, &color );
+				BOOL ret = n_bmp_ptr_get( bmp, fx + i,fy, &color );
 
-				if ( ret == n_posix_false )
+				if ( ret == FALSE )
 				{
 					// [!] : Copilot Optimization
 
@@ -1136,7 +1136,7 @@ n_bmp_bilinear_pixel_x( n_bmp *bmp, n_type_gfx fx, n_type_gfx fy, n_type_real ra
 			if ( ( fx + 1 ) < N_BMP_SX( bmp ) )
 			{
 				u32 clr; n_bmp_ptr_get_fast( bmp, fx + 1,fy, &clr );
-				if ( n_posix_false == n_bmp_is_trans( bmp, clr ) )
+				if ( FALSE == n_bmp_is_trans( bmp, clr ) )
 				{
 					ret = n_bmp_blend_pixel( ret, clr, coeff_x );
 				}
@@ -1154,7 +1154,7 @@ n_bmp_bilinear_pixel_x( n_bmp *bmp, n_type_gfx fx, n_type_gfx fy, n_type_real ra
 		if ( ( fx + 1 ) < N_BMP_SX( bmp ) )
 		{
 			u32 clr; n_bmp_ptr_get_fast( bmp, fx + 1,fy, &clr );
-			if ( n_posix_false == n_bmp_is_trans( bmp, clr ) )
+			if ( FALSE == n_bmp_is_trans( bmp, clr ) )
 			{
 				ret = n_bmp_blend_pixel( ret, clr, coeff_x );
 			}
@@ -1179,7 +1179,7 @@ n_bmp_bilinear_pixel
 
 	// [!] : comment-out for performance
 
-	//if ( n_posix_false == n_bmp_ptr_is_accessible( bmp, fx,fy ) ) { return color_trans; }
+	//if ( FALSE == n_bmp_ptr_is_accessible( bmp, fx,fy ) ) { return color_trans; }
 
 
 	u32 ret = n_bmp_bilinear_pixel_x( bmp, fx,fy, ratio_x, coeff_x, mode );
@@ -1220,7 +1220,7 @@ n_bmp_bilinear_pixel
 
 				u32 color = n_bmp_bilinear_pixel_x( bmp, fx,fy + i, ratio_x, coeff_x, mode );
 
-				if ( n_posix_false == n_bmp_is_trans( bmp, color ) )
+				if ( FALSE == n_bmp_is_trans( bmp, color ) )
 				{
 					a += n_bmp_a( color );
 					r += n_bmp_r( color );
@@ -1244,7 +1244,7 @@ n_bmp_bilinear_pixel
 			if ( ( fy + 1 ) < N_BMP_SY( bmp ) )
 			{
 				u32 clr = n_bmp_bilinear_pixel_x( bmp, fx,fy + 1, ratio_x, coeff_x, mode );
-				if ( n_posix_false == n_bmp_is_trans( bmp, clr ) )
+				if ( FALSE == n_bmp_is_trans( bmp, clr ) )
 				{
 					ret = n_bmp_blend_pixel( ret, clr, coeff_y );
 				}
@@ -1259,7 +1259,7 @@ n_bmp_bilinear_pixel
 		if ( ( fy + 1 ) < N_BMP_SY( bmp ) )
 		{
 			u32 clr = n_bmp_bilinear_pixel_x( bmp, fx,fy + 1, ratio_x, coeff_x, mode );
-			if ( n_posix_false == n_bmp_is_trans( bmp, clr ) )
+			if ( FALSE == n_bmp_is_trans( bmp, clr ) )
 			{
 				ret = n_bmp_blend_pixel( ret, clr, coeff_y );
 			}
@@ -1529,9 +1529,9 @@ n_bmp_sharpen_pixel( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_real blend )
 	int aa,rr,gg,bb;
 
 	if (
-		( n_posix_false == n_bmp_ptr_get( bmp, x, y, &center ) )
+		( FALSE == n_bmp_ptr_get( bmp, x, y, &center ) )
 		&&
-		( n_posix_false == n_bmp_is_trans( bmp, center ) )
+		( FALSE == n_bmp_is_trans( bmp, center ) )
 	)
 	{
 
@@ -1552,9 +1552,9 @@ n_bmp_sharpen_pixel( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_real blend )
 	u32 color;
 
 	if (
-		( n_posix_false == n_bmp_ptr_get( bmp, x, y - 1, &color ) )
+		( FALSE == n_bmp_ptr_get( bmp, x, y - 1, &color ) )
 		&&
-		( n_posix_false == n_bmp_is_trans( bmp, color ) )
+		( FALSE == n_bmp_is_trans( bmp, color ) )
 	)
 	{
 
@@ -1568,9 +1568,9 @@ n_bmp_sharpen_pixel( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_real blend )
 	}
 
 	if (
-		( n_posix_false == n_bmp_ptr_get( bmp, x, y + 1, &color ) )
+		( FALSE == n_bmp_ptr_get( bmp, x, y + 1, &color ) )
 		&&
-		( n_posix_false == n_bmp_is_trans( bmp, color ) )
+		( FALSE == n_bmp_is_trans( bmp, color ) )
 	)
 	{
 
@@ -1584,9 +1584,9 @@ n_bmp_sharpen_pixel( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_real blend )
 	}
 
 	if (
-		( n_posix_false == n_bmp_ptr_get( bmp, x - 1, y, &color ) )
+		( FALSE == n_bmp_ptr_get( bmp, x - 1, y, &color ) )
 		&&
-		( n_posix_false == n_bmp_is_trans( bmp, color ) )
+		( FALSE == n_bmp_is_trans( bmp, color ) )
 	)
 	{
 
@@ -1600,9 +1600,9 @@ n_bmp_sharpen_pixel( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_real blend )
 	}
 
 	if (
-		( n_posix_false == n_bmp_ptr_get( bmp, x + 1, y, &color ) )
+		( FALSE == n_bmp_ptr_get( bmp, x + 1, y, &color ) )
 		&&
-		( n_posix_false == n_bmp_is_trans( bmp, color ) )
+		( FALSE == n_bmp_is_trans( bmp, color ) )
 	)
 	{
 
@@ -1634,14 +1634,14 @@ n_bmp_sharpen_pixel( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_real blend )
 n_posix_inline u32
 n_bmp_composite_pixel_postprocess
 (
-	u32           color_lower,
-	u32           color_upper,
-	int           alpha_upper,
-	n_posix_bool  perpixel,
-	n_posix_bool  global,
-	n_posix_bool  finalize,
-	n_type_real   blend,
-	n_posix_bool *write_needed
+	u32          color_lower,
+	u32          color_upper,
+	int          alpha_upper,
+	BOOL         perpixel,
+	BOOL         global,
+	BOOL         finalize,
+	n_type_real  blend,
+	BOOL        *write_needed
 )
 {
 
@@ -1694,7 +1694,7 @@ n_bmp_composite_pixel_postprocess
 	return color_upper;
 }
 
-#define n_bmp_composite_pixel( u, l, x_u, y_u, x_l, y_l, pp,pp_onoff, f, b ) n_bmp_composite_pixel_fast( u, l, x_u, y_u, x_l, y_l, pp,pp_onoff, f, n_posix_true, b, NULL ) 
+#define n_bmp_composite_pixel( u, l, x_u, y_u, x_l, y_l, pp,pp_onoff, f, b ) n_bmp_composite_pixel_fast( u, l, x_u, y_u, x_l, y_l, pp,pp_onoff, f, TRUE, b, NULL ) 
 
 n_posix_inline u32
 n_bmp_composite_pixel_fast
@@ -1705,12 +1705,12 @@ n_bmp_composite_pixel_fast
 	  n_type_gfx  y_upper,
 	  n_type_gfx  x_lower,
 	  n_type_gfx  y_lower,
-	n_posix_bool  perpixel_override,
-	n_posix_bool  perpixel_override_onoff,
-	n_posix_bool  finalize,
-	n_posix_bool  trans_onoff,
+	BOOL          perpixel_override,
+	BOOL          perpixel_override_onoff,
+	BOOL          finalize,
+	BOOL          trans_onoff,
 	n_type_real   blend,
-	n_posix_bool *write_needed
+	BOOL         *write_needed
 )
 {
 
@@ -1723,7 +1723,7 @@ n_bmp_composite_pixel_fast
 	{
 		if ( n_bmp_is_trans( bmp_upper, color_upper ) )
 		{
-			if ( write_needed != NULL ) { (*write_needed) = n_posix_false; }
+			if ( write_needed != NULL ) { (*write_needed) = FALSE; }
 			return color_upper;
 		}
 	}
@@ -1732,14 +1732,14 @@ n_bmp_composite_pixel_fast
 	int alpha_upper = n_bmp_a( color_upper );
 
 
-	n_posix_bool perpixel = ( alpha_upper != N_BMP_ALPHA_CHANNEL_VISIBLE );
-	n_posix_bool global   = ( blend != 0.0 );
+	BOOL perpixel = ( alpha_upper != N_BMP_ALPHA_CHANNEL_VISIBLE );
+	BOOL global   = ( blend != 0.0 );
 
 	if ( perpixel_override ) { perpixel = perpixel_override_onoff; }
 
-	if ( ( perpixel == n_posix_false )&&( global == n_posix_false ) )
+	if ( ( perpixel == FALSE )&&( global == FALSE ) )
 	{
-		if ( write_needed != NULL ) { (*write_needed) = n_posix_true; }
+		if ( write_needed != NULL ) { (*write_needed) = TRUE; }
 		return color_upper;
 	}
 
@@ -1790,12 +1790,12 @@ n_bmp_composite_pixel_ultrafast
 	const n_bmp  *bmp_lower,
 	n_type_index  pos_upper,
 	n_type_index  pos_lower,
-	n_posix_bool  perpixel_override,
-	n_posix_bool  perpixel_override_onoff,
-	n_posix_bool  finalize,
-	n_posix_bool  trans_onoff,
+	BOOL          perpixel_override,
+	BOOL          perpixel_override_onoff,
+	BOOL          finalize,
+	BOOL          trans_onoff,
 	n_type_real   blend,
-	n_posix_bool *write_needed
+	BOOL         *write_needed
 )
 {
 
@@ -1808,7 +1808,7 @@ n_bmp_composite_pixel_ultrafast
 	{
 		if ( color_upper == n_bmp_trans )
 		{
-			if ( write_needed != NULL ) { (*write_needed) = n_posix_false; }
+			if ( write_needed != NULL ) { (*write_needed) = FALSE; }
 			return color_upper;
 		}
 	}
@@ -1816,14 +1816,14 @@ n_bmp_composite_pixel_ultrafast
 	int alpha_upper = n_bmp_a( color_upper );
 
 
-	n_posix_bool perpixel = ( alpha_upper != N_BMP_ALPHA_CHANNEL_VISIBLE );
-	n_posix_bool global   = ( blend != 0.0 );
+	BOOL perpixel = ( alpha_upper != N_BMP_ALPHA_CHANNEL_VISIBLE );
+	BOOL global   = ( blend != 0.0 );
 
 	if ( perpixel_override ) { perpixel = perpixel_override_onoff; }
 
-	if ( ( perpixel == n_posix_false )&&( global == n_posix_false ) )
+	if ( ( perpixel == FALSE )&&( global == FALSE ) )
 	{
-		if ( write_needed != NULL ) { (*write_needed) = n_posix_true; }
+		if ( write_needed != NULL ) { (*write_needed) = TRUE; }
 		return color_upper;
 	}
 

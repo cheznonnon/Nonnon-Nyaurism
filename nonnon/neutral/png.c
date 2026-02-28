@@ -3,6 +3,9 @@
 // License : GPL http://www.gnu.org/copyleft/gpl.html
 
 
+// [!] : MinGW-w64 : Link : -lz
+
+
 // [Mechanism] : when using DLL : currently not needed
 //
 //	http://gnuwin32.sourceforge.net/packages/zlib.htm
@@ -52,16 +55,7 @@
 
 
 
-#ifdef __APPLE__
-
 #include <zlib.h>
-
-#else  // #ifdef __APPLE__
-
-//#include <zlib.h>
-#include "../floss/zlib.c"
-
-#endif // #ifdef __APPLE__
 
 
 
@@ -221,7 +215,7 @@ n_png_paeth( int a, int b, int c )
 }
 
 // internal
-n_posix_bool
+BOOL
 n_png_compress( n_png *png, n_bmp *bmp )
 {
 
@@ -232,8 +226,8 @@ n_png_compress( n_png *png, n_bmp *bmp )
 	//	no touch with other members
 
 
-	if ( png == NULL ) { return n_posix_true; }
-	if ( bmp == NULL ) { return n_posix_true; }
+	if ( png == NULL ) { return TRUE; }
+	if ( bmp == NULL ) { return TRUE; }
 
 
 	// [!] : tuning is useless
@@ -254,11 +248,11 @@ n_png_compress( n_png *png, n_bmp *bmp )
 	//ret = deflateInit( &z, Z_BEST_COMPRESSION );
 	ret = deflateInit( &z, Z_BEST_SPEED );
 	//ret = deflateInit2( &z, Z_BEST_SPEED, Z_DEFLATED, MAX_WBITS, 8, Z_HUFFMAN_ONLY );
-	if ( ret != Z_OK ) { return n_posix_true; }
+	if ( ret != Z_OK ) { return TRUE; }
 
 
-	int          fullcolor   = n_bmp_palette( bmp );
-	n_posix_bool alpha_onoff = n_bmp_alpha_is_used( bmp );
+	int  fullcolor   = n_bmp_palette( bmp );
+	BOOL alpha_onoff = n_bmp_alpha_is_used( bmp );
 
 	if ( fullcolor   ) { fullcolor = 24; }
 	if ( alpha_onoff ) { fullcolor = 32; }
@@ -892,18 +886,18 @@ n_png_uncompress_engine( const n_png *png, n_bmp *bmp, n_type_gfx sx, n_type_gfx
 }
 
 // internal
-n_posix_bool
+BOOL
 n_png_uncompress( const n_png *png, n_bmp *bmp )
 {
 
-	if ( png == NULL ) { return n_posix_true; }
-	if ( bmp == NULL ) { return n_posix_true; }
+	if ( png == NULL ) { return TRUE; }
+	if ( bmp == NULL ) { return TRUE; }
 
 
 	n_type_gfx sx = png->ihdr_sx;
 	n_type_gfx sy = png->ihdr_sy;
 
-	if ( n_bmp_is_overflow( sx, sy ) ) { return n_posix_true; }
+	if ( n_bmp_is_overflow( sx, sy ) ) { return TRUE; }
 
 
 	// Phase 1
@@ -918,9 +912,9 @@ n_png_uncompress( const n_png *png, n_bmp *bmp )
 	if ( Z_OK != uncompress( tdata, &tbyte, fdata, fbyte ) )
 	{
 		n_memory_free( tdata );
-		return n_posix_true;
+		return TRUE;
 	}
-//n_memory_free( tdata ); return n_posix_true;
+//n_memory_free( tdata ); return TRUE;
 
 
 	{ // Phase 2
@@ -965,7 +959,7 @@ n_png_uncompress( const n_png *png, n_bmp *bmp )
 		}
 
 	}
-//n_bmp_free( &bmp_target ); n_memory_free( tdata ); return n_posix_true;
+//n_bmp_free( &bmp_target ); n_memory_free( tdata ); return TRUE;
 
 
 	n_png_uncompress_engine( png, &bmp_target, sx,sy, tdata );
@@ -994,18 +988,18 @@ n_png_uncompress( const n_png *png, n_bmp *bmp )
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-#define n_png_load(          png, filename  ) n_png_load_internal( png, (void*) filename,    0, n_posix_true  )
-#define n_png_load_onmemory( png, ptr, size ) n_png_load_internal( png,              ptr, size, n_posix_false )
+#define n_png_load(          png, filename  ) n_png_load_internal( png, (void*) filename,    0, TRUE  )
+#define n_png_load_onmemory( png, ptr, size ) n_png_load_internal( png,              ptr, size, FALSE )
 
 // internal
-n_posix_bool
-n_png_load_internal( n_png *arg_png, u8 *ptr, n_type_int ptrsize, n_posix_bool is_file )
+BOOL
+n_png_load_internal( n_png *arg_png, u8 *ptr, n_type_int ptrsize, BOOL is_file )
 {
 
-	if ( arg_png == NULL ) { return n_posix_true; }
+	if ( arg_png == NULL ) { return TRUE; }
 
 
 	const n_type_int _png_byte = 8;
@@ -1016,10 +1010,10 @@ n_png_load_internal( n_png *arg_png, u8 *ptr, n_type_int ptrsize, n_posix_bool i
 
 	// Phase 1 : _PNG : not a PNG file
 
-	n_png        png_template = n_png_template;
-	n_png        png          = n_png_template;
-	n_posix_bool onmemory     = n_posix_false;
-	n_type_int   seek         = 0;
+	n_png      png_template = n_png_template;
+	n_png      png          = n_png_template;
+	BOOL       onmemory     = FALSE;
+	n_type_int seek         = 0;
 
 
 	if ( is_file )
@@ -1028,22 +1022,22 @@ n_png_load_internal( n_png *arg_png, u8 *ptr, n_type_int ptrsize, n_posix_bool i
 		const n_posix_char *name = (void*) ptr;
 
 		ptrsize = n_posix_stat_size( name );
-		if ( minimbyte > ptrsize ) { return n_posix_true; }
+		if ( minimbyte > ptrsize ) { return TRUE; }
 
 		FILE *fp = n_posix_fopen_read( name );
-		if ( fp == NULL ) { return n_posix_true; }
+		if ( fp == NULL ) { return TRUE; }
 
 
 		// [!] : sniffer
 
 		n_posix_fread( &png._png, _png_byte, 1, fp );
 
-		if ( n_posix_false == n_memory_is_same( &png, &png_template, _png_byte ) )
+		if ( FALSE == n_memory_is_same( &png, &png_template, _png_byte ) )
 		{
 
 			n_posix_fclose( fp );
 
-			return n_posix_true;
+			return TRUE;
 		}
 
 
@@ -1057,20 +1051,20 @@ n_png_load_internal( n_png *arg_png, u8 *ptr, n_type_int ptrsize, n_posix_bool i
 
 	} else {
 
-		if ( minimbyte > ptrsize ) { return n_posix_true; }
+		if ( minimbyte > ptrsize ) { return TRUE; }
 
 
 		// [!] : sniffer
 
 		n_memory_copy( &ptr[ seek ], &png._png, _png_byte );
 
-		if ( n_posix_false == n_memory_is_same( &png, &png_template, _png_byte ) )
+		if ( FALSE == n_memory_is_same( &png, &png_template, _png_byte ) )
 		{
-			return n_posix_true;
+			return TRUE;
 		}
 
 
-		onmemory = n_posix_true;
+		onmemory = TRUE;
 
 	}
 
@@ -1090,7 +1084,7 @@ n_png_load_internal( n_png *arg_png, u8 *ptr, n_type_int ptrsize, n_posix_bool i
 	if (
 		( png_template.ihdr_byte != png.ihdr_byte )
 		||
-		( n_posix_false == n_memory_is_same( png.ihdr_header, png_template.ihdr_header, 4 ) )
+		( FALSE == n_memory_is_same( png.ihdr_header, png_template.ihdr_header, 4 ) )
 		||
 		( png.ihdr_sx == 0 )
 		||
@@ -1116,15 +1110,15 @@ n_png_load_internal( n_png *arg_png, u8 *ptr, n_type_int ptrsize, n_posix_bool i
 	)
 	{
 
-		if ( onmemory == n_posix_false ) { n_memory_free( ptr ); }
+		if ( onmemory == FALSE ) { n_memory_free( ptr ); }
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
 	// Phase 3
 
-	n_posix_bool error = n_posix_false;
+	BOOL error = FALSE;
 	n_posix_loop
 	{
 
@@ -1265,7 +1259,7 @@ n_posix_debug_literal(
 			n_memory_copy( &ptr[ seek + 0 ], &byte, 4 ); byte = n_endian_big( byte, 4 );
 			n_memory_copy( &ptr[ seek + 4 ], &ihdr, 4 );
 
-			if ( n_posix_false == n_memory_is_same( &ihdr, png_template.idat_header, 4 ) )
+			if ( FALSE == n_memory_is_same( &ihdr, png_template.idat_header, 4 ) )
 			{
 				break;
 			} else {
@@ -1317,7 +1311,7 @@ png.idat_ptr[ 1 ] += (u8) ( 0x1f - ( ( png.idat_ptr[ 0 ] << 8 ) + png.idat_ptr[ 
 	}
 
 
-	if ( onmemory == n_posix_false ) { n_memory_free( ptr ); }
+	if ( onmemory == FALSE ) { n_memory_free( ptr ); }
 
 
 	return error;
@@ -1325,11 +1319,11 @@ png.idat_ptr[ 1 ] += (u8) ( 0x1f - ( ( png.idat_ptr[ 0 ] << 8 ) + png.idat_ptr[ 
 
 #define n_png_save_literal( png, name ) n_png_save( png, n_posix_literal( name ) )
 
-n_posix_bool
+BOOL
 n_png_save( const n_png *arg_png, const n_posix_char *pngname )
 {
 
-	if ( arg_png == NULL ) { return n_posix_true; }
+	if ( arg_png == NULL ) { return TRUE; }
 
 
 	n_png      png = *arg_png;
@@ -1391,7 +1385,7 @@ n_png_save( const n_png *arg_png, const n_posix_char *pngname )
 
 
 	FILE *fp = n_posix_fopen_write( pngname );
-	if ( fp == NULL ) { return n_posix_true; }
+	if ( fp == NULL ) { return TRUE; }
 
 	n_posix_fwrite(  png._png,           8, 1, fp );
 	n_posix_fwrite( &png.ihdr_byte,      4, 1, fp );
@@ -1433,29 +1427,29 @@ n_png_save( const n_png *arg_png, const n_posix_char *pngname )
 	n_posix_fclose( fp );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #define n_png_bmp2png_autosave( a ) n_png_bmp2png( a, NULL )
 
-n_posix_bool
+BOOL
 n_png_bmp2png( n_posix_char *name, n_png *png_ret )
 {
 
 	n_png png = n_png_template;
 	n_bmp bmp;
 
-	n_posix_bool ret;
+	BOOL ret;
 
 
 	n_bmp_zero( &bmp );
 
 	ret = n_bmp_load( &bmp, name );
-	if ( ret ) { return n_posix_true; }
+	if ( ret ) { return TRUE; }
 
 
 	ret = n_png_compress( &png, &bmp );
-	if ( ret == n_posix_false )
+	if ( ret == FALSE )
 	{
 
 		if ( png_ret == NULL )
@@ -1487,22 +1481,22 @@ n_png_bmp2png( n_posix_char *name, n_png *png_ret )
 
 #define n_png_png2bmp_autosave( a ) n_png_png2bmp( a, NULL )
 
-n_posix_bool
+BOOL
 n_png_png2bmp( n_posix_char *name, n_bmp *bmp_ret )
 {
 
 	n_png png; n_png_zero( &png );
 	n_bmp bmp; n_bmp_zero( &bmp );
 
-	n_posix_bool ret;
+	BOOL ret;
 
 
 	ret = n_png_load( &png, name );
-	if ( ret ) { return n_posix_true; }
+	if ( ret ) { return TRUE; }
 
 
 	ret = n_png_uncompress( &png, &bmp );
-	if ( ret == n_posix_false )
+	if ( ret == FALSE )
 	{
 
 		if ( bmp_ret == NULL )

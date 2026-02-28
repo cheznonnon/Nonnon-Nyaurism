@@ -25,7 +25,7 @@
 
 
 
-n_posix_bool
+BOOL
 n_bmp_grayscale_detect( u32 color )
 {
 
@@ -43,7 +43,7 @@ n_bmp_grayscale_detect( u32 color )
 #define n_bmp_circle_detect(  x,y,r     ) n_bmp_ellipse_detect_coeff( x,y, r, r, NULL )
 #define n_bmp_ellipse_detect( x,y,rx,ry ) n_bmp_ellipse_detect_coeff( x,y,rx,ry, NULL )
 
-n_posix_bool
+BOOL
 n_bmp_ellipse_detect_coeff( n_type_gfx x, n_type_gfx y, n_type_gfx rx, n_type_gfx ry, n_type_real *coeff )
 {
 
@@ -53,7 +53,7 @@ n_bmp_ellipse_detect_coeff( n_type_gfx x, n_type_gfx y, n_type_gfx rx, n_type_gf
 	if ( ( rx < x )||( ry < y ) )
 	{
 		if ( coeff != NULL ) { (*coeff) = 0.0; }
-		return n_posix_false;
+		return FALSE;
 	}
 
 
@@ -95,9 +95,9 @@ n_bmp_ellipse_detect_coeff( n_type_gfx x, n_type_gfx y, n_type_gfx rx, n_type_gf
 
 #define n_bmp_roundrect_detect( x,y,sx,sy,r ) n_bmp_roundrect_detect_coeff( x,y,sx,sy,r, NULL )
 
-static n_posix_bool n_bmp_roundrect_detect_coeff_patch_onoff = n_posix_true;
+static BOOL n_bmp_roundrect_detect_coeff_patch_onoff = TRUE;
 
-n_posix_bool
+BOOL
 n_bmp_roundrect_detect_coeff( n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx sy, n_type_gfx r, n_type_real *coeff )
 {
 
@@ -105,21 +105,21 @@ n_bmp_roundrect_detect_coeff( n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_
 	{
 		if ( coeff != NULL ) { (*coeff) = 0.0; }
 
-		return n_posix_false;
+		return FALSE;
 	}
 
 	if ( ( x >= sx )||( y >= sy ) )
 	{
 		if ( coeff != NULL ) { (*coeff) = 0.0; }
 
-		return n_posix_false;
+		return FALSE;
 	}
 
 	if ( ( x > r )&&( y > r )&&( x < ( sx - r ) )&&( y < ( sy - r ) ) )
 	{
 		if ( coeff != NULL ) { (*coeff) = 1.0; }
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -175,7 +175,7 @@ n_bmp_roundrect_detect_coeff( n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_
 	return ( ( dx + dy ) < dr );
 }
 
-n_posix_bool
+BOOL
 n_bmp_squircle_detect( n_type_gfx x, n_type_gfx y, n_type_gfx size, n_type_real power, n_type_real *coeff )
 {
 
@@ -210,7 +210,7 @@ n_bmp_squircle_detect( n_type_gfx x, n_type_gfx y, n_type_gfx size, n_type_real 
 	return ( ( a + b ) < r );
 }
 
-n_posix_bool
+BOOL
 n_bmp_moire_detect( n_type_gfx x, n_type_gfx y, int pattern )
 {
 
@@ -218,7 +218,7 @@ n_bmp_moire_detect( n_type_gfx x, n_type_gfx y, int pattern )
 
 	switch( pattern )
 	{
-		case 0: return n_posix_true;
+		case 0: return TRUE;
 		case 1: return ( ( ( x & 1 ) ^ ( y & 1 ) ) != 0 );
 		case 2: return ( ( ( x & 1 ) ^ ( y & 1 ) ) == 0 );
 	}
@@ -227,7 +227,7 @@ n_bmp_moire_detect( n_type_gfx x, n_type_gfx y, int pattern )
 	if ( pattern == 0 )
 	{
 
-		return n_posix_true;
+		return TRUE;
 
 	} else
 	if ( pattern == 1 )
@@ -246,7 +246,7 @@ n_bmp_moire_detect( n_type_gfx x, n_type_gfx y, int pattern )
 			( ( x != 0 )&&( y == 0 ) )
 		)
 		{
-			return n_posix_true;
+			return TRUE;
 		}
 
 	} else
@@ -266,12 +266,12 @@ n_bmp_moire_detect( n_type_gfx x, n_type_gfx y, int pattern )
 			( ( x != 0 )&&( y != 0 ) )
 		)
 		{
-			return n_posix_true;
+			return TRUE;
 		}
 	}
 
 */
-	return n_posix_false;
+	return FALSE;
 }
 
 #define N_BMP_EDGE_NONE  ( 0 << 0 )
@@ -306,7 +306,7 @@ n_bmp_edge_detect_check( n_bmp *bmp, n_type_gfx fx, n_type_gfx fy )
 
 	// Center
 
-	if ( n_posix_false == n_bmp_ptr_get( bmp, fx,fy, &color ) )
+	if ( FALSE == n_bmp_ptr_get( bmp, fx,fy, &color ) )
 	{
 
 		if ( n_bmp_is_trans( bmp, color ) )
@@ -338,9 +338,9 @@ n_bmp_edge_detect_check( n_bmp *bmp, n_type_gfx fx, n_type_gfx fy )
 		{
 
 			if (
-				( ( edge & N_BMP_EDGE_INNER )&&( n_posix_false != n_bmp_is_trans( bmp, color ) ) )
+				( ( edge & N_BMP_EDGE_INNER )&&( FALSE != n_bmp_is_trans( bmp, color ) ) )
 				||
-				( ( edge & N_BMP_EDGE_OUTER )&&( n_posix_false == n_bmp_is_trans( bmp, color ) ) )
+				( ( edge & N_BMP_EDGE_OUTER )&&( FALSE == n_bmp_is_trans( bmp, color ) ) )
 			)
 			{
 
@@ -382,11 +382,11 @@ n_bmp_edge_detect_check( n_bmp *bmp, n_type_gfx fx, n_type_gfx fy )
 	return edge | ( count << 16 );
 }
 
-n_posix_bool
+BOOL
 n_bmp_edge_detect( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx edge, n_type_gfx *count )
 {
 
-	if ( edge == N_BMP_EDGE_NONE ) { return n_posix_false; }
+	if ( edge == N_BMP_EDGE_NONE ) { return FALSE; }
 
 
 	n_type_gfx check = n_bmp_edge_detect_check( bmp, x,y );

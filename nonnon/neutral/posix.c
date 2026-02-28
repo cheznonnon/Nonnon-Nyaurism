@@ -126,13 +126,18 @@
 #define N_POSIX_PLATFORM_MINGW64
 
 
+// [x] : suppress stupid sprintf() warning
+
+//#pragma GCC diagnostic ignored "-Wrestrict"
+
+
 #endif // #ifdef  __MINGW32__
 
 
 
 
 // [!] : __MINGW_H  : good old MinGW
-// [!] :__MINGW32__ : MinGW-w64 : compatibility hell
+// [!] :__MINGW32__ : MinGW64 : compatibility hell
 
 #if defined( N_POSIX_PLATFORM_MINGW ) || defined( N_POSIX_PLATFORM_MINGW64 ) || defined( _MSC_VER )
 
@@ -186,6 +191,8 @@
 
 // [x] : WinNT4.0 : swscanf() crashes
 
+// [x] : MinGW-w64 : swprintf() has more parameter than sprintf() : same as snwprintf()
+
 
 #define	n_posix_literal(q) L##q
 #define n_posix_char       wchar_t
@@ -193,7 +200,7 @@
 //#define n_posix_fopen      _wfopen
 #define n_posix_fgets      fgetws
 #define n_posix_printf     wprintf
-#define n_posix_sprintf    swprintf
+//#define n_posix_sprintf    swprintf
 #define n_posix_snprintf   snwprintf
 #define n_posix_vsprintf   vswprintf
 //#define n_posix_sscanf     swscanf
@@ -250,7 +257,7 @@
 //#define n_posix_fopen      fopen
 #define n_posix_fgets      fgets
 #define n_posix_printf     printf
-#define n_posix_sprintf    sprintf
+//#define n_posix_sprintf    sprintf
 #define n_posix_snprintf   snprintf
 #define n_posix_vsprintf   vsprintf
 //#define n_posix_sscanf     sscanf
@@ -441,6 +448,8 @@ n_type_real n_posix_max_n_type_real( n_type_real a, n_type_real b ) { return a >
 
 #define n_posix_printf_literal( a, ... ) n_posix_printf( n_posix_literal( a ), ##__VA_ARGS__ )
 
+#define n_posix_snprintf_literal(  s, c, f, ... ) n_posix_snprintf( s, c, n_posix_literal( f ), ##__VA_ARGS__ )
+
 
 
 
@@ -627,9 +636,6 @@ n_posix_unicode2ansi( const wchar_t *wstr )
 	return ansi;
 }
 
-
-
-
 #define n_posix_debug_literal( a, ... ) n_posix_debug( n_posix_literal( a ), ##__VA_ARGS__ )
 
 void
@@ -678,16 +684,6 @@ n_posix_debug( const n_posix_char *format, ... )
 
 	return;
 }
-
-
-
-
-#define n_posix_snprintf_literal( s, c, f, ... ) n_posix_snprintf( s, c, n_posix_literal( f ), ##__VA_ARGS__ )
-
-#define n_posix_sprintf_literal( s, f, ... ) n_posix_sprintf( s, n_posix_literal( f ), ##__VA_ARGS__ )
-
-
-
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
@@ -814,7 +810,7 @@ n_posix_stat_vc_patch( const n_posix_char *name, n_posix_structstat *st, int ret
 	return ret;
 }
 
-static n_posix_bool n_posix_stat_safemode = n_posix_false;
+static BOOL n_posix_stat_safemode = FALSE;
 
 int
 n_posix_stat( const n_posix_char *name_arg, n_posix_structstat *st )
@@ -976,7 +972,7 @@ n_posix_stat_type( const n_posix_char *path )
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 }
 
-n_posix_bool
+BOOL
 n_posix_stat_size_is_overflowed( const n_posix_char *name )
 {
 
@@ -991,14 +987,14 @@ n_posix_stat_size_is_overflowed( const n_posix_char *name )
 #else  // #ifdef _WIN64
 		if ( f.nFileSizeHigh != 0 )
 		{
-			return n_posix_true;
+			return TRUE;
 		}
 #endif // #ifdef _WIN64
 	}
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 n_posix_structstat_size_t
@@ -1146,7 +1142,7 @@ typedef struct {
 
 	HANDLE         handle;
 	n_posix_dirent dirent;
-	n_posix_bool   is_first;
+	BOOL           is_first;
 
 } n_posix_DIR;
 
@@ -1154,7 +1150,7 @@ n_posix_DIR*
 n_posix_opendir( const n_posix_char *folder_name )
 {
 
-	if ( n_posix_false == n_posix_stat_is_dir( folder_name ) ) { return NULL; }
+	if ( FALSE == n_posix_stat_is_dir( folder_name ) ) { return NULL; }
 
 
 	n_posix_DIR *dir = (n_posix_DIR*) n_memory_new( sizeof( n_posix_DIR ) );
@@ -1184,7 +1180,7 @@ n_posix_opendir( const n_posix_char *folder_name )
 	dir->handle = FindFirstFile( name, (WIN32_FIND_DATA*) &dir->dirent );
 
 
-	dir->is_first = n_posix_true;
+	dir->is_first = TRUE;
 
 
 	n_memory_free( name );
@@ -1218,12 +1214,12 @@ n_posix_readdir( n_posix_DIR *dir )
 	if ( dir->is_first )
 	{
 
-		dir->is_first = n_posix_false;
+		dir->is_first = FALSE;
 
 	} else {
 
-		n_posix_bool ret = FindNextFile( dir->handle, (WIN32_FIND_DATA*) &dir->dirent );
-		if ( ret == n_posix_false ) { return NULL; }
+		BOOL ret = FindNextFile( dir->handle, (WIN32_FIND_DATA*) &dir->dirent );
+		if ( ret == FALSE ) { return NULL; }
 		//if ( ERROR_NO_MORE_FILES == GetLastError() ) { return NULL; }
 
 	}
@@ -1234,13 +1230,13 @@ n_posix_readdir( n_posix_DIR *dir )
 
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 
-n_posix_bool
+BOOL
 n_posix_is_drivename( const n_posix_char *path )
 {
 
-	if ( path == NULL ) { return n_posix_false; }
+	if ( path == NULL ) { return FALSE; }
 
-	if ( path[ 0 ] == n_posix_literal( '\0' ) ) { return n_posix_false; }
+	if ( path[ 0 ] == n_posix_literal( '\0' ) ) { return FALSE; }
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
@@ -1274,13 +1270,13 @@ n_posix_is_drivename( const n_posix_char *path )
 		)
 	)
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 #endif
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 n_posix_DIR*
@@ -1363,7 +1359,7 @@ n_posix_folder_count( const n_posix_char *path )
 	return ret;
 }
 
-n_posix_bool
+BOOL
 n_posix_access_is_denied( const n_posix_char *path )
 {
 
@@ -1372,7 +1368,7 @@ n_posix_access_is_denied( const n_posix_char *path )
 	DWORD dw = GetFileAttributes( path );
 	if ( dw & FILE_ATTRIBUTE_REPARSE_POINT )
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -1390,7 +1386,7 @@ n_posix_access_is_denied( const n_posix_char *path )
 		( dw != ERROR_INSUFFICIENT_BUFFER  )
 	)
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
@@ -1406,7 +1402,7 @@ n_posix_access_is_denied( const n_posix_char *path )
 
 	if ( ( errno == EACCES )&&( 0 == n_posix_folder_count( path ) ) )
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 #endif // #ifdef N_POSIX_PLATFORM_MAC
@@ -1415,7 +1411,7 @@ n_posix_access_is_denied( const n_posix_char *path )
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 

@@ -191,7 +191,7 @@ n_memory_limit( int error_number, long long byte )
 	}
 
 	char str[ 100 ];
-	sprintf( str, "Memory limit is over : %d byte  No. %lld", error_number, byte );
+	snprintf( str, 100, "Memory limit is over : %d byte  No. %lld", error_number, byte );
 
 	n_memory_dialog( str );
 
@@ -202,7 +202,7 @@ n_memory_limit( int error_number, long long byte )
 		(*n_memory_limit_callback_func)();
 	} else {
 		char str[ 100 ];
-		sprintf( str, "Memory limit is over : %d byte  No. %lld", error_number, byte );
+		snprintf( str, 100, "Memory limit is over : %d byte  No. %lld", error_number, byte );
 
 		n_memory_dialog( str );
 	}
@@ -228,7 +228,7 @@ n_memory_debug_refcount( void )
 
 	char str[ 100 ];
 
-	sprintf( str, "%d", (int) n_memory_refcount );
+	snprintf( str, 100, "%d", (int) n_memory_refcount );
 
 	MessageBoxA( NULL, str, "DEBUG", MB_TOPMOST | MB_OK );
 

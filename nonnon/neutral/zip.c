@@ -3,6 +3,9 @@
 // License : GPL http://www.gnu.org/copyleft/gpl.html
 
 
+// [!] : MinGW-w64 : Link : -lz
+
+
 // [!] : Mac Version
 //
 //	file names of alias will be conflict
@@ -42,16 +45,7 @@
 
 
 
-#ifdef N_POSIX_PLATFORM_WINDOWS
-
-//#include <zlib.h>
-#include "../floss/zlib.c"
-
-#else  // #ifdef N_POSIX_PLATFORM_WINDOWS
-
 #include <zlib.h>
-
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
 
@@ -163,13 +157,13 @@ n_zip_mkdir( const n_posix_char *folder )
 }
 
 // internal
-n_posix_bool
-n_zip_encode_file( const n_posix_char *name, n_type_int name_cch, n_vector *v_item, n_vector *v_name )
+BOOL
+n_zip_encode_file( const n_posix_char *name, n_vector *v_item, n_vector *v_name )
 {
 
 	n_posix_structstat st;
 
-	if ( 0 != n_posix_stat( name, &st ) ) { return n_posix_true; }
+	if ( 0 != n_posix_stat( name, &st ) ) { return TRUE; }
 
 
 	n_zip_toc_item *item = n_memory_new( sizeof( n_zip_toc_item ) );
@@ -193,14 +187,15 @@ n_zip_encode_file( const n_posix_char *name, n_type_int name_cch, n_vector *v_it
 
 	// [!] : 1 == n_posix_strlen( N_STRING_SLASH )
 
-	n_type_int    cch = name_cch;
-	n_posix_char *rel = n_string_path_new( cch + 1 );
-	n_string_copy( name, rel );
+	n_posix_char *rel = n_string_alloccopy( n_posix_strlen( name ) + 1, name );
+	n_type_int    cch = n_posix_strlen( rel );
+
 	n_string_replace( rel, rel, N_STRING_BSLASH, N_STRING_SLASH );
 
 	if ( S_ISDIR( st.st_mode ) )
 	{
-		cch += n_posix_sprintf_literal( &rel[ cch ], "%s", N_STRING_SLASH );
+		rel[ cch ] = N_STRING_CHAR_SLASH; cch++;
+		rel[ cch ] = N_STRING_CHAR_NUL;
 	}
 
 	item->byte_name = (u16) cch;
@@ -232,12 +227,12 @@ n_zip_encode_file( const n_posix_char *name, n_type_int name_cch, n_vector *v_it
 	n_posix_char str[ 100 ];
 
 #ifdef _WIN64
-	n_posix_sprintf_literal( str, "%llu", (u64) item );
+	n_posix_snprintf_literal( str, 100, "%llu", (u64) item );
 #else  // #ifdef _WIN64
 #ifdef N_POSIX_PLATFORM_WINDOWS
-	n_posix_sprintf_literal( str, "%lu",  (u32) item );
+	n_posix_snprintf_literal( str, 100, "%lu",  (u32) item );
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
-	n_posix_sprintf_literal( str, "%llu", (u64) item );
+	n_posix_snprintf_literal( str, 100, "%llu", (u64) item );
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 //n_posix_debug_literal( "%s\n%lu", str, (u32) item );
 #endif // #ifdef _WIN64
@@ -249,21 +244,21 @@ n_zip_encode_file( const n_posix_char *name, n_type_int name_cch, n_vector *v_it
 	n_string_path_free( rel );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 // internal
-n_posix_bool
-n_zip_encode_dir( const n_posix_char *name, n_type_int name_cch, n_vector *v_item, n_vector *v_name )
+BOOL
+n_zip_encode_dir( const n_posix_char *name, n_vector *v_item, n_vector *v_name )
 {
-//return n_posix_false;
+//return FALSE;
 
-	if ( n_posix_false == n_posix_stat_is_dir( name ) ) { return n_posix_true; }
+	if ( FALSE == n_posix_stat_is_dir( name ) ) { return TRUE; }
 //n_posix_debug( reldir );
 
 
 	n_posix_DIR *dp = n_posix_opendir_nodot( name );
-	if ( dp == NULL ) { return n_posix_true; }
+	if ( dp == NULL ) { return TRUE; }
 
 
 	n_posix_loop
@@ -275,14 +270,11 @@ n_zip_encode_dir( const n_posix_char *name, n_type_int name_cch, n_vector *v_ite
 
 		// [!] : 1 == n_posix_strlen( N_STRING_SLASH )
 
-		n_type_int    cch = name_cch + 1 + n_posix_strlen( dirent->d_name );
-		n_posix_char *str = n_string_path_new( cch );
-
-		n_string_path_make( name, dirent->d_name, str );
+		n_posix_char *str = n_string_path_make_new( name, dirent->d_name );
 //n_posix_debug_literal( "%s", str );
 //NSLog( @"%s", str );
 
-		n_zip_encode_file( str, cch, v_item, v_name );
+		n_zip_encode_file( str, v_item, v_name );
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 		if ( FILE_ATTRIBUTE_DIRECTORY & dirent->dwFileAttributes )
@@ -290,7 +282,7 @@ n_zip_encode_dir( const n_posix_char *name, n_type_int name_cch, n_vector *v_ite
 		if ( n_posix_stat_is_dir( str ) )
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 		{
-			n_zip_encode_dir( str, cch, v_item, v_name );
+			n_zip_encode_dir( str, v_item, v_name );
 		}
 
 
@@ -301,14 +293,14 @@ n_zip_encode_dir( const n_posix_char *name, n_type_int name_cch, n_vector *v_ite
 	n_posix_closedir( dp );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_zip_encode( const n_posix_char *name )
 {
 
-	if ( n_posix_false == n_posix_stat_is_exist( name ) ) { return n_posix_true; }
+	if ( FALSE == n_posix_stat_is_exist( name ) ) { return TRUE; }
 
 
 	n_posix_char *dir = n_string_path_folder_current_new();
@@ -334,7 +326,7 @@ n_zip_encode( const n_posix_char *name )
 		n_string_path_free( zip );
 		n_string_path_free( nam );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -342,12 +334,8 @@ n_zip_encode( const n_posix_char *name )
 	n_vector v_name; n_vector_zero( &v_name ); n_vector_new( &v_name );
 
 
-	{
-		n_type_int cch = n_posix_strlen( rel );
-
-		n_zip_encode_file( rel, cch, &v_item, &v_name );
-		n_zip_encode_dir ( rel, cch, &v_item, &v_name );
-	}
+	n_zip_encode_file( rel, &v_item, &v_name );
+	n_zip_encode_dir ( rel, &v_item, &v_name );
 
 
 	// [!] : empty entry will be made if folder structure is changed
@@ -411,7 +399,7 @@ n_zip_encode( const n_posix_char *name )
 
 		u8 *ptr = NULL;
 
-		n_posix_bool is_file = n_posix_stat_is_file( v_name.line[ i ] );
+		BOOL is_file = n_posix_stat_is_file( v_name.line[ i ] );
 		if ( ( is_file )&&( item.byte == 0 ) )
 		{
 
@@ -603,7 +591,7 @@ n_zip_encode( const n_posix_char *name )
 	n_string_path_free( nam );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 void
@@ -630,7 +618,7 @@ n_zip_autofolder( const n_posix_char *relname )
 
 			n_string_terminate( str, i );
 //NSLog( @"%s", str );
-			if ( n_posix_false == n_posix_stat_is_exist( str ) )
+			if ( FALSE == n_posix_stat_is_exist( str ) )
 			{
 				n_zip_mkdir( str );
 			}
@@ -647,17 +635,17 @@ n_zip_autofolder( const n_posix_char *relname )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_zip_decode( const n_posix_char *name )
 {
 
 	n_type_int byte = n_posix_stat_size( name );
-	if ( byte < N_ZIP_BYTE_MINIMAL ) { return n_posix_true; }
-	if ( byte > LONG_MAX ) { return n_posix_true; }
+	if ( byte < N_ZIP_BYTE_MINIMAL ) { return TRUE; }
+	if ( byte > LONG_MAX ) { return TRUE; }
 
 
 	FILE *fp = n_posix_fopen_read( name );
-	if ( fp == NULL ) { return n_posix_true; }
+	if ( fp == NULL ) { return TRUE; }
 
 
 	// Phase 1 : is ZIP
@@ -666,7 +654,7 @@ n_zip_decode( const n_posix_char *name )
 	u16 pk = 0;
 	n_posix_fread( &pk, sizeof( u16 ), 1, fp );
 
-	if ( pk != N_ZIP_PK ) { n_posix_fclose( fp ); return n_posix_true; }
+	if ( pk != N_ZIP_PK ) { n_posix_fclose( fp ); return TRUE; }
 
 
 	// Phase 2 : search main table-of-contents
@@ -719,7 +707,7 @@ n_zip_decode( const n_posix_char *name )
 	{
 		n_posix_fclose( fp );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -732,7 +720,7 @@ n_zip_decode( const n_posix_char *name )
 	const n_type_int name_cch = n_posix_strlen( name ) + 2 + 1;
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 	u32 offset_toc = 0;
 
@@ -752,7 +740,7 @@ n_zip_decode( const n_posix_char *name )
 		)
 		{
 
-			ret = n_posix_true;
+			ret = TRUE;
 
 			break;
 		}
@@ -794,14 +782,14 @@ n_zip_decode( const n_posix_char *name )
 		)
 		{
 
-			ret = n_posix_true;
+			ret = TRUE;
 
 			break;
 		}
 
 
 		n_posix_char *filename  = NULL;
-		n_posix_bool  is_folder = n_posix_false;
+		BOOL  is_folder = FALSE;
 
 
 		{ // file name maker
@@ -818,7 +806,7 @@ n_zip_decode( const n_posix_char *name )
 		n_posix_fseek( fp, toc_item.offset + sizeof( n_zip_item ), SEEK_SET );
 		n_posix_fread( &s[ 2 ], item.byte_name, 1, fp );
 
-		if ( s[ ( 2 + item.byte_name - 1 ) ] == '/' ) { is_folder = n_posix_true; }
+		if ( s[ ( 2 + item.byte_name - 1 ) ] == '/' ) { is_folder = TRUE; }
 
 		s[ ( 2 + item.byte_name ) ] = '\0';
 
@@ -885,7 +873,7 @@ n_zip_decode( const n_posix_char *name )
 
 //n_posix_debug_literal( "%s\n%s", f, filename );
 
-			if ( n_posix_false == n_string_match( filename, f ) )
+			if ( FALSE == n_string_match( filename, f ) )
 			{
 				n_zip_mkdir( str );
 				n_string_path_folder_change( str );
@@ -902,7 +890,7 @@ n_zip_decode( const n_posix_char *name )
 		n_type_int compare_f = (n_type_int) ( data_offset + item.byte );
 		n_type_int compare_t = (n_type_int) ( byte - sizeof( n_zip_toc ) );
 
-		if ( compare_f > compare_t ) { ret = n_posix_true; break; }
+		if ( compare_f > compare_t ) { ret = TRUE; break; }
 
 		if ( item.method == 0 )
 		{
@@ -1001,7 +989,7 @@ n_zip_decode( const n_posix_char *name )
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
-		if ( is_folder == n_posix_false )
+		if ( is_folder == FALSE )
 		{
 
 			n_type_int i = 0;
@@ -1057,11 +1045,11 @@ n_zip_decode( const n_posix_char *name )
 	return ret;
 }
 
-n_posix_bool
+BOOL
 n_zip_main( const n_posix_char *abspath )
 {
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	n_posix_char *dir = n_string_path_folder_current_new();

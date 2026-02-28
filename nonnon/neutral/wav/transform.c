@@ -114,21 +114,21 @@ n_wav_resizer_internal( n_wav *wav, n_type_real msec_or_sample, int mode, int is
 	n_wav to; n_wav_zero( &to );
 
 
-	n_posix_bool is_shrink = n_posix_false;
+	BOOL is_shrink = FALSE;
 
 	if ( is_msec )
 	{
 		// [!] : nothing to do
 		if ( msec_or_sample == N_WAV_MSEC( wav ) ) { return; }
 
-		if ( msec_or_sample < N_WAV_MSEC( wav ) ) { is_shrink = n_posix_true; }
+		if ( msec_or_sample < N_WAV_MSEC( wav ) ) { is_shrink = TRUE; }
 
 		n_wav_new( &to, msec_or_sample );
 	} else {
 		// [!] : nothing to do
 		if ( msec_or_sample == N_WAV_COUNT( wav ) ) { return; }
 
-		if ( msec_or_sample < N_WAV_COUNT( wav ) ) { is_shrink = n_posix_true; }
+		if ( msec_or_sample < N_WAV_COUNT( wav ) ) { is_shrink = TRUE; }
 
 		n_wav_new_by_sample( &to, msec_or_sample );
 	}

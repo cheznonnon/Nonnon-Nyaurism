@@ -95,11 +95,11 @@ static int n_curico_favicon_onoff = N_CURICO_FAVICON_OFF;
 #define n_curico_zero(  f    ) n_memory_zero( f,    sizeof( n_curico ) )
 #define n_curico_alias( f, t ) n_memory_copy( f, t, sizeof( n_curico ) )
 
-#define n_curico_alpha_reverse_encode( b ) n_curico_alpha_reverse( b, n_posix_true  )
-#define n_curico_alpha_reverse_decode( b ) n_curico_alpha_reverse( b, n_posix_false )
+#define n_curico_alpha_reverse_encode( b ) n_curico_alpha_reverse( b, TRUE  )
+#define n_curico_alpha_reverse_decode( b ) n_curico_alpha_reverse( b, FALSE )
 
 void
-n_curico_alpha_reverse( n_bmp *bmp, n_posix_bool is_encode )
+n_curico_alpha_reverse( n_bmp *bmp, BOOL is_encode )
 {
 
 	if ( N_BMP_ALPHA_CHANNEL_VISIBLE == 0 )
@@ -351,16 +351,16 @@ n_curico_mask_restore( n_bmp *bmp, n_bmp *msk )
 
 #define n_curico_save_literal( c, b, name ) n_curico_save( c, b, n_posix_literal( name ) )
 
-n_posix_bool
+BOOL
 n_curico_save( n_curico *curico, const n_bmp *bmp, const n_posix_char *bmpname )
 {
 
-	if ( curico == NULL ) { return n_posix_true; }
-	if (    bmp == NULL ) { return n_posix_true; }
+	if ( curico == NULL ) { return TRUE; }
+	if (    bmp == NULL ) { return TRUE; }
 
-	if ( NULL == N_BMP_PTR( bmp ) ) { return n_posix_true; }
+	if ( NULL == N_BMP_PTR( bmp ) ) { return TRUE; }
 
-	if ( n_string_is_empty( bmpname ) ) { return n_posix_true; }
+	if ( n_string_is_empty( bmpname ) ) { return TRUE; }
 
 
 	if (
@@ -385,7 +385,7 @@ n_curico_save( n_curico *curico, const n_bmp *bmp, const n_posix_char *bmpname )
 
 	FILE *fp = n_posix_fopen_write( newname );
 	n_string_path_free( newname );
-	if ( fp == NULL ) { return n_posix_true; }
+	if ( fp == NULL ) { return TRUE; }
 
 
 	// [!] : non-breaking
@@ -462,14 +462,14 @@ n_curico_save( n_curico *curico, const n_bmp *bmp, const n_posix_char *bmpname )
 	n_posix_fclose( fp );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_curico_bmp2curico( const n_posix_char *bmpname, u16 type, u16 hotspotx, u16 hotspoty )
 {
 
-	n_posix_bool ret;
+	BOOL ret;
 
 	n_curico curico;
 	n_bmp    bmp;
@@ -496,17 +496,17 @@ n_curico_bmp2curico( const n_posix_char *bmpname, u16 type, u16 hotspotx, u16 ho
 	return ret;
 }
 
-n_posix_bool
+BOOL
 n_curico_load( n_curico *curico, n_bmp *bmp, const n_posix_char *fname )
 {
 
-	if ( curico == NULL ) { return n_posix_true; }
-	if (    bmp == NULL ) { return n_posix_true; }
+	if ( curico == NULL ) { return TRUE; }
+	if (    bmp == NULL ) { return TRUE; }
 
 
 	n_type_int file_byte = n_posix_stat_size( fname );
-	if ( file_byte <= ( N_CURICO_SIZE_HEADER + N_BMP_SIZE_INFOH ) ) { return n_posix_true; }
-	if ( n_bmp_size_is_overflow( file_byte ) ) { return n_posix_true; }
+	if ( file_byte <= ( N_CURICO_SIZE_HEADER + N_BMP_SIZE_INFOH ) ) { return TRUE; }
+	if ( n_bmp_size_is_overflow( file_byte ) ) { return TRUE; }
 
 
 	// [!] : non-breaking : previous n_curico, n_bmp
@@ -516,7 +516,7 @@ n_curico_load( n_curico *curico, n_bmp *bmp, const n_posix_char *fname )
 
 
 	FILE *fp = n_posix_fopen_read( fname );
-	if ( fp == NULL ) { return n_posix_true; }
+	if ( fp == NULL ) { return TRUE; }
 
 
 	n_posix_fread( &check_curico, N_CURICO_SIZE_HEADER, 1, fp );
@@ -534,7 +534,7 @@ n_curico_load( n_curico *curico, n_bmp *bmp, const n_posix_char *fname )
 
 		n_posix_fclose( fp );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -563,7 +563,7 @@ n_curico_load( n_curico *curico, n_bmp *bmp, const n_posix_char *fname )
 
 		n_posix_fclose( fp );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -600,8 +600,8 @@ n_curico_load( n_curico *curico, n_bmp *bmp, const n_posix_char *fname )
 	n_posix_fclose( fp );
 
 
-	n_posix_bool ret = n_bmp_load_onmemory( &check_bmp, data_ptr, data_byte );
-	if ( ret == n_posix_false )
+	BOOL ret = n_bmp_load_onmemory( &check_bmp, data_ptr, data_byte );
+	if ( ret == FALSE )
 	{
 
 		n_bmp_replace( &check_bmp, bmp );
@@ -622,7 +622,7 @@ n_curico_load( n_curico *curico, n_bmp *bmp, const n_posix_char *fname )
 	return ret;
 }
 
-n_posix_bool
+BOOL
 n_curico_curico2bmp( const n_posix_char *fname )
 {
 
@@ -630,7 +630,7 @@ n_curico_curico2bmp( const n_posix_char *fname )
 	n_bmp    bmp;
 
 
-	n_posix_bool ret = n_curico_load( &curico,&bmp, fname );
+	BOOL ret = n_curico_load( &curico,&bmp, fname );
 	if ( ret ) { return ret; }
 
 	n_bmp_save( &bmp, fname );
@@ -638,10 +638,10 @@ n_curico_curico2bmp( const n_posix_char *fname )
 	n_bmp_free( &bmp );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_curico_multi_pack( const n_posix_char *folder )
 {
 
@@ -651,7 +651,7 @@ n_curico_multi_pack( const n_posix_char *folder )
 	//	the first valid item determines icon or cursor
 
 
-	if ( folder == NULL ) { return n_posix_true; }
+	if ( folder == NULL ) { return TRUE; }
 
 
 	n_dir d; n_dir_zero( &d );
@@ -666,7 +666,7 @@ n_curico_multi_pack( const n_posix_char *folder )
 
 		n_dir_free( &d );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 	n_dir_sort( &d );
@@ -696,7 +696,7 @@ n_curico_multi_pack( const n_posix_char *folder )
 		n_bmp_zero   ( mask   );
 
 		if (
-			( n_posix_false == n_curico_load( curico, bmp, str ) )
+			( FALSE == n_curico_load( curico, bmp, str ) )
 			&&
 			( curico->type == c[ 0 ].type )
 		)
@@ -801,7 +801,7 @@ n_curico_multi_pack( const n_posix_char *folder )
 		n_memory_free_closed( b );
 		n_memory_free_closed( m );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -903,20 +903,20 @@ n_curico_multi_pack( const n_posix_char *folder )
 	n_memory_free_closed( m );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_curico_multi_unpack( const n_posix_char *fname )
 {
 
 	n_type_int fsize = n_posix_stat_size( fname );
-	if ( fsize < ( N_CURICO_SIZE_HEADER + N_BMP_SIZE_INFOH ) ) { return n_posix_true; }
-	if ( n_bmp_size_is_overflow( fsize ) ) { return n_posix_true; }
+	if ( fsize < ( N_CURICO_SIZE_HEADER + N_BMP_SIZE_INFOH ) ) { return TRUE; }
+	if ( n_bmp_size_is_overflow( fsize ) ) { return TRUE; }
 
 
 	FILE *fp = n_posix_fopen_read( fname );
-	if ( fp == NULL ) { return n_posix_true; }
+	if ( fp == NULL ) { return TRUE; }
 
 	u8 *p = n_memory_new_closed( fsize );
 	n_posix_fread( p, fsize, 1, fp );
@@ -945,7 +945,7 @@ n_curico_multi_unpack( const n_posix_char *fname )
 
 		n_memory_free_closed( p );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -971,7 +971,7 @@ n_curico_multi_unpack( const n_posix_char *fname )
 
 		n_memory_free_closed( p );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -1012,7 +1012,7 @@ n_curico_multi_unpack( const n_posix_char *fname )
 	n_type_int digit;
 	{
 		n_posix_char str_digit[ 100 ];
-		n_type_int   cch_digit = n_posix_sprintf_literal( str_digit, "%d", count );
+		n_type_int   cch_digit = n_posix_snprintf_literal( str_digit, 100, "%d", count );
 
 		digit = n_posix_max_n_type_int( 3, cch_digit );
 	}
@@ -1021,7 +1021,8 @@ n_curico_multi_unpack( const n_posix_char *fname )
 	n_posix_loop
 	{
 	
-		n_posix_char *str = n_string_path_new( n_posix_strlen( dir ) + n_posix_strlen( N_POSIX_SLASH ) + digit + n_posix_strlen( ext ) );
+		n_type_int    cch = n_posix_strlen( dir ) + n_posix_strlen( N_POSIX_SLASH ) + digit + n_posix_strlen( ext );
+		n_posix_char *str = n_string_path_new( cch );
 
 		n_type_int offset = N_CURICO_SIZE_DIR + ( i * N_CURICO_SIZE_ENTRY );
 		if ( offset < fsize )
@@ -1034,7 +1035,7 @@ n_curico_multi_unpack( const n_posix_char *fname )
 
 			int digit_int = (int) digit;
 
-			n_posix_sprintf_literal( str, "%s%s%0*lld%s", dir, N_POSIX_SLASH, digit_int, i, ext );
+			n_posix_snprintf_literal( str, cch + 1, "%s%s%0*lld%s", dir, N_POSIX_SLASH, digit_int, i, ext );
 //n_posix_debug( str );
 
 		} else {
@@ -1090,14 +1091,14 @@ n_curico_multi_unpack( const n_posix_char *fname )
 	n_memory_free_closed( p );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_curico_bmp_load_onmemory( u8 *p, n_type_gfx cb, n_bmp *bmp, n_bmp *msk, n_type_gfx *loaded_bpp, n_type_gfx *loaded_size )
 {
 
-	n_posix_bool ret = n_posix_true;
+	BOOL ret = TRUE;
 
 	if ( p == NULL ) { return ret; }
 
@@ -1114,14 +1115,14 @@ n_curico_bmp_load_onmemory( u8 *p, n_type_gfx cb, n_bmp *bmp, n_bmp *msk, n_type
 	{
 //n_posix_debug_literal( " PNG Icon " );
 
-		if ( n_posix_false )//( n_sysinfo_version_vista_or_later() )
+		if ( FALSE )//( n_sysinfo_version_vista_or_later() )
 		{
 
 			// [!] : WinXP or earlier : not supported
 
 			//DWORD byte = SizeofResource( hmod, hrsrc );
 			//UINT    lr = LR_DEFAULTCOLOR | LR_DEFAULTSIZE;
-			//HICON hico = CreateIconFromResourceEx( p, byte, n_posix_true, 0x00030000, sx,sy, lr );
+			//HICON hico = CreateIconFromResourceEx( p, byte, TRUE, 0x00030000, sx,sy, lr );
 
 			//n_win_icon_hicon2bmp( hico, sx,sy, bmp, msk );
 
@@ -1129,12 +1130,12 @@ n_curico_bmp_load_onmemory( u8 *p, n_type_gfx cb, n_bmp *bmp, n_bmp *msk, n_type
 
 			n_png png; n_png_zero( &png );
 			ret = n_png_load_onmemory( &png, p, cb );
-			if ( ret == n_posix_false )
+			if ( ret == FALSE )
 			{
 				ret = n_png_uncompress( &png, bmp );
 			}
 
-			if ( ret == n_posix_false )
+			if ( ret == FALSE )
 			{
 				if ( loaded_bpp  != NULL ) { (*loaded_bpp ) = N_CURICO_LOADED_PNG; }
 				if ( loaded_size != NULL ) { (*loaded_size) = N_BMP_SX( bmp );     }
@@ -1246,7 +1247,7 @@ n_curico_bmp_load_onmemory( u8 *p, n_type_gfx cb, n_bmp *bmp, n_bmp *msk, n_type
 
 		} else {
 
-			ret = n_posix_false;
+			ret = FALSE;
 
 			if ( N_BMP_ALPHA_CHANNEL_VISIBLE == 255 )
 			{
@@ -1264,7 +1265,7 @@ n_curico_bmp_load_onmemory( u8 *p, n_type_gfx cb, n_bmp *bmp, n_bmp *msk, n_type
 
 		n_curico_mask_decode( &check, &p[ offset ] );
 
-		if ( ( ret == n_posix_false )&&( msk != NULL ) )
+		if ( ( ret == FALSE )&&( msk != NULL ) )
 		{
 			n_bmp_free( msk );
 //n_bmp_new( msk, N_BMP_SX( &check ), N_BMP_SY( &check ) );
@@ -1293,7 +1294,7 @@ n_curico_bmp_load_onmemory( u8 *p, n_type_gfx cb, n_bmp *bmp, n_bmp *msk, n_type
 		}
 
 
-		if ( ret == n_posix_false )
+		if ( ret == FALSE )
 		{
 			if ( loaded_bpp  != NULL ) { (*loaded_bpp ) = bpp;  }
 			if ( loaded_size != NULL ) { (*loaded_size) = size; }
@@ -1421,28 +1422,28 @@ n_curico_seek( n_curico *curico, n_type_gfx count, n_type_gfx size, n_type_gfx *
 	return found;
 }
 
-n_posix_bool
+BOOL
 n_curico_extract( const n_posix_char *fname, n_bmp *bmp, n_type_gfx size, n_type_gfx arg_bpp, n_type_gfx *loaded_bpp, n_type_gfx *loaded_size )
 {
-//return n_posix_true;
+//return TRUE;
 /*
-n_posix_bool debug = n_posix_false;
+BOOL debug = FALSE;
 n_posix_char *_name = n_string_path_name_new( fname );
 if ( n_string_is_same_literal( "neko.multi.ico", _name ) )
 {
-	debug = n_posix_true;
+	debug = TRUE;
 }
 n_string_path_free( _name );
 */
 //if ( debug ) { n_posix_debug_literal( " 1 " ); }
 
 
-	if ( size <= 0 ) { size = 256; }//{ return n_posix_true; }
+	if ( size <= 0 ) { size = 256; }//{ return TRUE; }
 
 
 	n_curico c; n_curico_zero( &c );
 
-	if ( n_posix_false == n_curico_load( &c, bmp, fname ) )
+	if ( FALSE == n_curico_load( &c, bmp, fname ) )
 	{
 //n_posix_debug_literal( " n_curico_load() : %s ", fname );
 //n_bmp_save_literal( bmp, "ret.bmp" );
@@ -1450,18 +1451,18 @@ n_string_path_free( _name );
 		if ( loaded_bpp  != NULL ) { (*loaded_bpp ) = N_BMP_DEPTH( bmp ); }
 		if ( loaded_size != NULL ) { (*loaded_size) = N_BMP_SX   ( bmp ); }
 
-		return n_posix_false;
+		return FALSE;
 	}
-//return n_posix_true;
+//return TRUE;
 
 
 	n_type_int fsize = n_posix_stat_size( fname );
-	if ( fsize < ( N_CURICO_SIZE_HEADER + N_BMP_SIZE_INFOH ) ) { return n_posix_true; }
-	if ( n_bmp_size_is_overflow( fsize ) ) { return n_posix_true; }
+	if ( fsize < ( N_CURICO_SIZE_HEADER + N_BMP_SIZE_INFOH ) ) { return TRUE; }
+	if ( n_bmp_size_is_overflow( fsize ) ) { return TRUE; }
 
 
 	FILE *fp = n_posix_fopen_read( fname );
-	if ( fp == NULL ) { return n_posix_true; }
+	if ( fp == NULL ) { return TRUE; }
 
 
 	// [!] : sniffer
@@ -1470,21 +1471,21 @@ n_string_path_free( _name );
 	if ( zero != 0 )
 	{
 		n_posix_fclose( fp );
-		return n_posix_true;
+		return TRUE;
 	}
 
 	u16 type; n_posix_fread( &type, sizeof( u16 ), 1, fp );
 	if ( ( type != N_CURICO_TYPE_ICO )&&( type != N_CURICO_TYPE_CUR ) )
 	{
 		n_posix_fclose( fp );
-		return n_posix_true;
+		return TRUE;
 	}
 
 	u16 count; n_posix_fread( &count, sizeof( u16 ), 1, fp );
 	if ( count == 0 )
 	{
 		n_posix_fclose( fp );
-		return n_posix_true;
+		return TRUE;
 	}
 
 /*
@@ -1507,7 +1508,7 @@ n_string_path_free( _name );
 
 		n_posix_fclose( fp );
 
-		return n_posix_true;
+		return TRUE;
 	}
 */
 
@@ -1523,7 +1524,7 @@ n_string_path_free( _name );
 	//
 	//	PNG : 0x89 50 4e 47 : . P N G
 	//	BMP : 0x28 00 00 00 : BITMAPINFOHEADER.biSize (40Byte)
-//return n_posix_true;
+//return TRUE;
 
 	// [!] : an .ico file has only one .png file
 
@@ -1543,18 +1544,18 @@ n_string_path_free( _name );
 	{
 //n_posix_debug_literal( " PNG Icon " );
 
-		n_posix_bool ret = n_posix_true;
+		BOOL ret = TRUE;
 
 
 		n_png png; n_png_zero( &png );
 
 		ret = n_png_load_onmemory( &png, &p[ N_CURICO_SIZE_HEADER ], fsize - N_CURICO_SIZE_HEADER );
-		if ( ret == n_posix_false )
+		if ( ret == FALSE )
 		{
 			ret = n_png_uncompress( &png, bmp );
 		}
 
-		if ( ret == n_posix_false )
+		if ( ret == FALSE )
 		{
 			if ( loaded_bpp  != NULL ) { (*loaded_bpp ) = N_CURICO_LOADED_PNG; }
 			if ( loaded_size != NULL ) { (*loaded_size) = N_BMP_SX( bmp );     }
@@ -1568,7 +1569,7 @@ n_string_path_free( _name );
 		return ret;
 
 	}
-//return n_posix_true;
+//return TRUE;
 
 
 	//n_memory_copy( p, &c, N_CURICO_SIZE_DIR );
@@ -1609,7 +1610,7 @@ n_string_path_free( _name );
 
 		n_memory_free_closed( curico );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -1677,7 +1678,7 @@ n_string_path_free( _name );
 	}
 
 
-	n_posix_bool ret = n_posix_true;
+	BOOL ret = TRUE;
 	if ( found_index != -1 )
 	{
 		ret = n_curico_bmp_load_onmemory( &p[ curico[ found_index ].offset ], curico[ found_index ].bmpsize, bmp, NULL, loaded_bpp, loaded_size );

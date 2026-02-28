@@ -21,31 +21,31 @@
 
 
 
-n_posix_inline n_posix_bool
+n_posix_inline BOOL
 n_bmp_is_trans( const n_bmp *bmp, u32 color )
 {
-//return n_posix_false;
+//return FALSE;
 
-	if ( bmp == NULL ) { return n_posix_false; }
+	if ( bmp == NULL ) { return FALSE; }
 
 	if ( ( bmp->transparent_onoff )&&( color == n_bmp_trans ) )
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_inline n_posix_bool
-n_bmp_transparent_onoff( n_bmp *bmp, n_posix_bool onoff )
+n_posix_inline BOOL
+n_bmp_transparent_onoff( n_bmp *bmp, BOOL onoff )
 {
-//return n_posix_false;
+//return FALSE;
 
-	if ( bmp == NULL ) { return n_posix_false; }
+	if ( bmp == NULL ) { return FALSE; }
 
 
-	n_posix_bool prev = bmp->transparent_onoff;
+	BOOL prev = bmp->transparent_onoff;
 
 	bmp->transparent_onoff = onoff;
 

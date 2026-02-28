@@ -14,8 +14,8 @@
 
 
 
-static n_posix_bool n_bmp_table_blend_onoff = n_posix_false;
-static n_bmp        n_bmp_table_blend_bmp;
+static BOOL  n_bmp_table_blend_onoff = FALSE;
+static n_bmp n_bmp_table_blend_bmp;
 
 
 
@@ -24,7 +24,7 @@ void
 n_bmp_table_blend_init( void )
 {
 
-	if ( n_bmp_table_blend_onoff != n_posix_false ) { return; }
+	if ( n_bmp_table_blend_onoff != FALSE ) { return; }
 
 
 	n_bmp_zero( &n_bmp_table_blend_bmp );
@@ -33,7 +33,7 @@ n_bmp_table_blend_init( void )
 	n_bmp_flush( &n_bmp_table_blend_bmp, 0 );
 
 
-	n_bmp_table_blend_onoff = n_posix_true;
+	n_bmp_table_blend_onoff = TRUE;
 
 
 	return;
@@ -43,14 +43,14 @@ void
 n_bmp_table_blend_exit( void )
 {
 
-	if ( n_bmp_table_blend_onoff == n_posix_false ) { return; }
+	if ( n_bmp_table_blend_onoff == FALSE ) { return; }
 
 
 	n_bmp_free( &n_bmp_table_blend_bmp );
 	n_bmp_zero( &n_bmp_table_blend_bmp );
 
 
-	n_bmp_table_blend_onoff = n_posix_false;
+	n_bmp_table_blend_onoff = FALSE;
 
 
 	return;
@@ -85,7 +85,7 @@ n_bmp_table_blend_channel( int f, int t, n_type_real blend )
 	if ( blend >= 1 ) { return t; }
 
 
-	if ( n_bmp_table_blend_onoff == n_posix_false )
+	if ( n_bmp_table_blend_onoff == FALSE )
 	{
 		atexit( n_bmp_table_blend_exit );
 		n_bmp_table_blend_init();

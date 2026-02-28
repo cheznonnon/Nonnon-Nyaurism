@@ -149,8 +149,8 @@ n_bmp_antialias( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_g
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -238,7 +238,7 @@ n_bmp_blur_thread_main( n_bmp_blur_thread_struct *p )
 
 		u32 color = n_bmp_blur_pixel( p->bmp, p->x + tx, p->y + ty, p->size, p->weight, p->blend );
 
-		if ( n_posix_false == n_bmp_is_trans( p->bmp, color ) )
+		if ( FALSE == n_bmp_is_trans( p->bmp, color ) )
 		{
 			n_bmp_ptr_set_fast( p->target, tx,ty, color );
 		}
@@ -301,8 +301,8 @@ n_bmp_blur( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx sy
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -380,7 +380,7 @@ void
 n_bmp_contrast_thread_main( n_bmp_contrast_thread_struct *p )
 {
 
-	n_posix_bool is_flush = ( ( p->x == 0 )&&( p->y == 0 )&&( p->sx == N_BMP_SX( p->bmp ) )&&( p->sy == N_BMP_SY( p->bmp ) ) );
+	BOOL is_flush = ( ( p->x == 0 )&&( p->y == 0 )&&( p->sx == N_BMP_SX( p->bmp ) )&&( p->sy == N_BMP_SY( p->bmp ) ) );
 	if ( is_flush )
 	{
 //n_posix_debug_literal( "fast mode" );
@@ -391,7 +391,7 @@ n_bmp_contrast_thread_main( n_bmp_contrast_thread_struct *p )
 		{
 
 			u32 color = N_BMP_PTR( p->bmp )[ i ];
-			if ( n_posix_false == n_bmp_is_trans( p->bmp, color ) )
+			if ( FALSE == n_bmp_is_trans( p->bmp, color ) )
 			{
 				N_BMP_PTR( p->bmp )[ i ] = n_bmp_contrast_pixel( color, p->param );
 			}
@@ -412,7 +412,7 @@ n_bmp_contrast_thread_main( n_bmp_contrast_thread_struct *p )
 
 		u32 color; n_bmp_ptr_get_fast( p->bmp, p->x + tx, p->y + ty, &color );
 
-		if ( n_posix_false == n_bmp_is_trans( p->bmp, color ) )
+		if ( FALSE == n_bmp_is_trans( p->bmp, color ) )
 		{
 			color = n_bmp_contrast_pixel( color, p->param );
 
@@ -474,8 +474,8 @@ n_bmp_contrast( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gf
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -558,7 +558,7 @@ n_bmp_sharpen_thread_main( n_bmp_sharpen_thread_struct *p )
 
 		u32 color = n_bmp_sharpen_pixel( p->bmp, p->x + tx, p->y + ty, p->blend );
 
-		if ( n_posix_false == n_bmp_is_trans( p->bmp, color ) )
+		if ( FALSE == n_bmp_is_trans( p->bmp, color ) )
 		{
 			n_bmp_ptr_set_fast( p->target, tx,ty, color );
 		}
@@ -623,8 +623,8 @@ n_bmp_sharpen( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -704,7 +704,7 @@ void
 n_bmp_gamma_thread_main( n_bmp_gamma_thread_struct *p )
 {
 
-	n_posix_bool is_flush = ( ( p->x == 0 )&&( p->y == 0 )&&( p->sx == N_BMP_SX( p->bmp ) )&&( p->sy == N_BMP_SY( p->bmp ) ) );
+	BOOL is_flush = ( ( p->x == 0 )&&( p->y == 0 )&&( p->sx == N_BMP_SX( p->bmp ) )&&( p->sy == N_BMP_SY( p->bmp ) ) );
 	if ( is_flush )
 	{
 //n_posix_debug_literal( "fast mode" );
@@ -715,7 +715,7 @@ n_bmp_gamma_thread_main( n_bmp_gamma_thread_struct *p )
 		{
 
 			u32 color = N_BMP_PTR( p->bmp )[ i ];
-			if ( n_posix_false == n_bmp_is_trans( p->bmp, color ) )
+			if ( FALSE == n_bmp_is_trans( p->bmp, color ) )
 			{
 				N_BMP_PTR( p->bmp )[ i ] = n_bmp_gamma_pixel( color, p->gamma );
 			}
@@ -736,7 +736,7 @@ n_bmp_gamma_thread_main( n_bmp_gamma_thread_struct *p )
 
 		u32 color; n_bmp_ptr_get_fast( p->bmp, p->x + tx, p->y + ty, &color );
 
-		if ( n_posix_false == n_bmp_is_trans( p->bmp, color ) )
+		if ( FALSE == n_bmp_is_trans( p->bmp, color ) )
 		{
 			color = n_bmp_gamma_pixel( color, p->gamma );
 			n_bmp_ptr_set_fast( p->bmp, p->x + tx, p->y + ty, color );
@@ -809,8 +809,8 @@ n_bmp_gamma( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx s
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -881,8 +881,8 @@ n_bmp_gamma( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx s
 #define N_BMP_COPY_ROTATE_LEFT             N_BMP_ROTATE_LEFT
 #define N_BMP_COPY_ROTATE_RIGHT            N_BMP_ROTATE_RIGHT
 
-#define n_bmp_copy(          f,t, fx,fy, fsx,fsy, tx,ty,                              fnlz, blend, mirror, rotate, edge ) \
-	n_bmp_copy_internal( f,t, fx,fy, fsx,fsy, tx,ty, n_posix_false,n_posix_false, fnlz, blend, mirror, rotate, edge )
+#define n_bmp_copy(          f,t, fx,fy, fsx,fsy, tx,ty,              fnlz, blend, mirror, rotate, edge ) \
+	n_bmp_copy_internal( f,t, fx,fy, fsx,fsy, tx,ty, FALSE,FALSE, fnlz, blend, mirror, rotate, edge )
 
 #define n_bmp_mirrorcopy( f,t, fx,fy, fsx,fsy, tx,ty, fnlz,      m       ) \
 	n_bmp_copy(       f,t, fx,fy, fsx,fsy, tx,ty, fnlz, 0.0, m, 0, 0 )
@@ -912,13 +912,13 @@ n_bmp_copy_internal
 	const n_bmp *fr, n_bmp *to,
 	n_type_gfx fx, n_type_gfx fy, n_type_gfx fsx, n_type_gfx fsy,
 	n_type_gfx tx, n_type_gfx ty,
-	n_posix_bool perpixel_override,
-	n_posix_bool perpixel_override_onoff,
-	n_posix_bool finalize,
-	n_type_real  blend,
-	int          mirror,
-	int          rotate,
-	n_type_gfx   edge
+	BOOL        perpixel_override,
+	BOOL        perpixel_override_onoff,
+	BOOL        finalize,
+	n_type_real blend,
+	int         mirror,
+	int         rotate,
+	n_type_gfx  edge
 )
 {
 
@@ -991,9 +991,9 @@ n_bmp_copy_internal
 	}
 
 
-	n_posix_bool write_needed = n_posix_false;
+	BOOL write_needed = FALSE;
 
-	n_posix_bool trans_onoff  = target.transparent_onoff;
+	BOOL trans_onoff  = target.transparent_onoff;
 
 
 	n_type_gfx x = 0;
@@ -1014,7 +1014,7 @@ n_bmp_copy_internal
 				f = n_bmp_antialias_pixel( to, tx + x, ty + y, 1.0 );
 			}
 
-			if ( n_posix_false == n_bmp_is_trans( &target, f ) )
+			if ( FALSE == n_bmp_is_trans( &target, f ) )
 			{
 				n_bmp_ptr_get_fast( to, tx + x, ty + y, &t );
 
@@ -1065,8 +1065,8 @@ n_bmp_copy_internal
 	return;
 }
 
-#define n_bmp_blendcopy(          f,t, fx,fy, fsx,fsy, tx,ty,               blend ) \
-        n_bmp_blendcopy_internal( f,t, fx,fy, fsx,fsy, tx,ty, n_posix_true, blend )
+#define n_bmp_blendcopy(          f,t, fx,fy, fsx,fsy, tx,ty,       blend ) \
+        n_bmp_blendcopy_internal( f,t, fx,fy, fsx,fsy, tx,ty, TRUE, blend )
 
 #define n_bmp_transcopy( f,t, fx,fy, fsx,fsy, tx,ty      ) \
         n_bmp_blendcopy( f,t, fx,fy, fsx,fsy, tx,ty, 0.0 )
@@ -1074,22 +1074,22 @@ n_bmp_copy_internal
 #define n_bmp_flush_blendcopy( f,t, blend ) n_bmp_blendcopy( f,t, 0,0, N_BMP_SX( f ),N_BMP_SY( f ), 0,0, blend )
 #define n_bmp_flush_transcopy( f,t        ) n_bmp_flush_blendcopy( f,t, 0.0 )
 
-#define n_bmp_blendcopy_no_finalize( f,t, fx,fy, fsx,fsy, tx,ty,                blend ) \
-        n_bmp_blendcopy_internal(    f,t, fx,fy, fsx,fsy, tx,ty, n_posix_false, blend )
+#define n_bmp_blendcopy_no_finalize( f,t, fx,fy, fsx,fsy, tx,ty,        blend ) \
+        n_bmp_blendcopy_internal(    f,t, fx,fy, fsx,fsy, tx,ty, FALSE, blend )
 
 #define n_bmp_transcopy_no_finalize( f,t, fx,fy, fsx,fsy, tx,ty      ) \
         n_bmp_blendcopy_no_finalize( f,t, fx,fy, fsx,fsy, tx,ty, 0.0 )
 
 typedef struct {
 
-	const n_bmp        *bmp_f;
-	      n_bmp        *bmp_t;
-	      n_type_gfx    fx,fy,fsx,fsy, tx,ty;
-	      n_posix_bool  perpixel_override;
-	      n_posix_bool  perpixel_override_onoff;
-	      n_posix_bool  finalize;
-	      n_type_real   blend;
-	      u32           oy, cores;
+	const n_bmp      *bmp_f;
+	      n_bmp      *bmp_t;
+	      n_type_gfx  fx,fy,fsx,fsy, tx,ty;
+	      BOOL        perpixel_override;
+	      BOOL        perpixel_override_onoff;
+	      BOOL        finalize;
+	      n_type_real blend;
+	      u32         oy, cores;
 
 } n_bmp_blendcopy_thread_struct;
 
@@ -1097,11 +1097,11 @@ void
 n_bmp_blendcopy_thread_main( n_bmp_blendcopy_thread_struct *p )
 {
 
-	n_posix_bool write_needed = n_posix_false;
-	n_posix_bool trans_needed = p->bmp_f->transparent_onoff;
+	BOOL write_needed = FALSE;
+	BOOL trans_needed = p->bmp_f->transparent_onoff;
 
 
-	n_posix_bool is_flush =
+	BOOL is_flush =
 	(
 		( p->fx == 0 )&&( p->fy == 0 )
 		&&
@@ -1247,8 +1247,8 @@ n_bmp_blendcopy_thread( n_thread_argument p )
 	return 0;
 }
 
-#define n_bmp_blendcopy_internal( fr,to, fx,fy,fsx,fsy, tx,ty,                              fnlz, blend ) \
-        n_bmp_blendcopy_all(      fr,to, fx,fy,fsx,fsy, tx,ty, n_posix_false,n_posix_false, fnlz, blend )
+#define n_bmp_blendcopy_internal( fr,to, fx,fy,fsx,fsy, tx,ty,              fnlz, blend ) \
+        n_bmp_blendcopy_all(      fr,to, fx,fy,fsx,fsy, tx,ty, FALSE,FALSE, fnlz, blend )
 
 // internal
 void
@@ -1257,9 +1257,9 @@ n_bmp_blendcopy_all
 	const n_bmp *fr, n_bmp *to,
 	n_type_gfx fx, n_type_gfx fy, n_type_gfx fsx, n_type_gfx fsy,
 	n_type_gfx tx, n_type_gfx ty,
-	n_posix_bool perpixel_override,
-	n_posix_bool perpixel_override_onoff,
-	n_posix_bool finalize,
+	BOOL perpixel_override,
+	BOOL perpixel_override_onoff,
+	BOOL finalize,
 	n_type_real  blend
 )
 {
@@ -1289,8 +1289,8 @@ n_bmp_blendcopy_all
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -1358,8 +1358,8 @@ typedef struct {
 	      n_type_gfx    fx,fy,fsx,fsy, tx,ty;
 	const n_bmp        *bmp_clip;
 	      n_type_gfx    cx,cy;
-	      n_posix_bool  finalize;
-	      n_posix_bool  trans_onoff;
+	      BOOL          finalize;
+	      BOOL          trans_onoff;
 	      n_type_real   blend;
 	      u32           oy, cores;
 
@@ -1369,7 +1369,7 @@ void
 n_bmp_clipcopy_thread_main( n_bmp_clipcopy_thread_struct *p )
 {
 
-	n_posix_bool write_needed = n_posix_false;
+	BOOL write_needed = FALSE;
 
 
 	n_type_gfx x = 0;
@@ -1397,8 +1397,8 @@ n_bmp_clipcopy_thread_main( n_bmp_clipcopy_thread_struct *p )
 			(
 				p->bmp_f, p->bmp_t,
 				p->fx + x, p->fy + y, p->tx + x, p->ty + y,
-				n_posix_false,//p->perpixel_override,
-				n_posix_false,//p->perpixel_override_onoff,
+				FALSE,//p->perpixel_override,
+				FALSE,//p->perpixel_override_onoff,
 				p->finalize,
 				p->trans_onoff,
 				blend,
@@ -1436,11 +1436,11 @@ n_bmp_clipcopy_thread( n_thread_argument p )
 	return 0;
 }
 
-#define n_bmp_clipcopy(             f,t, fx,fy, fsx,fsy, tx,ty, clip,cx,cy,               blend ) \
-        n_bmp_clipcopy_internal(    f,t, fx,fy, fsx,fsy, tx,ty, clip,cx,cy, n_posix_true, blend )
+#define n_bmp_clipcopy(             f,t, fx,fy, fsx,fsy, tx,ty, clip,cx,cy,       blend ) \
+        n_bmp_clipcopy_internal(    f,t, fx,fy, fsx,fsy, tx,ty, clip,cx,cy, TRUE, blend )
 
-#define n_bmp_clipcopy_no_finalize( f,t, fx,fy, fsx,fsy, tx,ty, clip,cx,cy,                blend ) \
-        n_bmp_clipcopy_internal(    f,t, fx,fy, fsx,fsy, tx,ty, clip,cx,cy, n_posix_false, blend )
+#define n_bmp_clipcopy_no_finalize( f,t, fx,fy, fsx,fsy, tx,ty, clip,cx,cy,        blend ) \
+        n_bmp_clipcopy_internal(    f,t, fx,fy, fsx,fsy, tx,ty, clip,cx,cy, FALSE, blend )
 
 // internal
 void
@@ -1451,7 +1451,7 @@ n_bmp_clipcopy_internal
 	n_type_gfx tx, n_type_gfx ty,
 	const n_bmp *clip,
 	n_type_gfx cx, n_type_gfx cy,
-	n_posix_bool finalize,
+	BOOL         finalize,
 	n_type_real  blend
 )
 {
@@ -1470,7 +1470,7 @@ n_bmp_clipcopy_internal
 	if ( ty == 0 ) { cy -= pty; }
 
 
-	n_posix_bool trans = fr->transparent_onoff;
+	BOOL trans = fr->transparent_onoff;
 
 
 	// [x] : Win9x : can run but not working
@@ -1490,8 +1490,8 @@ n_bmp_clipcopy_internal
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -1609,7 +1609,7 @@ void
 n_bmp_replacer_thread_main( n_bmp_replacer_thread_struct *p )
 {
 
-	n_posix_bool is_flush = ( ( p->x == 0 )&&( p->y == 0 )&&( p->sx == N_BMP_SX( p->bmp ) )&&( p->sy == N_BMP_SY( p->bmp ) ) );
+	BOOL is_flush = ( ( p->x == 0 )&&( p->y == 0 )&&( p->sx == N_BMP_SX( p->bmp ) )&&( p->sy == N_BMP_SY( p->bmp ) ) );
 	if ( is_flush )
 	{
 //n_posix_debug_literal( "fast mode" );
@@ -1620,7 +1620,7 @@ n_bmp_replacer_thread_main( n_bmp_replacer_thread_struct *p )
 		{
 
 			u32 color = N_BMP_PTR( p->bmp )[ i ];
-			if ( n_posix_false == n_bmp_is_trans( p->bmp, color ) )
+			if ( FALSE == n_bmp_is_trans( p->bmp, color ) )
 			{
 				if ( color == p->color_f )
 				{
@@ -1644,7 +1644,7 @@ n_bmp_replacer_thread_main( n_bmp_replacer_thread_struct *p )
 
 		u32 color; n_bmp_ptr_get_fast( p->bmp, p->x + tx, p->y + ty, &color );
 
-		if ( n_posix_false == n_bmp_is_trans( p->bmp, color ) )
+		if ( FALSE == n_bmp_is_trans( p->bmp, color ) )
 		{
 			if ( color == p->color_f )
 			{
@@ -1707,8 +1707,8 @@ n_bmp_replacer( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gf
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -1784,7 +1784,7 @@ n_bmp_flush_grayscale( n_bmp *bmp )
 
 		u32 color = N_BMP_PTR( bmp )[ i ];
 
-		if ( n_posix_false == n_bmp_is_trans( bmp, color ) )
+		if ( FALSE == n_bmp_is_trans( bmp, color ) )
 		{
 			N_BMP_PTR( bmp )[ i ] = n_bmp_grayscale_pixel( color );
 		}
@@ -1813,7 +1813,7 @@ n_bmp_tweaker( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx
 	if ( n_bmp_error_clipping( bmp,NULL, &x,&y,&sx,&sy, NULL,NULL ) ) { return; }
 
 
-	n_posix_bool is_flush = ( ( x == 0 )&&( y == 0 )&&( sx == N_BMP_SX( bmp ) )&&( sy == N_BMP_SY( bmp ) ) );
+	BOOL is_flush = ( ( x == 0 )&&( y == 0 )&&( sx == N_BMP_SX( bmp ) )&&( sy == N_BMP_SY( bmp ) ) );
 	if ( is_flush )
 	{
 
@@ -1823,7 +1823,7 @@ n_bmp_tweaker( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx
 		{
 
 			u32 color = N_BMP_PTR( bmp )[ i ];
-			if ( n_posix_false == n_bmp_is_trans( bmp, color ) )
+			if ( FALSE == n_bmp_is_trans( bmp, color ) )
 			{
 
 				int aa = n_bmp_clamp_channel( n_bmp_a( color ) + a );
@@ -1851,7 +1851,7 @@ n_bmp_tweaker( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx
 
 		u32 color; n_bmp_ptr_get_fast( bmp, tx + x, ty + y, &color );
 
-		if ( n_posix_false == n_bmp_is_trans( bmp, color ) )
+		if ( FALSE == n_bmp_is_trans( bmp, color ) )
 		{
 
 			int aa = n_bmp_clamp_channel( n_bmp_a( color ) + a );
@@ -1894,7 +1894,7 @@ void
 n_bmp_tweaker_hsl_thread_main( n_bmp_tweaker_hsl_thread_struct *p )
 {
 
-	n_posix_bool is_flush = ( ( p->x == 0 )&&( p->y == 0 )&&( p->sx == N_BMP_SX( p->bmp ) )&&( p->sy == N_BMP_SY( p->bmp ) ) );
+	BOOL is_flush = ( ( p->x == 0 )&&( p->y == 0 )&&( p->sx == N_BMP_SX( p->bmp ) )&&( p->sy == N_BMP_SY( p->bmp ) ) );
 	if ( is_flush )
 	{
 //n_posix_debug_literal( "fast mode" );
@@ -1905,7 +1905,7 @@ n_bmp_tweaker_hsl_thread_main( n_bmp_tweaker_hsl_thread_struct *p )
 		{
 
 			u32 color = N_BMP_PTR( p->bmp )[ i ];
-			if ( n_posix_false == n_bmp_is_trans( p->bmp, color ) )
+			if ( FALSE == n_bmp_is_trans( p->bmp, color ) )
 			{
 				N_BMP_PTR( p->bmp )[ i ] = n_bmp_hsl_tweak_pixel( color, p->hue, p->saturation, p->lightness );
 			}
@@ -1926,7 +1926,7 @@ n_bmp_tweaker_hsl_thread_main( n_bmp_tweaker_hsl_thread_struct *p )
 
 		u32 color; n_bmp_ptr_get_fast( p->bmp, p->x + tx, p->y + ty, &color );
 
-		if ( n_posix_false == n_bmp_is_trans( p->bmp, color ) )
+		if ( FALSE == n_bmp_is_trans( p->bmp, color ) )
 		{
 			color = n_bmp_hsl_tweak_pixel( color, p->hue, p->saturation, p->lightness );
 
@@ -1997,8 +1997,8 @@ n_bmp_tweaker_hsl( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -2070,7 +2070,7 @@ n_bmp_mixer( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx s
 	if ( n_bmp_error_clipping( bmp,NULL, &x,&y,&sx,&sy, NULL,NULL ) ) { return; }
 
 
-	n_posix_bool is_flush = ( ( x == 0 )&&( y == 0 )&&( sx == N_BMP_SX( bmp ) )&&( sy == N_BMP_SY( bmp ) ) );
+	BOOL is_flush = ( ( x == 0 )&&( y == 0 )&&( sx == N_BMP_SX( bmp ) )&&( sy == N_BMP_SY( bmp ) ) );
 	if ( is_flush )
 	{
 
@@ -2080,7 +2080,7 @@ n_bmp_mixer( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx s
 		{
 
 			u32 color_f = N_BMP_PTR( bmp )[ i ];
-			if ( n_posix_false == n_bmp_is_trans( bmp, color_f ) )
+			if ( FALSE == n_bmp_is_trans( bmp, color_f ) )
 			{
 				u32 color_t = n_bmp_blend_pixel( color_f, color_mix, blend );
 				if ( color_f != color_t )
@@ -2105,7 +2105,7 @@ n_bmp_mixer( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx s
 
 		u32 color_f; n_bmp_ptr_get_fast( bmp, tx + x, ty + y, &color_f );
 
-		if ( n_posix_false == n_bmp_is_trans( bmp, color_f ) )
+		if ( FALSE == n_bmp_is_trans( bmp, color_f ) )
 		{
 			u32 color_t = n_bmp_blend_pixel( color_f, color_mix, blend );
 			if ( color_f != color_t )
@@ -2161,7 +2161,7 @@ n_bmp_reducer( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx
 	factor = abs( factor );
 
 
-	n_posix_bool is_flush = ( ( x == 0 )&&( y == 0 )&&( sx == N_BMP_SX( bmp ) )&&( sy == N_BMP_SY( bmp ) ) );
+	BOOL is_flush = ( ( x == 0 )&&( y == 0 )&&( sx == N_BMP_SX( bmp ) )&&( sy == N_BMP_SY( bmp ) ) );
 	if ( is_flush )
 	{
 
@@ -2276,7 +2276,7 @@ typedef struct {
 	n_bmp        *bmp_clip;
 	n_type_gfx    cx;
 	n_type_gfx    cy;
-	n_posix_bool  clear_onoff;
+	BOOL          clear_onoff;
 	u32           oy, cores;
 
 } n_bmp_rasterizer_thread_struct;
@@ -2294,7 +2294,7 @@ n_bmp_rasterizer_thread_main( n_bmp_rasterizer_thread_struct *p )
 	n_type_gfx  x = 0;
 	n_type_gfx  y = p->oy; if ( y >= sy ) { return; }
 
-	n_posix_bool clip_onoff = ( n_posix_false == n_bmp_error( p->bmp_clip ) );
+	BOOL clip_onoff = ( FALSE == n_bmp_error( p->bmp_clip ) );
 
 	if ( p->clear_onoff )
 	{
@@ -2330,7 +2330,7 @@ n_bmp_rasterizer_thread_main( n_bmp_rasterizer_thread_struct *p )
 			}
 
 			if (
-				( clip_onoff == n_posix_false )
+				( clip_onoff == FALSE )
 				||
 				( N_BMP_ALPHA_CHANNEL_VISIBLE != alpha )
 			)
@@ -2340,9 +2340,9 @@ n_bmp_rasterizer_thread_main( n_bmp_rasterizer_thread_struct *p )
 				n_bmp_ptr_get( p->bmp_f, p->fx + x, p->fy + y, &f );
 
 				if (
-					( n_posix_false == n_bmp_is_trans( p->bmp_f, f ) )
+					( FALSE == n_bmp_is_trans( p->bmp_f, f ) )
 					&&
-					( n_posix_false == n_bmp_ptr_get( p->bmp_t, p->tx + x, p->ty + y, &t ) )
+					( FALSE == n_bmp_ptr_get( p->bmp_t, p->tx + x, p->ty + y, &t ) )
 				)
 				{
 
@@ -2376,8 +2376,8 @@ n_bmp_rasterizer_thread_main( n_bmp_rasterizer_thread_struct *p )
 					u32 u = color_default; n_bmp_ptr_get( p->bmp_f, p->fx + x, p->fy + y - 1, &u );
 					u32 d = color_default; n_bmp_ptr_get( p->bmp_f, p->fx + x, p->fy + y + 1, &d );
 
-					n_posix_bool is_u = ( cutoff > (int) n_bmp_r( u ) );
-					n_posix_bool is_d = ( cutoff > (int) n_bmp_r( d ) );
+					BOOL is_u = ( cutoff > (int) n_bmp_r( u ) );
+					BOOL is_d = ( cutoff > (int) n_bmp_r( d ) );
 
 					if ( ( is_u )&&( is_d ) )
 					{
@@ -2396,8 +2396,8 @@ n_bmp_rasterizer_thread_main( n_bmp_rasterizer_thread_struct *p )
 					u32 l = color_default; n_bmp_ptr_get( p->bmp_f, p->fx + x - 1, p->fy + y, &l );
 					u32 r = color_default; n_bmp_ptr_get( p->bmp_f, p->fx + x + 1, p->fy + y, &r );
 
-					n_posix_bool is_l = ( cutoff > (int) n_bmp_r( l ) );
-					n_posix_bool is_r = ( cutoff > (int) n_bmp_r( r ) );
+					BOOL is_l = ( cutoff > (int) n_bmp_r( l ) );
+					BOOL is_r = ( cutoff > (int) n_bmp_r( r ) );
 
 					if ( ( is_l )&&( is_r ) )
 					{
@@ -2456,7 +2456,7 @@ n_bmp_rasterizer_thread_main( n_bmp_rasterizer_thread_struct *p )
 					if (
 						( f != n_bmp_trans )
 						&&
-						( n_posix_false == n_bmp_ptr_get( p->bmp_t, p->tx + x, p->ty + y, &t ) )
+						( FALSE == n_bmp_ptr_get( p->bmp_t, p->tx + x, p->ty + y, &t ) )
 					)
 					{
 
@@ -2512,7 +2512,7 @@ n_bmp_rasterizer_thread_main( n_bmp_rasterizer_thread_struct *p )
 					u32 f,t;
 					n_bmp_ptr_get( p->bmp_f, p->fx + x, p->fy + y, &f );
 
-					if ( n_posix_false == n_bmp_ptr_get( p->bmp_t, p->tx + x, p->ty + y, &t ) )
+					if ( FALSE == n_bmp_ptr_get( p->bmp_t, p->tx + x, p->ty + y, &t ) )
 					{
 
 						blend = n_bmp_table_coeff_channel( n_bmp_r( f ) );
@@ -2565,7 +2565,7 @@ n_bmp_rasterizer_thread_main( n_bmp_rasterizer_thread_struct *p )
 				if (
 					( f != n_bmp_trans )
 					&&
-					( n_posix_false == n_bmp_ptr_get( p->bmp_t, p->tx + x, p->ty + y, &t ) )
+					( FALSE == n_bmp_ptr_get( p->bmp_t, p->tx + x, p->ty + y, &t ) )
 				)
 				{
 
@@ -2607,7 +2607,7 @@ n_bmp_rasterizer_thread_main( n_bmp_rasterizer_thread_struct *p )
 				u32 f,t;
 				n_bmp_ptr_get( p->bmp_f, p->fx + x, p->fy + y, &f );
 
-				if ( n_posix_false == n_bmp_ptr_get( p->bmp_t, p->tx + x, p->ty + y, &t ) )
+				if ( FALSE == n_bmp_ptr_get( p->bmp_t, p->tx + x, p->ty + y, &t ) )
 				{
 
 					blend = n_bmp_table_coeff_channel( n_bmp_r( f ) );
@@ -2664,7 +2664,7 @@ n_bmp_rasterizer_all
 	n_type_gfx tx, n_type_gfx ty,
 	n_bmp *bmp_color, u32 color,
 	n_bmp *bmp_clip, n_type_gfx cx, n_type_gfx cy,
-	n_posix_bool clear_onoff
+	BOOL   clear_onoff
 )
 {
 
@@ -2706,8 +2706,8 @@ n_bmp_rasterizer_all
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -2772,7 +2772,7 @@ n_bmp_rasterizer_all
 #define n_bmp_cornermask_rich( b, r, f, ul, ur, dl, dr ) n_bmp_cornermask_internal( b, 0, 0, N_BMP_SX( b ), N_BMP_SY( b ), r, f, ul, ur, dl, dr )
 
 #define n_bmp_rasterizer_cornermask( fr, to, fx, fy, fsx, fsy, tx, ty, color )\
-	n_bmp_rasterizer_all(        fr, to, fx, fy, fsx, fsy, tx, ty, NULL, color, NULL,0,0, n_posix_false )
+	n_bmp_rasterizer_all(        fr, to, fx, fy, fsx, fsy, tx, ty, NULL, color, NULL,0,0, FALSE )
 
 // internal
 void
@@ -2798,7 +2798,7 @@ n_bmp_cornermask_internal
 	if ( round_size == 0 ) { return; }
 
 
-	extern n_posix_bool n_bmp_save( const n_bmp *bmp, const n_posix_char *filename );
+	extern BOOL n_bmp_save( const n_bmp *bmp, const n_posix_char *filename );
 
 
 //bg_ul = bg_ur = bg_dl = bg_dr = n_bmp_rgb( 255,0,0 );
@@ -2820,7 +2820,7 @@ n_bmp_cornermask_internal
 
 		// [!] : slow mode only
 
-		n_bmp_rasterizer( &b, bmp, x,y, bg_ul, n_posix_false );
+		n_bmp_rasterizer( &b, bmp, x,y, bg_ul, FALSE );
 
 	} else {
 

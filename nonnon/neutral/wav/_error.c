@@ -16,28 +16,28 @@
 
 
 
-n_posix_bool
+BOOL
 n_wav_error_format( const n_wav *wav )
 {
 
-	if ( n_wav_error( wav, -2 ) ) { return n_posix_true; }
+	if ( n_wav_error( wav, -2 ) ) { return TRUE; }
 
 
-	if ( 2 != N_WAV_STEREO( wav ) ) { return n_posix_true; }
+	if ( 2 != N_WAV_STEREO( wav ) ) { return TRUE; }
 
 	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_PCM )
 	{
-		if ( 16 != N_WAV_BIT( wav ) ) { return n_posix_true; }
+		if ( 16 != N_WAV_BIT( wav ) ) { return TRUE; }
 	} else
 	if ( N_WAV_FORMAT_DEFAULT == N_WAV_FORMAT_FLOAT )
 	{
-		if ( 32 != N_WAV_BIT( wav ) ) { return n_posix_true; }
+		if ( 32 != N_WAV_BIT( wav ) ) { return TRUE; }
 	}
 
-	//if ( 44100 != N_WAV_RATE( wav ) ) { return n_posix_true; }
+	//if ( 44100 != N_WAV_RATE( wav ) ) { return TRUE; }
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 

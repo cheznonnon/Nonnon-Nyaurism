@@ -23,17 +23,17 @@
 
 
 
-n_posix_bool
+BOOL
 n_filer_is_locked_single( const n_posix_char *name )
 {
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 /*
 	// [x] : don't use this solution : a target file will be truncated
 
 	FILE *fp = n_posix_fopen_write( name );
-	if ( fp == NULL ) { ret = n_posix_true; }
+	if ( fp == NULL ) { ret = TRUE; }
 	n_posix_fclose( fp );
 */
 
@@ -48,11 +48,11 @@ n_filer_is_locked_single( const n_posix_char *name )
 		n_posix_char *s_f = n_string_path_carboncopy( name );
 		n_posix_char *s_t = n_string_path_make_new( upp, tmp );
 
-		if ( n_posix_false == n_posix_rename( s_f, s_t ) )
+		if ( FALSE == n_posix_rename( s_f, s_t ) )
 		{
 			n_posix_rename( s_t, s_f );
 		} else {
-			ret = n_posix_true;
+			ret = TRUE;
 		}
 
 		n_string_path_free( tmp );
@@ -81,7 +81,7 @@ n_filer_is_locked_single( const n_posix_char *name )
 
 		if ( h == INVALID_HANDLE_VALUE )
 		{
-			ret = n_posix_true;
+			ret = TRUE;
 		}
 
 		CloseHandle( h );
@@ -94,7 +94,7 @@ n_filer_is_locked_single( const n_posix_char *name )
 	return ret;
 }
 
-n_posix_bool
+BOOL
 n_filer_is_locked( const n_posix_char *abspath )
 {
 
@@ -102,14 +102,14 @@ n_filer_is_locked( const n_posix_char *abspath )
 	if ( n_dir_load_recursive( &d, abspath ) ) { return n_filer_is_locked_single( abspath ); }
 
 
-	if ( 0 == n_dir_all( &d ) ) { n_dir_free( &d ); return n_posix_false; }
+	if ( 0 == n_dir_all( &d ) ) { n_dir_free( &d ); return FALSE; }
 
 
 	// [Needed] : order is random
 	n_dir_sort_path( &d );
 
 
-	n_posix_bool is_locked = n_posix_false;
+	BOOL is_locked = FALSE;
 
 	n_type_int i = 0;
 	n_posix_loop
@@ -136,13 +136,13 @@ n_filer_is_locked( const n_posix_char *abspath )
 	return is_locked;
 }
 
-#define n_filer_remove( abspath ) n_filer_remove_internal( abspath, n_posix_true )
+#define n_filer_remove( abspath ) n_filer_remove_internal( abspath, TRUE )
 
 // internal
-n_posix_bool
-n_filer_remove_internal( const n_posix_char *abspath, n_posix_bool is_toplevel )
+BOOL
+n_filer_remove_internal( const n_posix_char *abspath, BOOL is_toplevel )
 {
-//return n_posix_false;
+//return FALSE;
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
@@ -177,7 +177,7 @@ n_filer_remove_internal( const n_posix_char *abspath, n_posix_bool is_toplevel )
 
 			n_posix_rmdir( abspath );
 
-			return n_posix_false;
+			return FALSE;
 		}
 
 
@@ -190,7 +190,7 @@ n_filer_remove_internal( const n_posix_char *abspath, n_posix_bool is_toplevel )
 
 			n_posix_rmdir( abspath );
 
-			return n_posix_false;
+			return FALSE;
 		}
 
 
@@ -209,7 +209,7 @@ n_filer_remove_internal( const n_posix_char *abspath, n_posix_bool is_toplevel )
 
 			n_posix_char *str = n_string_path_make_new( abspath, n_dir_name( &d, i ) );
 
-			n_filer_remove_internal( str, n_posix_false );
+			n_filer_remove_internal( str, FALSE );
 
 			n_string_path_free( str );
 
@@ -229,11 +229,11 @@ n_filer_remove_internal( const n_posix_char *abspath, n_posix_bool is_toplevel )
 	} else
 	if ( type == N_POSIX_STAT_TYPE_NOTEXIST )
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 // internal
@@ -349,21 +349,21 @@ n_filer_copy_file( FILE *fp_i, FILE *fp_o, n_type_int size )
 }
 
 // internal
-n_posix_bool
+BOOL
 n_filer_timestamp_internal( const n_posix_char *f, const n_posix_char *t )
 {
 
-	if ( f == NULL ) { return n_posix_true; }
-	if ( t == NULL ) { return n_posix_true; }
+	if ( f == NULL ) { return TRUE; }
+	if ( t == NULL ) { return TRUE; }
 
 
 	// [!] : folders have no timestamp
 
-	if ( n_posix_stat_is_dir( f ) ) { return n_posix_true; }
-	if ( n_posix_stat_is_dir( t ) ) { return n_posix_true; }
+	if ( n_posix_stat_is_dir( f ) ) { return TRUE; }
+	if ( n_posix_stat_is_dir( t ) ) { return TRUE; }
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
@@ -418,7 +418,7 @@ n_filer_timestamp_internal( const n_posix_char *f, const n_posix_char *t )
 
 	} else {
 
-		ret = n_posix_true;
+		ret = TRUE;
 
 //if ( ( h_f == INVALID_HANDLE_VALUE ) ) { n_posix_debug_literal( "f : %s : %d ", f, (int) e_f ); }
 //if ( ( h_t == INVALID_HANDLE_VALUE ) ) { n_posix_debug_literal( "t : %s : %d ", t, (int) e_t ); }
@@ -448,11 +448,11 @@ n_filer_timestamp_internal( const n_posix_char *f, const n_posix_char *t )
 }
 
 // internal
-n_posix_bool
+BOOL
 n_filer_timestamp( const n_posix_char *f, const n_posix_char *t )
 {
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	int i = 0;
@@ -460,7 +460,7 @@ n_filer_timestamp( const n_posix_char *f, const n_posix_char *t )
 	{
 
 		ret = n_filer_timestamp_internal( f, t );
-		if ( ret == n_posix_false ) { break; }
+		if ( ret == FALSE ) { break; }
 
 		// [!] : spell a magic
 		n_posix_sleep( 10 );
@@ -517,20 +517,20 @@ n_filer_autofolder( const n_posix_char *abspath )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_filer_is_same( const n_posix_char *f, const n_posix_char *t )
 {
 
-	if ( n_string_is_same( f, t ) ) { return n_posix_true; }
+	if ( n_string_is_same( f, t ) ) { return TRUE; }
 
 
 	int type_f = n_posix_stat_type( f );
 	int type_t = n_posix_stat_type( t );
 
-	if ( type_f != type_t ) { return n_posix_false; }
+	if ( type_f != type_t ) { return FALSE; }
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 	if ( type_f == N_POSIX_STAT_TYPE_FILE )
 	{
@@ -538,7 +538,7 @@ n_filer_is_same( const n_posix_char *f, const n_posix_char *t )
 		n_type_int f_size = n_posix_stat_size( f );
 		n_type_int t_size = n_posix_stat_size( t );
 
-		if ( f_size != t_size ) { return n_posix_false; }
+		if ( f_size != t_size ) { return FALSE; }
 
 
 		FILE *f_fp = n_posix_fopen_read( f );
@@ -547,7 +547,7 @@ n_filer_is_same( const n_posix_char *f, const n_posix_char *t )
 		if ( ( f_fp == NULL )||( t_fp == NULL ) )
 		{
 
-			if ( ( f_fp == NULL )&&( t_fp == NULL ) ) { ret = n_posix_true; } else { ret = n_posix_false; }
+			if ( ( f_fp == NULL )&&( t_fp == NULL ) ) { ret = TRUE; } else { ret = FALSE; }
 
 			n_posix_fclose( f_fp );
 			n_posix_fclose( t_fp );
@@ -566,7 +566,7 @@ n_filer_is_same( const n_posix_char *f, const n_posix_char *t )
 			n_posix_fclose( f_fp );
 			n_posix_fclose( t_fp );
 
-			return n_posix_true;
+			return TRUE;
 		}
 
 
@@ -593,16 +593,16 @@ n_filer_is_same( const n_posix_char *f, const n_posix_char *t )
 			n_posix_fread( f_p, buffer, 1, f_fp );
 			n_posix_fread( t_p, buffer, 1, t_fp );
 
-			n_posix_bool is_same = n_memory_is_same( f_p, t_p, buffer );
+			BOOL is_same = n_memory_is_same( f_p, t_p, buffer );
 
 			n_memory_free_closed( f_p );
 			n_memory_free_closed( t_p );
 
-			if ( n_posix_false == is_same ) { ret = n_posix_false; break; }
+			if ( FALSE == is_same ) { ret = FALSE; break; }
 
 
 			i += buffer;
-			if ( i >= f_size ) { ret = n_posix_true; break; }
+			if ( i >= f_size ) { ret = TRUE; break; }
 		}
 
 //n_posix_debug_literal( "%d", (int) n_posix_tickcount() - tick );
@@ -629,7 +629,7 @@ n_filer_is_same( const n_posix_char *f, const n_posix_char *t )
 			n_dir_free( &f_d );
 			n_dir_free( &t_d );
 
-			return n_posix_true;
+			return TRUE;
 		}
 
 		if (
@@ -642,7 +642,7 @@ n_filer_is_same( const n_posix_char *f, const n_posix_char *t )
 			n_dir_free( &f_d );
 			n_dir_free( &t_d );
 
-			return n_posix_false;
+			return FALSE;
 		}
 
 
@@ -654,7 +654,7 @@ n_filer_is_same( const n_posix_char *f, const n_posix_char *t )
 		n_posix_loop
 		{
 
-			if ( i >= n_dir_all( &f_d ) ) { ret = n_posix_true; break; }
+			if ( i >= n_dir_all( &f_d ) ) { ret = TRUE; break; }
 
 			if ( n_string_is_same( n_dir_name( &f_d, i ), n_dir_name( &t_d, i ) ) )
 			{
@@ -667,7 +667,7 @@ n_filer_is_same( const n_posix_char *f, const n_posix_char *t )
 				n_string_path_free( f_name );
 				n_string_path_free( t_name );
 
-				if ( ret == n_posix_false ) { break; }
+				if ( ret == FALSE ) { break; }
 
 			} else {
 
@@ -688,28 +688,28 @@ n_filer_is_same( const n_posix_char *f, const n_posix_char *t )
 }
 
 // internal
-n_posix_bool
-n_filer_copy_single( const n_posix_char *f, const n_posix_char *t, n_posix_bool is_merge )
+BOOL
+n_filer_copy_single( const n_posix_char *f, const n_posix_char *t, BOOL is_merge )
 {
 
-	if ( n_string_is_same( f, t ) ) { return n_posix_true; }
+	if ( n_string_is_same( f, t ) ) { return TRUE; }
 
 
 	int type_f = n_posix_stat_type( f );
 	int type_t = n_posix_stat_type( t );
 
-	if ( type_f == N_POSIX_STAT_TYPE_NOTEXIST ) { return n_posix_true; }
+	if ( type_f == N_POSIX_STAT_TYPE_NOTEXIST ) { return TRUE; }
 
 
 	if ( type_f == N_POSIX_STAT_TYPE_FILE )
 	{
 
-		if ( ( is_merge == n_posix_false )&&( type_t != N_POSIX_STAT_TYPE_NOTEXIST ) ) { return n_posix_true; }
+		if ( ( is_merge == FALSE )&&( type_t != N_POSIX_STAT_TYPE_NOTEXIST ) ) { return TRUE; }
 
 
 		// [!] : for SSDs or USB drives
 
-		if ( n_posix_false == n_filer_is_same( f, t ) )
+		if ( FALSE == n_filer_is_same( f, t ) )
 		{
 
 			FILE *fp_f = n_posix_fopen_read ( f );
@@ -719,7 +719,7 @@ n_filer_copy_single( const n_posix_char *f, const n_posix_char *t, n_posix_bool 
 			{
 				n_posix_fclose( fp_f );
 				n_posix_fclose( fp_t );
-				return n_posix_true;
+				return TRUE;
 			}
 
 			n_filer_copy_file( fp_f, fp_t, n_posix_stat_size( f ) );
@@ -736,7 +736,7 @@ n_filer_copy_single( const n_posix_char *f, const n_posix_char *t, n_posix_bool 
 	if ( type_f == N_POSIX_STAT_TYPE_DIRECTORY )
 	{
 
-		if ( ( is_merge == n_posix_false )&&( type_t != N_POSIX_STAT_TYPE_NOTEXIST ) ) { return n_posix_true; }
+		if ( ( is_merge == FALSE )&&( type_t != N_POSIX_STAT_TYPE_NOTEXIST ) ) { return TRUE; }
 
 		n_filer_autofolder( t );
 
@@ -750,11 +750,11 @@ n_filer_copy_single( const n_posix_char *f, const n_posix_char *t, n_posix_bool 
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-#define n_filer_copy(  f, t ) n_filer_copy_internal( f, t, n_posix_false )
-#define n_filer_merge( f, t ) n_filer_copy_internal( f, t, n_posix_true  )
+#define n_filer_copy(  f, t ) n_filer_copy_internal( f, t, FALSE )
+#define n_filer_merge( f, t ) n_filer_copy_internal( f, t, TRUE  )
 
 // [!] : int percent = (n_type_real) copied / count * 100;
 
@@ -762,8 +762,8 @@ typedef void (*n_filer_copy_callback_type)( n_type_int copied, n_type_int count 
 
 n_filer_copy_callback_type n_filer_copy_callback = NULL;
 
-n_posix_bool
-n_filer_copy_internal( const n_posix_char *f, const n_posix_char *t, n_posix_bool is_merge )
+BOOL
+n_filer_copy_internal( const n_posix_char *f, const n_posix_char *t, BOOL is_merge )
 {
 //n_posix_debug_literal( "%s\n%s", f, t ); return EPERM;
 
@@ -773,7 +773,7 @@ n_filer_copy_internal( const n_posix_char *f, const n_posix_char *t, n_posix_boo
 	//	because infinite looping will happens when a source is a destination's ancestor
 
 
-	if ( n_string_is_same( f, t ) ) { return n_posix_true; }
+	if ( n_string_is_same( f, t ) ) { return TRUE; }
 
 
 	// [!] : lock contents in a source directory
@@ -784,9 +784,9 @@ n_filer_copy_internal( const n_posix_char *f, const n_posix_char *t, n_posix_boo
 
 		// [!] : single file/folder
 
-		if ( n_posix_false == n_filer_copy_single( f, t, is_merge )  ) { return n_posix_false; }
+		if ( FALSE == n_filer_copy_single( f, t, is_merge )  ) { return FALSE; }
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -804,7 +804,7 @@ n_vector_save_literal( &d.name, "name.txt", N_STRING_CRLF );
 n_vector_save_literal( &d.low,   "low.txt", N_STRING_CRLF );
 n_vector_save_literal( &d.ext,   "ext.txt", N_STRING_CRLF );
 
-n_dir_free( &d ); return n_posix_true;
+n_dir_free( &d ); return TRUE;
 */
 
 
@@ -838,15 +838,24 @@ n_dir_free( &d ); return n_posix_true;
 			t_name = n_string_path_make_new( t, n_dir_name( &d, i ) );
 
 		} else {
-
+/*
 			f_name = n_string_path_new( n_posix_strlen( f ) + 1 + n_posix_strlen( rel ) + 1 + n_posix_strlen( n_dir_name( &d, i ) ) );
 			t_name = n_string_path_new( n_posix_strlen( t ) + 1 + n_posix_strlen( rel ) + 1 + n_posix_strlen( n_dir_name( &d, i ) ) );
 
-			n_string_path_make( f, rel, f_name );
-			n_string_path_make( t, rel, t_name );
+			n_string_path_make2( f, rel, f_name );
+			n_string_path_make2( t, rel, t_name );
 
-			n_string_path_make( f_name, n_dir_name( &d, i ), f_name );
-			n_string_path_make( t_name, n_dir_name( &d, i ), t_name );
+			n_string_path_make2( f_name, n_dir_name( &d, i ), f_name );
+			n_string_path_make2( t_name, n_dir_name( &d, i ), t_name );
+*/
+			n_posix_char *f_tmp = n_string_path_make_new( f, rel );
+			n_posix_char *t_tmp = n_string_path_make_new( t, rel );
+
+			f_name = n_string_path_make_new( f_tmp, n_dir_name( &d, i ) );
+			t_name = n_string_path_make_new( t_tmp, n_dir_name( &d, i ) );
+
+			n_string_free( f_tmp );
+			n_string_free( t_tmp );
 
 		}
 //n_posix_debug_literal( "%s\n%s", f_name, t_name );
@@ -879,7 +888,7 @@ n_dir_free( &d ); return n_posix_true;
 	n_dir_free( &d );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 

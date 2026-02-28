@@ -357,6 +357,7 @@ n_unicode_surrogatepair_is_lo( u16 c )
 #define n_unicode_utf8_encode( p, byte ) n_unicode_utf8( p, byte, N_UNICODE_UTF8_ENCODE, n_unicode_true )
 #define n_unicode_utf8_decode( p, byte ) n_unicode_utf8( p, byte, N_UNICODE_UTF8_DECODE, n_unicode_true )
 
+#define n_unicode_utf8_encode_no_bom( p, byte ) n_unicode_utf8( p, byte, N_UNICODE_UTF8_ENCODE, n_unicode_false )
 #define n_unicode_utf8_decode_no_bom( p, byte ) n_unicode_utf8( p, byte, N_UNICODE_UTF8_DECODE, n_unicode_false )
 
 void
@@ -376,11 +377,19 @@ n_unicode_utf8( void *stream, n_type_int byte, int mode, n_unicode_bool bom_need
 
 		// BOM
 
-		n_unicode_bom_overwrite_utf8( utf8, byte );
+		n_type_int bom_utf16_offset = 0;
+		n_type_int bom_utf_8_offset = 0;
+		if ( bom_needed )
+		{
+			bom_utf_8_offset = 3;
+			n_unicode_bom_overwrite_utf8( utf8, byte );
+
+			bom_utf16_offset = 1;
+		}
 
 
-		n_type_int i  = 1;
-		n_type_int ii = 3;
+		n_type_int i  = bom_utf16_offset;
+		n_type_int ii = bom_utf_8_offset;
 		n_unicode_loop
 		{
 

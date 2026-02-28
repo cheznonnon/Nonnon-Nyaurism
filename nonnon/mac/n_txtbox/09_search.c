@@ -18,9 +18,9 @@
 
 	if ( is_reverse )
 	{
-		caret_to = caret_fr;
+		txtbox->caret_to = txtbox->caret_fr;
 	} else {
-		caret_fr = caret_to;
+		txtbox->caret_fr = txtbox->caret_to;
 	}
 
 
@@ -29,14 +29,14 @@
 
 		n_type_int y = n_posix_atoi( &query[ 1 ] ) - 1;
 
-		n_focus = y;
+		txtbox->focus = y;
 
-		caret_fr = caret_to = n_txtbox_caret_detect_cch2pixel
+		txtbox->caret_fr = txtbox->caret_to = n_txtbox_caret_detect_cch2pixel
 		(
-			n_txt_data,
+			txtbox->txt_data,
 			y,
-			font,
-			font_size,
+			txtbox->font,
+			txtbox->font_size,
 			0
 		);
 
@@ -47,16 +47,16 @@
 	} else {
 //NSLog( @"%ld", labs( caret_fr.cch.y - caret_to.cch.y ) );
 
-		if ( 0 != labs( caret_fr.cch.y - caret_to.cch.y ) ) { return; }
+		if ( 0 != labs( txtbox->caret_fr.cch.y - txtbox->caret_to.cch.y ) ) { return; }
 
-		n_type_int caret_f = MIN( caret_fr.cch.x, caret_to.cch.x );
-		n_type_int caret_t = MAX( caret_fr.cch.x, caret_to.cch.x );
+		n_type_int caret_f = MIN( txtbox->caret_fr.cch.x, txtbox->caret_to.cch.x );
+		n_type_int caret_t = MAX( txtbox->caret_fr.cch.x, txtbox->caret_to.cch.x );
 
-		n_type_int y = caret_fr.cch.y;
+		n_type_int y = txtbox->caret_fr.cch.y;
 
 		if ( is_reverse )
 		{
-			n_posix_char *line = n_txt_get( n_txt_data, y );
+			n_posix_char *line = n_txt_get( txtbox->txt_data, y );
 			n_type_int    lcch = n_posix_strlen( line );
 
 			n_posix_loop
@@ -71,11 +71,11 @@
 					y--;
 					if ( y < 0 )
 					{
-						y = n_txt_data->sy - 1;
+						y = txtbox->txt_data->sy - 1;
 						break_onoff = TRUE;
 					}
 
-					line = n_txt_get( n_txt_data, y );
+					line = n_txt_get( txtbox->txt_data, y );
 					lcch = n_posix_strlen( line );
 
 					caret_f = caret_t = lcch;
@@ -93,39 +93,39 @@
 			n_posix_loop
 			{//break;
 
-				n_string_search( n_txt_get( n_txt_data, y ), query, &caret_f, &caret_t );
+				n_string_search( n_txt_get( txtbox->txt_data, y ), query, &caret_f, &caret_t );
 				if ( caret_f != caret_t ) { break; }
 
 				caret_f = caret_t = 0;
 
 				y++;
-				if ( y >= n_txt_data->sy ) { y = 0; break; }
+				if ( y >= txtbox->txt_data->sy ) { y = 0; break; }
 			}
 		}
 
-		n_focus = y;
+		txtbox->focus = y;
 
-		caret_fr = n_txtbox_caret_detect_cch2pixel
+		txtbox->caret_fr = n_txtbox_caret_detect_cch2pixel
 		(
-			n_txt_data,
-			n_focus,
-			font,
-			font_size,
+			txtbox->txt_data,
+			txtbox->focus,
+			txtbox->font,
+			txtbox->font_size,
 			caret_f
 		);
 
-		caret_to = n_txtbox_caret_detect_cch2pixel
+		txtbox->caret_to = n_txtbox_caret_detect_cch2pixel
 		(
-			n_txt_data,
-			n_focus,
-			font,
-			font_size,
+			txtbox->txt_data,
+			txtbox->focus,
+			txtbox->font,
+			txtbox->font_size,
 			caret_t
 		);
 
 		[self NonnonTxtboxCaretOutOfCanvasUpDownSearch];
 
-		shift_selection_is_tail = TRUE;
+		txtbox->shift_selection_is_tail = TRUE;
 
 		[self NonnonTxtboxRedraw];
 
@@ -143,8 +143,8 @@
 
 	[self NonnonTxtboxSearchMarkerReset:NO];
 
-	n_search_marker_count = n_txt_data->sy;
-	n_search_marker       = n_memory_new( sizeof( BOOL ) * n_search_marker_count );
+	txtbox->search_marker_count = txtbox->txt_data->sy;
+	txtbox->search_marker       = n_memory_new( sizeof( BOOL ) * txtbox->search_marker_count );
 
 
 	n_type_int f = 0;
@@ -154,18 +154,18 @@
 	n_posix_loop
 	{//break;
 
-		n_string_search( n_txt_get( n_txt_data, y ), query, &f, &t );
+		n_string_search( n_txt_get( txtbox->txt_data, y ), query, &f, &t );
 		if ( f != t )
 		{
-			n_search_marker[ y ] = TRUE;
+			txtbox->search_marker[ y ] = TRUE;
 		} else {
-			n_search_marker[ y ] = FALSE;
+			txtbox->search_marker[ y ] = FALSE;
 		}
 
 		f = t = 0;
 
 		y++;
-		if ( y >= n_txt_data->sy ) { break; }
+		if ( y >= txtbox->txt_data->sy ) { break; }
 	}
 
 	[self NonnonTxtboxRedraw];

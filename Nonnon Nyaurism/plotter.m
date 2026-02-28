@@ -14,7 +14,7 @@ n_nyaurism_tooltip_calc( n_type_real pixel_x )
 	n_type_real norm = (n_type_real) pixel_x / 512;
 //NSLog( @"%f %f", norm, norm * N_WAV_MSEC( &n_nyaurism->wav ) );
 
-	n_posix_sprintf_literal( n_nyaurism_tooltip_str, "%0.0f msec", norm * N_WAV_MSEC( &n_nyaurism->wav ) );
+	n_posix_snprintf_literal( n_nyaurism_tooltip_str, 100, "%0.0f msec", norm * N_WAV_MSEC( &n_nyaurism->wav ) );
 
 
 	return;

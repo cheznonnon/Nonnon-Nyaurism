@@ -67,8 +67,8 @@ n_html_element
 	if ( n_string_is_empty( stream ) ) { return ret; }
 
 
-	n_posix_bool found   = n_posix_false;
-	n_type_int   cch_end = n_posix_strlen( end );
+	BOOL       found   = FALSE;
+	n_type_int cch_end = n_posix_strlen( end );
 
 
 	n_type_int f = 0;
@@ -78,13 +78,13 @@ n_html_element
 	{
 
 		if (
-			( found == n_posix_false )
+			( found == FALSE )
 			&&
 			( n_string_match( &stream[ i ], start ) )
 		)
 		{
 
-			found = n_posix_true;
+			found = TRUE;
 
 			f = i;
 
@@ -121,7 +121,7 @@ n_html_element
 
 #define n_html_element_match_literal( a,b ) n_html_element_match( a, n_posix_literal( b ) )
 
-n_posix_bool
+BOOL
 n_html_element_match( const n_posix_char *stream, const n_posix_char *elementname )
 {
 
@@ -129,7 +129,7 @@ n_html_element_match( const n_posix_char *stream, const n_posix_char *elementnam
 
 
 	n_posix_char *s = n_string_carboncopy( stream );
-	n_posix_bool  ret;
+	BOOL  ret;
 
 
 	n_string_anglebracket_del( s, s );
@@ -311,19 +311,19 @@ n_html_whitespace_remove( n_posix_char *s )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_html_load( n_html *html, const n_posix_char *fname )
 {
 
 #ifdef N_POSIX_PLATFORM_MAC
 
-	if ( n_txt_load_utf8( (n_txt*) html, fname ) ) { return n_posix_true; }
+	if ( n_txt_load_utf8( (n_txt*) html, fname ) ) { return TRUE; }
 
-	if ( html->readonly ) { return n_posix_true; }
+	if ( html->readonly ) { return TRUE; }
 
 #else  // #ifdef N_POSIX_PLATFORM_MAC
 
-	if ( n_txt_load( (n_txt*) html, fname ) ) { return n_posix_true; }
+	if ( n_txt_load( (n_txt*) html, fname ) ) { return TRUE; }
 
 #endif // #ifdef N_POSIX_PLATFORM_MAC
 
@@ -334,7 +334,7 @@ n_html_load( n_html *html, const n_posix_char *fname )
 	n_type_int cch = (u32) html->byte / sizeof( n_posix_char );
 
 
-	n_posix_bool pre = n_posix_false;
+	BOOL pre = FALSE;
 
 
 	n_type_int i  = 0;
@@ -354,11 +354,11 @@ n_html_load( n_html *html, const n_posix_char *fname )
 
 		if ( n_html_element_match_literal( s, "pre" ) )
 		{
-			pre = n_posix_true;
+			pre = TRUE;
 		} else
 		if ( n_html_element_match_literal( s, "/pre" ) )
 		{
-			pre = n_posix_false;
+			pre = FALSE;
 		}
 
 		n_html_add( &ret, ii, s );
@@ -371,7 +371,7 @@ n_html_load( n_html *html, const n_posix_char *fname )
 		n_string_quote_del_literal( s,s, '>','<' );
 //n_posix_debug( s );
 
-		if ( pre == n_posix_false )
+		if ( pre == FALSE )
 		{
 
 			n_string_replace( s,s, N_STRING_CRLF, N_STRING_EMPTY );
@@ -386,7 +386,7 @@ n_html_load( n_html *html, const n_posix_char *fname )
 
 		}
 
-		if ( n_posix_false == n_string_is_empty( s ) )
+		if ( FALSE == n_string_is_empty( s ) )
 		{
 			n_html_add( &ret, ii, s );
 			ii++;
@@ -404,7 +404,7 @@ n_html_load( n_html *html, const n_posix_char *fname )
 	n_html_alias( &ret, html );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 void

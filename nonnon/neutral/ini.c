@@ -91,7 +91,7 @@ typedef struct {
 
 	int          newline;
 	int          unicode;
-	n_posix_bool readonly;
+	BOOL         readonly;
 
 } n_ini;
 
@@ -118,14 +118,14 @@ n_ini_free( n_ini *p )
 
 #define n_ini_save_literal( p, fname ) n_ini_save( p, n_posix_literal( fname ) )
 
-n_posix_bool
+BOOL
 n_ini_save( n_ini *p, const n_posix_char *fname )
 {
 
-	if ( n_ini_error( p ) ) { return n_posix_true; }
+	if ( n_ini_error( p ) ) { return TRUE; }
 
 
-	if ( p->readonly ) { return n_posix_true; }
+	if ( p->readonly ) { return TRUE; }
 
 
 	n_txt_stream( (void*) p );
@@ -144,11 +144,13 @@ n_ini_value_escape( n_posix_char *str )
 	n_posix_char *s ;
 
 
-	s = n_string_alloccopy( n_posix_strlen( str ) * 2, str );
+	n_type_int c = n_posix_strlen( str ) * 2;
+
+	s = n_string_alloccopy( c, str );
 
 	n_string_escape_add( s, s );
 
-	n_posix_sprintf_literal( str, "%c%s%c", N_STRING_CHAR_DQUOTE, s, N_STRING_CHAR_DQUOTE );
+	n_posix_snprintf_literal( str, c + 1, "%c%s%c", N_STRING_CHAR_DQUOTE, s, N_STRING_CHAR_DQUOTE );
 
 	n_memory_free( s );
 
@@ -158,21 +160,21 @@ n_ini_value_escape( n_posix_char *str )
 
 #ifdef N_POSIX_PLATFORM_MAC
 
-n_posix_bool
+BOOL
 n_ini_load( n_ini *ini, const n_posix_char *fname )
 {
 
-	if ( ini == NULL ) { return n_posix_true; }
+	if ( ini == NULL ) { return TRUE; }
 
 
-	extern n_posix_bool n_txt_load_utf8_internal( n_txt *txt, const n_posix_char *fname, void *stream, n_type_int byte );
+	extern BOOL n_txt_load_utf8_internal( n_txt *txt, const n_posix_char *fname, void *stream, n_type_int byte );
 
 	if ( n_txt_load_utf8_internal( (void*) ini, fname, NULL, 0 ) )
 	{
 
 		n_ini_new( ini );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 	if ( ini->readonly )
@@ -180,7 +182,7 @@ n_ini_load( n_ini *ini, const n_posix_char *fname )
 
 		n_ini_new( ini );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -196,16 +198,16 @@ n_ini_load( n_ini *ini, const n_posix_char *fname )
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #else  // #ifdef N_POSIX_PLATFORM_MAC
 
-n_posix_bool
+BOOL
 n_ini_load( n_ini *ini, const n_posix_char *fname )
 {
 
-	if ( ini == NULL ) { return n_posix_true; }
+	if ( ini == NULL ) { return TRUE; }
 
 
 	if ( n_txt_load( (void*) ini, fname ) )
@@ -213,7 +215,7 @@ n_ini_load( n_ini *ini, const n_posix_char *fname )
 
 		n_ini_new( ini );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -229,7 +231,7 @@ n_ini_load( n_ini *ini, const n_posix_char *fname )
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #endif // #ifdef N_POSIX_PLATFORM_MAC
@@ -247,11 +249,11 @@ n_ini_load( n_ini *ini, const n_posix_char *fname )
 #define n_ini_section_chk_literal( ini, sct ) n_ini_section_chk( ini, n_posix_literal( sct ) )
 
 // internal
-n_posix_bool
+BOOL
 n_ini_section( n_ini *ini, const n_posix_char *section, int mode )
 {
 
-	n_posix_bool is_exist = n_posix_false;
+	BOOL is_exist = FALSE;
 
 
 	if ( n_ini_error( ini ) ) { return is_exist; }
@@ -283,7 +285,7 @@ n_ini_section( n_ini *ini, const n_posix_char *section, int mode )
 			if ( n_string_is_same( sct_name, s ) )
 			{
 
-				is_exist = n_posix_true;
+				is_exist = TRUE;
 
 				n_memory_free( sct_name );
 
@@ -364,12 +366,12 @@ n_ini_section( n_ini *ini, const n_posix_char *section, int mode )
 	return is_exist;
 }
 
-n_posix_bool
+BOOL
 n_ini_key_match( const n_posix_char *f, const n_posix_char *t )
 {
 
-	if ( n_string_is_empty( f ) ) { return n_posix_false; }
-	if ( n_string_is_empty( t ) ) { return n_posix_false; }
+	if ( n_string_is_empty( f ) ) { return FALSE; }
+	if ( n_string_is_empty( t ) ) { return FALSE; }
 
 
 	const n_posix_char a = n_posix_literal( 'a' );
@@ -393,11 +395,11 @@ n_ini_key_match( const n_posix_char *f, const n_posix_char *t )
 		if ( c_f != c_t ) { break; }
 
 		i++;
-		if ( f[ i ] == N_STRING_CHAR_NUL ) { return n_posix_false; }
+		if ( f[ i ] == N_STRING_CHAR_NUL ) { return FALSE; }
 	}
 
 
-	if ( t[ i ] != N_STRING_CHAR_NUL ) { return n_posix_false; }
+	if ( t[ i ] != N_STRING_CHAR_NUL ) { return FALSE; }
 
 	if (
 		( f[ i ] == n_posix_literal( '=' ) )
@@ -413,11 +415,11 @@ n_ini_key_match( const n_posix_char *f, const n_posix_char *t )
 		( f[ i ] == N_STRING_CHAR_NUL   )
 	)
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #define N_INI_KEY_ADD 0
@@ -435,7 +437,7 @@ n_ini_key_match( const n_posix_char *f, const n_posix_char *t )
 #define n_ini_key_chk_literal( i,s,k     ) n_ini_key_chk( i, n_posix_literal( s ), n_posix_literal( k )       )
 
 // internal
-n_posix_bool
+BOOL
 n_ini_key
 (
 	      n_ini        *ini,
@@ -466,7 +468,7 @@ n_ini_key
 			if ( o_value        != NULL ) { n_string_truncate( o_value ); }
 		}
 
-		return n_posix_false;
+		return FALSE;
 	}
 
 
@@ -539,7 +541,7 @@ n_ini_key
 				break;
 
 			} else
-			if ( n_posix_false == n_string_is_empty( l ) )
+			if ( FALSE == n_string_is_empty( l ) )
 			{
 
 				tail = i + 1;
@@ -570,7 +572,7 @@ n_ini_key
 			if ( o_value        != NULL ) { n_string_truncate( o_value ); }
 		}
 
-		return n_posix_false;
+		return FALSE;
 	}
 
 	} // lock-down
@@ -681,7 +683,7 @@ n_ini_key
 	return ( key_found != 0 );
 }
 
-n_posix_bool
+BOOL
 n_ini_key_add_int
 (
 	      n_ini        *ini,
@@ -692,7 +694,7 @@ n_ini_key_add_int
 {
 	n_posix_char str[ 100 ];
 
-	n_posix_sprintf_literal( str, "%d", val );
+	n_posix_snprintf_literal( str, 100, "%d", val );
 
 	return n_ini_key_add( ini, section, key, str );
 }

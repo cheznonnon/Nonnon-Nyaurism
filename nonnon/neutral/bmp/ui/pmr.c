@@ -26,7 +26,7 @@
 #include "../all.c"
 
 
-#include "../../path.c"
+#include "../../string_path.c"
 
 
 
@@ -50,14 +50,17 @@ n_bmp_ui_pmr_gdi
 	//	use when you don't want to install a font in a taraget machine
 
 
-	n_posix_char f[ N_PATH_MAX ];
+	n_posix_char *f;
 
-	if ( n_path_is_abspath( folder ) )
+	if ( n_string_path_is_abspath( folder ) )
 	{
-		n_string_copy( folder, f );
+		f = n_string_carboncopy( folder );
 	} else {
-		n_path_getcwd( f );
-		n_path_maker( f, folder, f );
+		n_posix_char *cwd = n_string_path_folder_current_new();
+
+		f = n_string_path_make_new( cwd, folder );
+
+		n_string_free( cwd );
 	}
 
 	if ( FALSE == n_posix_stat_is_exist( f ) )
@@ -99,16 +102,17 @@ n_bmp_ui_pmr_gdi
 	gdi.text_fxsize    = 0;
 
 
-	n_posix_char name[ N_PATH_MAX * 4 ];
-
 	n_type_int i = 0;
 	n_posix_loop
 	{//break;
 
-		n_posix_sprintf_literal( name, "%s%s%04x.bmp", f, N_POSIX_SLASH, s[ i ] );
+		n_type_int    name_cch = n_posix_strlen( f ) + n_posix_strlen( N_POSIX_SLASH ) + 4 + 4;
+		n_posix_char *name     = n_string_path_new( name_cch );
+
+		n_posix_snprintf_literal( name, 2048 + 1, "%s%s%04x.bmp", f, N_POSIX_SLASH, s[ i ] );
 //n_posix_debug( name );
 
-		n_posix_sprintf_literal( text, "%c", str[ i ] );
+		n_posix_snprintf_literal( text, 2, "%c", str[ i ] );
 
 
 		n_bmp bmp; n_bmp_zero( &bmp );
@@ -120,11 +124,15 @@ n_bmp_ui_pmr_gdi
 		n_bmp_free( &bmp );
 
 
+		n_string_path_free( name );
+
+
 		i++;
 		if ( str[ i ] == N_STRING_CHAR_NUL ) { break; }
 	}
 
 
+	n_memory_free( f );
 	n_memory_free( s );
 
 
@@ -155,8 +163,8 @@ n_bmp_ui_pmr_resize( n_posix_char *path, n_type_real ratio_x, n_type_real ratio_
 		if ( n_string_is_same_literal( ".bmp", n_dir_ext( &d, i ) ) )
 		{
 
-			n_posix_char path[ N_PATH_MAX * 4 ];
-			n_path_maker( n_dir_path( &d, i ), n_dir_name( &d, i ), path );
+			n_posix_char *path = n_string_path_make_new( n_dir_path( &d, i ), n_dir_name( &d, i ) );
+
 
 			n_bmp bmp;
 			n_bmp_zero( &bmp );
@@ -178,6 +186,9 @@ n_bmp_ui_pmr_resize( n_posix_char *path, n_type_real ratio_x, n_type_real ratio_
 
 			n_bmp_save( &bmp, path );
 			n_bmp_free( &bmp );
+
+
+			n_string_free( path );
 
 		}
 
@@ -231,14 +242,22 @@ n_bmp_ui_pmr_draw_internal
 	if ( n_string_is_empty( str ) ) { return; }
 
 
-	n_posix_char f[ N_PATH_MAX * 4 ];
+	n_posix_char *f;
 
-	if ( n_path_is_abspath( folder ) )
+	if ( n_string_path_is_abspath( folder ) )
 	{
-		n_string_copy( folder, f );
+		f = n_string_carboncopy( folder );
 	} else {
-		n_path_getcwd( f );
-		n_path_maker( f, folder, f );
+		n_posix_char *cwd = n_string_path_folder_current_new();
+
+		f = n_string_path_make_new( cwd, folder );
+
+		n_string_free( cwd );
+	}
+
+	if ( FALSE == n_posix_stat_is_exist( f ) )
+	{
+		n_posix_mkdir( f );
 	}
 
 
@@ -249,8 +268,6 @@ n_bmp_ui_pmr_draw_internal
 #endif // #ifdef UNICODE
 
 
-	n_posix_char name[ N_PATH_MAX * 4 * 4 ];
-
 	n_type_gfx xx = 0;
 	n_type_gfx yy = 0;
 
@@ -258,8 +275,12 @@ n_bmp_ui_pmr_draw_internal
 	n_posix_loop
 	{//break;
 
-		n_posix_sprintf_literal( name, "%s%s%04x.bmp", f, N_POSIX_SLASH, s[ i ] );
+		n_type_int    name_cch = n_posix_strlen( f ) + n_posix_strlen( N_POSIX_SLASH ) + 4 + 4;
+		n_posix_char *name     = n_string_path_new( name_cch );
+
+		n_posix_snprintf_literal( name, name_cch + 1, "%s%s%04x.bmp", f, N_POSIX_SLASH, s[ i ] );
 //n_posix_debug( name );
+
 
 		n_bmp bmp_char; n_bmp_zero( &bmp_char );
 
@@ -268,7 +289,7 @@ n_bmp_ui_pmr_draw_internal
 
 			// [!] : fallback
 
-			n_posix_sprintf_literal( name, "%s%s0000.bmp", f, N_POSIX_SLASH );
+			n_posix_snprintf_literal( name, name_cch + 1, "%s%s0000.bmp", f, N_POSIX_SLASH );
 
 			if ( n_bmp_load( &bmp_char, name ) )
 			{
@@ -322,11 +343,15 @@ n_bmp_ui_pmr_draw_internal
 		n_bmp_free( &bmp_char );
 
 
+		n_string_free( name );
+
+
 		i++;
 		if ( str[ i ] == N_STRING_CHAR_NUL ) { break; }
 	}
 
 
+	n_memory_free( f );
 	n_memory_free( s );
 
 

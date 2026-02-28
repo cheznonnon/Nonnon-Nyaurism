@@ -92,14 +92,11 @@ n_mac_listbox_draw_linenumber
 	{
 		if ( over_ten_thousand )
 		{
-			//n_posix_sprintf_literal( str, " %04d ", (int) cch_y );
 			nsstr = [[NSString alloc] initWithFormat:@" %04d ", (int) cch_y];
 		} else {
-			//n_posix_sprintf_literal( str, " % 4d ", (int) cch_y );
 			nsstr = [[NSString alloc] initWithFormat:@" % 4d ", (int) cch_y];
 		}
 	} else {
-		//n_posix_sprintf_literal( str, " %d "  , (int) cch_y );
 		nsstr = [[NSString alloc] initWithFormat:@" %d ", (int) cch_y];
 	}
 

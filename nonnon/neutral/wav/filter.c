@@ -22,12 +22,12 @@
 
 
 
-n_posix_bool
+BOOL
 n_wav_sample_is_accessible( n_wav *wav, u32 x )
 {
-	if ( ( x >= 0 )&&( x < N_WAV_COUNT( wav ) ) ) { return n_posix_true; }
+	if ( ( x >= 0 )&&( x < N_WAV_COUNT( wav ) ) ) { return TRUE; }
 
-	return n_posix_false;
+	return FALSE;
 }
 
 
@@ -187,7 +187,7 @@ n_wav_cosine_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real rat
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 f = 0;
@@ -221,7 +221,7 @@ n_wav_sine_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 f = 0;
@@ -255,7 +255,7 @@ n_wav_sawtooth_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real r
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 f = 0;
@@ -289,7 +289,7 @@ n_wav_square_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real rat
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 f = 0;
@@ -329,7 +329,7 @@ n_wav_tremolo_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ra
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 f = 0;
@@ -375,7 +375,7 @@ n_wav_whitenoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	n_random_shuffle();
@@ -417,7 +417,7 @@ n_wav_pinknoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	n_random_shuffle();
@@ -475,12 +475,12 @@ n_wav_pinknoise_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 #define n_wav_mute( w, l, r ) n_wav_mute_partial( w, 0, N_WAV_COUNT( w ), l, r )
 
 void
-n_wav_mute_partial( n_wav *wav, u32 x, u32 sx, n_posix_bool l_onoff, n_posix_bool r_onoff )
+n_wav_mute_partial( n_wav *wav, u32 x, u32 sx, BOOL l_onoff, BOOL r_onoff )
 {
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 f = 0;
@@ -523,7 +523,7 @@ n_wav_fade_in_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_re
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 	sx *= 2;
 
@@ -564,7 +564,7 @@ n_wav_fade_out_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_r
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 	sx *= 2;
 
@@ -605,7 +605,7 @@ n_wav_monaural_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_r
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 f = 0;
@@ -644,7 +644,7 @@ n_wav_L2R_partial( n_wav *wav, u32 x, u32 sx )
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 f = 0;
@@ -681,7 +681,7 @@ n_wav_R2L_partial( n_wav *wav, u32 x, u32 sx )
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 f = 0;
@@ -718,7 +718,7 @@ n_wav_normalize_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	// Phase 1 : get peak value
@@ -845,7 +845,7 @@ n_wav_martian_partial( n_wav *wav, u32 x, u32 sx, n_type_real ratio_l, n_type_re
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	const u32 unit = (u32) ( (n_type_real) N_WAV_RATE( wav ) * 0.125 );
@@ -1015,12 +1015,12 @@ n_wav_smoother_channel( n_wav *wav, u32 x, u32 count, double *input, double *out
 #define n_wav_smoother( w, l, r ) n_wav_smoother_partial( w, 0, N_WAV_COUNT( w ), l, r )
 
 void
-n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx, n_posix_bool l_onoff, n_posix_bool r_onoff )
+n_wav_smoother_partial( n_wav *wav, u32 x, u32 sx, BOOL l_onoff, BOOL r_onoff )
 {
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 count = sx;
@@ -1207,7 +1207,7 @@ n_wav_overdrive_channel( n_wav *wav, u32 x, u32 count, double *audio, int ch )
 #define n_wav_overdrive( w, l, r ) n_wav_overdrive_partial( w, 0, N_WAV_COUNT( w ), l, r )
 
 void
-n_wav_overdrive_partial( n_wav *wav, u32 x, u32 sx, n_posix_bool l_onoff, n_posix_bool r_onoff )
+n_wav_overdrive_partial( n_wav *wav, u32 x, u32 sx, BOOL l_onoff, BOOL r_onoff )
 {
 
 	u32 count = sx;
@@ -1269,7 +1269,7 @@ n_wav_delete( n_wav *wav, u32 x, u32 sx )
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	if ( sx == 0 ) { return; }
@@ -1341,7 +1341,7 @@ n_wav_insert( n_wav *wav, n_wav *ins, u32 x, u32 sx )
 	if ( n_wav_error_format( wav ) ) { return; }
 	if ( n_wav_error_format( ins ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	n_wav ret; n_wav_zero( &ret ); n_wav_new_by_sample( &ret, N_WAV_COUNT( wav ) + N_WAV_COUNT( ins ) - sx );

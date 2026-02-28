@@ -50,14 +50,14 @@ typedef struct {
 #define n_dir_ext(  d, i ) (n_posix_char*) ( d )->ext.line [ i ]
 
 // internal
-n_posix_bool
+BOOL
 n_dir_is_lower( const n_posix_char *str, n_type_int *cch )
 {
 
-	if ( str == NULL ) { return n_posix_false; }
+	if ( str == NULL ) { return FALSE; }
 
 
-	n_posix_bool ret = n_posix_true;
+	BOOL ret = TRUE;
 
 
 	n_type_int i = 0;
@@ -69,10 +69,10 @@ n_dir_is_lower( const n_posix_char *str, n_type_int *cch )
 		if (
 			( n_string_is_alphabet( str, i ) )
 			&&
-			( n_posix_false == n_string_is_lower( str, i ) )
+			( FALSE == n_string_is_lower( str, i ) )
 		)
 		{
-			ret = n_posix_false;
+			ret = FALSE;
 		}
 
 		i++;
@@ -134,11 +134,11 @@ n_dir_extension_ptr_alias( const n_posix_char *str, n_type_int *cch )
 #define n_dir_zero(  f    ) n_memory_zero( f,    sizeof( n_dir ) )
 #define n_dir_alias( f, t ) n_memory_copy( f, t, sizeof( n_dir ) )
 
-n_posix_bool
+BOOL
 n_dir_error( n_dir *d )
 {
 
-	if ( d == NULL ) { return n_posix_true; }
+	if ( d == NULL ) { return TRUE; }
 
 	if (
 		( n_vector_error( &d->path ) )
@@ -152,7 +152,7 @@ n_dir_error( n_dir *d )
 	{
 //n_posix_debug_literal( "Error : Data" );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 	if (
@@ -165,11 +165,11 @@ n_dir_error( n_dir *d )
 	{
 //n_posix_debug_literal( "Error : Integrity : %d %d %d", d->name.sy, d->low.sy, d->ext.sy );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 void
@@ -315,7 +315,7 @@ n_dir_add( n_dir *d, const n_posix_char *folder, const n_posix_char *name, const
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 n_type_int
-n_dir_add_fast( n_dir *d, const n_posix_char *folder, const n_posix_char *name, DWORD attrib, n_posix_bool is_drive )
+n_dir_add_fast( n_dir *d, const n_posix_char *folder, const n_posix_char *name, DWORD attrib, BOOL is_drive )
 {
 
 	if (      d == NULL ) { return 0; }
@@ -471,21 +471,21 @@ n_dir_del( n_dir *d, n_type_int i )
 }
 
 // internal
-n_posix_bool
-n_dir_load_internal( n_dir *d, const n_posix_char *folder, n_posix_bool recurse_onoff )
+BOOL
+n_dir_load_internal( n_dir *d, const n_posix_char *folder, BOOL recurse_onoff )
 {
 
-	if ( d == NULL ) { return n_posix_true; }
+	if ( d == NULL ) { return TRUE; }
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	if ( folder != NULL )
 	{
 
 		n_posix_DIR *dp = n_posix_opendir_nodot( folder );
-		if ( dp == NULL ) { return n_posix_true; }
+		if ( dp == NULL ) { return TRUE; }
 
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
@@ -503,11 +503,11 @@ n_dir_load_internal( n_dir *d, const n_posix_char *folder, n_posix_bool recurse_
 			n_posix_dirent *dirent = n_posix_readdir( dp );
 			if ( dirent == NULL ) { break; }
 
-			n_type_int check = n_dir_add_fast( d, path, dirent->d_name, dirent->dwFileAttributes, n_posix_false );
+			n_type_int check = n_dir_add_fast( d, path, dirent->d_name, dirent->dwFileAttributes, FALSE );
 //n_posix_debug_literal( "%s\n%s", folder, dirent->d_name );
 			if ( check == -1 )
 			{
-				ret = n_posix_true;
+				ret = TRUE;
 				break;
 			}
 
@@ -534,8 +534,6 @@ n_dir_load_internal( n_dir *d, const n_posix_char *folder, n_posix_bool recurse_
 
 		// [!] : 1 == n_posix_strlen( N_POSIX_SLASH )
 
-		n_type_int cch = n_posix_strlen( folder ) + 1;
-
 		n_posix_loop
 		{//break;
 
@@ -544,14 +542,13 @@ n_dir_load_internal( n_dir *d, const n_posix_char *folder, n_posix_bool recurse_
 
 			if ( dirent->d_name[ 0 ] == n_posix_literal( '.' ) ) { continue; }
 
-			n_posix_char *item = n_string_path_new( cch + n_posix_strlen( dirent->d_name ) );
-			n_string_path_make( folder, dirent->d_name, item );
+			n_posix_char *item = n_string_path_make_new( folder, dirent->d_name );
 
 			n_type_int check = n_dir_add( d, folder, dirent->d_name, item );
 //n_posix_debug_literal( "%s\n%s", folder, dirent->d_name );
 			if ( check == -1 )
 			{
-				ret = n_posix_true;
+				ret = TRUE;
 				break;
 			}
 
@@ -588,7 +585,7 @@ n_dir_load_internal( n_dir *d, const n_posix_char *folder, n_posix_bool recurse_
 
 			if ( DRIVE_NO_ROOT_DIR != GetDriveType( drivename ) )
 			{
-				n_dir_add_fast( d, N_STRING_EMPTY, drivename, 0, n_posix_true );
+				n_dir_add_fast( d, N_STRING_EMPTY, drivename, 0, TRUE );
 			}
 
 			drivename[ 0 ]++;
@@ -605,21 +602,21 @@ n_dir_load_internal( n_dir *d, const n_posix_char *folder, n_posix_bool recurse_
 	return ret;
 }
 
-#define n_dir_load(           d, folder ) n_dir_load_main( d, folder, n_posix_false )
-#define n_dir_load_recursive( d, folder ) n_dir_load_main( d, folder, n_posix_true  )
+#define n_dir_load(           d, folder ) n_dir_load_main( d, folder, FALSE )
+#define n_dir_load_recursive( d, folder ) n_dir_load_main( d, folder, TRUE  )
 
-n_posix_bool
-n_dir_load_main( n_dir *d, const n_posix_char *folder, n_posix_bool recurse_onoff )
+BOOL
+n_dir_load_main( n_dir *d, const n_posix_char *folder, BOOL recurse_onoff )
 {
 
-	if ( d == NULL ) { return n_posix_true; }
+	if ( d == NULL ) { return TRUE; }
 
 
 	if ( folder != NULL )
 	{
 		// [!] : n_dir.path : "folder" needs to be an absolute path
 
-		if ( n_posix_false == n_string_path_is_abspath( folder ) ) { return n_posix_true; }
+		if ( FALSE == n_string_path_is_abspath( folder ) ) { return TRUE; }
 	}
 
 
@@ -627,7 +624,7 @@ n_dir_load_main( n_dir *d, const n_posix_char *folder, n_posix_bool recurse_onof
 	n_dir_new ( d );
 
 
-	n_posix_bool ret = n_dir_load_internal( d, folder, recurse_onoff );
+	BOOL ret = n_dir_load_internal( d, folder, recurse_onoff );
 	if ( ret )
 	{
 		n_dir_free( d );
@@ -647,18 +644,18 @@ n_dir_load_main( n_dir *d, const n_posix_char *folder, n_posix_bool recurse_onof
 #define N_DIR_SWAP_MTIME  7
 
 // internal
-n_posix_bool
+BOOL
 n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 {
 
-	if ( n_dir_error( d ) ) { return n_posix_false; }
+	if ( n_dir_error( d ) ) { return FALSE; }
 
 
-	if ( upper >= d->name.sy ) { return n_posix_false; }
-	if ( lower >= d->name.sy ) { return n_posix_false; }
+	if ( upper >= d->name.sy ) { return FALSE; }
+	if ( lower >= d->name.sy ) { return FALSE; }
 
 
-	if ( ( upper < d->dir )&&( lower >= d->dir ) )  { return n_posix_false; }
+	if ( ( upper < d->dir )&&( lower >= d->dir ) )  { return FALSE; }
 
 
 	n_posix_char *path_u = n_dir_path( d, upper );
@@ -687,7 +684,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 		if ( size_u < size_l )
 		{
 
-			return n_posix_false;
+			return FALSE;
 
 		} else
 		if ( size_u == size_l )
@@ -698,7 +695,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 			u = n_dir_low( d, upper );
 			l = n_dir_low( d, lower );
 
-			if ( 0 >= n_string_compare_strict( u, l ) ) { return n_posix_false; }
+			if ( 0 >= n_string_compare_strict( u, l ) ) { return FALSE; }
 
 		}
 
@@ -718,7 +715,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 		if ( atime_u < atime_l )
 		{
 
-			return n_posix_false;
+			return FALSE;
 
 		} else
 		if ( atime_u == atime_l )
@@ -729,7 +726,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 			u = n_dir_low( d, upper );
 			l = n_dir_low( d, lower );
 
-			if ( 0 >= n_string_compare_strict( u, l ) ) { return n_posix_false; }
+			if ( 0 >= n_string_compare_strict( u, l ) ) { return FALSE; }
 
 		}
 
@@ -745,7 +742,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 			n_string_path_free( str_u );
 			n_string_path_free( str_l );
 
-			return n_posix_false;
+			return FALSE;
 		}
 
 		time_t ctime_u = n_posix_stat_ctime( str_u );
@@ -757,7 +754,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 		if ( ctime_u < ctime_l )
 		{
 
-			return n_posix_false;
+			return FALSE;
 
 		} else
 		if ( ctime_u == ctime_l )
@@ -768,7 +765,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 			u = n_dir_low( d, upper );
 			l = n_dir_low( d, lower );
 
-			if ( 0 >= n_string_compare_strict( u, l ) ) { return n_posix_false; }
+			if ( 0 >= n_string_compare_strict( u, l ) ) { return FALSE; }
 
 		}
 
@@ -788,7 +785,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 		if ( mtime_u < mtime_l )
 		{
 
-			return n_posix_false;
+			return FALSE;
 
 		} else
 		if ( mtime_u == mtime_l )
@@ -799,7 +796,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 			u = n_dir_low( d, upper );
 			l = n_dir_low( d, lower );
 
-			if ( 0 >= n_string_compare_strict( u, l ) ) { return n_posix_false; }
+			if ( 0 >= n_string_compare_strict( u, l ) ) { return FALSE; }
 
 		}
 
@@ -813,7 +810,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 		n_type_int l_count = n_string_path_split_count( n_dir_path( d, lower ) );
 		n_type_int   count = n_posix_min_n_type_int( u_count, l_count );
 
-		if ( u_count > l_count ) { return n_posix_false; }
+		if ( u_count > l_count ) { return FALSE; }
 
 		n_type_int i = 0;
 		while( u_count == l_count )
@@ -830,7 +827,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 			n_string_path_free( str_u );
 			n_string_path_free( str_l );
 
-			if ( 0 > compare ) { return n_posix_false; } else if ( 0 < compare ) { break; }
+			if ( 0 > compare ) { return FALSE; } else if ( 0 < compare ) { break; }
 
 
 			// [!] : Name
@@ -838,7 +835,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 			n_posix_char *u_low = n_dir_low( d, upper );
 			n_posix_char *l_low = n_dir_low( d, lower );
 
-			if ( 0 >= n_string_compare_strict( u_low, l_low ) ) { return n_posix_false; } else { break; }
+			if ( 0 >= n_string_compare_strict( u_low, l_low ) ) { return FALSE; } else { break; }
 
 
 			i++;
@@ -851,7 +848,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 
 		// [!] : Extension : file only
 
-		if ( upper < d->dir ) { return n_posix_false; }
+		if ( upper < d->dir ) { return FALSE; }
 
 
 		// [!] : Extension : same name
@@ -859,10 +856,10 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 		u = n_dir_ext( d, upper );
 		l = n_dir_ext( d, lower );
 
-		if ( n_string_is_same_strict( u, l ) ) { return n_posix_false; }
+		if ( n_string_is_same_strict( u, l ) ) { return FALSE; }
 
 
-		if ( 0 >= n_string_compare( u, l ) ) { return n_posix_false; }
+		if ( 0 >= n_string_compare( u, l ) ) { return FALSE; }
 
 	} else
 	if ( option == N_DIR_SWAP_ALL )
@@ -878,7 +875,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 			u = n_dir_ext( d, upper );
 			l = n_dir_ext( d, lower );
 
-			if ( n_posix_false == n_string_is_same_strict( u, l ) ) { return n_posix_false; }
+			if ( FALSE == n_string_is_same_strict( u, l ) ) { return FALSE; }
 
 		}
 
@@ -888,7 +885,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 		u = n_dir_low( d, upper );
 		l = n_dir_low( d, lower );
 
-		if ( 0 >= n_string_compare_strict( u, l ) ) { return n_posix_false; }
+		if ( 0 >= n_string_compare_strict( u, l ) ) { return FALSE; }
 
 	} else {
 
@@ -897,11 +894,11 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 		u = n_dir_low( d, upper );
 		l = n_dir_low( d, lower );
 
-		if ( 0 >= n_string_compare_strict( u, l ) ) { return n_posix_false; }
+		if ( 0 >= n_string_compare_strict( u, l ) ) { return FALSE; }
 
 	}
 
-//n_posix_debug_literal( "%s : %s", u, l );return n_posix_false;
+//n_posix_debug_literal( "%s : %s", u, l );return FALSE;
 
 
 	n_vector_swap( &d->path, upper, lower );
@@ -910,7 +907,7 @@ n_dir_swap( n_dir *d, n_type_int upper, n_type_int lower, int option )
 	n_vector_swap( &d->ext,  upper, lower );
 
 
-	return n_posix_true;
+	return TRUE;
 }
 
 #define n_dir_sort( d ) n_dir_sort_internal( d, N_DIR_SWAP_EXT ); n_dir_sort_internal( d, N_DIR_SWAP_ALL )

@@ -16,7 +16,7 @@
 
 
 
-static n_posix_bool n_bmp_table_coeff_onoff = n_posix_false;
+static BOOL n_bmp_table_coeff_onoff = FALSE;
 
 
 static n_type_real *n_bmp_table_coeff = NULL;
@@ -28,7 +28,7 @@ void
 n_bmp_table_coeff_init( void )
 {
 
-	if ( n_bmp_table_coeff_onoff != n_posix_false ) { return; }
+	if ( n_bmp_table_coeff_onoff != FALSE ) { return; }
 
 
 	n_bmp_table_coeff = (n_type_real*) malloc( 256 * sizeof( n_type_real ) );
@@ -44,7 +44,7 @@ n_bmp_table_coeff_init( void )
 	}
 
 
-	n_bmp_table_coeff_onoff = n_posix_true;
+	n_bmp_table_coeff_onoff = TRUE;
 
 
 	return;
@@ -54,13 +54,13 @@ void
 n_bmp_table_coeff_exit( void )
 {
 
-	if ( n_bmp_table_coeff_onoff == n_posix_false ) { return; }
+	if ( n_bmp_table_coeff_onoff == FALSE ) { return; }
 
 
 	free( n_bmp_table_coeff ); n_bmp_table_coeff = NULL;
 
 
-	n_bmp_table_coeff_onoff = n_posix_false;
+	n_bmp_table_coeff_onoff = FALSE;
 
 
 	return;
@@ -73,7 +73,7 @@ n_posix_inline n_type_real
 n_bmp_table_coeff_channel( n_type_real n )
 {
 
-	if ( n_bmp_table_coeff_onoff == n_posix_false )
+	if ( n_bmp_table_coeff_onoff == FALSE )
 	{
 		atexit( n_bmp_table_coeff_exit );
 		n_bmp_table_coeff_init();

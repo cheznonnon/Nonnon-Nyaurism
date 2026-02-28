@@ -147,8 +147,8 @@ n_bmp_ui_roundframe
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -245,14 +245,14 @@ n_bmp_ui_roundframe_classic
 void
 n_bmp_ui_roundframe_shadow
 (
-	n_bmp        *bmp,
-	n_type_gfx    sx,
-	n_type_gfx    sy,
-	n_type_gfx    shadow_size,
-	n_type_gfx    round_param,
-	n_type_gfx    scale,
-	n_posix_bool  darkmode_onoff,
-	n_posix_bool  drop_onoff
+	n_bmp      *bmp,
+	n_type_gfx  sx,
+	n_type_gfx  sy,
+	n_type_gfx  shadow_size,
+	n_type_gfx  round_param,
+	n_type_gfx  scale,
+	BOOL        darkmode_onoff,
+	BOOL        drop_onoff
 )
 {
 
@@ -266,7 +266,7 @@ n_bmp_ui_roundframe_shadow
 //return;
 
 
-	n_bmp_roundrect_detect_coeff_patch_onoff = n_posix_false;
+	n_bmp_roundrect_detect_coeff_patch_onoff = FALSE;
 
 
 	n_type_gfx count = shadow_size / scale;
@@ -316,7 +316,7 @@ n_bmp_ui_roundframe_shadow
 	}
 
 
-	n_bmp_roundrect_detect_coeff_patch_onoff = n_posix_true;
+	n_bmp_roundrect_detect_coeff_patch_onoff = TRUE;
 
 
 	return;

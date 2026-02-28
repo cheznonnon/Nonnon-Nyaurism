@@ -499,8 +499,8 @@ n_bmp_resampler_main( n_bmp *bmp, n_type_real ratio_x, n_type_real ratio_y, int 
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -783,8 +783,8 @@ n_bmp_smoothshrink( n_bmp *bmp, int n )
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -848,7 +848,7 @@ n_bmp_smoothshrink( n_bmp *bmp, int n )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_bmp_scaler_big_pixelart_edge_detect( u32 color_0, u32 color_1, u32 color_2 )
 {
 
@@ -884,26 +884,26 @@ n_bmp_scaler_big_pixelart_edge_detect( u32 color_0, u32 color_1, u32 color_2 )
 }
 
 // internal
-n_posix_bool
+BOOL
 n_bmp_scaler_big_pixelart_pixel( n_bmp *bmp_f, n_bmp *bmp_t, n_type_gfx x, n_type_gfx y, n_type_gfx dx, n_type_gfx dy, n_type_gfx blur, u32 color_target, u32 color_center )
 {
 
-	if ( n_bmp_is_trans( bmp_f, color_target ) ) { return n_posix_true; }
-	if ( n_bmp_is_trans( bmp_f, color_center ) ) { return n_posix_true; }
+	if ( n_bmp_is_trans( bmp_f, color_target ) ) { return TRUE; }
+	if ( n_bmp_is_trans( bmp_f, color_center ) ) { return TRUE; }
 
 	u32 c;
-	if ( n_bmp_ptr_get( bmp_f, x + dx, y + dy, &c ) ) { return n_posix_true; }
+	if ( n_bmp_ptr_get( bmp_f, x + dx, y + dy, &c ) ) { return TRUE; }
 
-	if ( n_bmp_is_trans( bmp_f, c ) ) { return n_posix_true; }
+	if ( n_bmp_is_trans( bmp_f, c ) ) { return TRUE; }
 
-	if ( c != color_target ) { return n_posix_true; }
+	if ( c != color_target ) { return TRUE; }
 
 	u32 cc;
 	if ( n_bmp_ptr_get( bmp_f, x,y, &cc ) )
 	{
-		return n_posix_true;
+		return TRUE;
 	} else {
-		if ( cc != color_center ) { return n_posix_true; }
+		if ( cc != color_center ) { return TRUE; }
 	}
 
 	cc = n_bmp_blend_pixel( color_center, color_target, 1.0 / ( 1 + blur ) );
@@ -916,7 +916,7 @@ n_bmp_scaler_big_pixelart_pixel( n_bmp *bmp_f, n_bmp *bmp_t, n_type_gfx x, n_typ
 	n_bmp_ptr_set( bmp_t, x,y, c );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 void
@@ -947,16 +947,16 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 	n_posix_loop
 	{//break;
 
-		u32 color_0;                      n_bmp_ptr_get( bmp, x+0,y+0, &color_0 );
-		u32 color_u; n_posix_bool ret_u = n_bmp_ptr_get( bmp, x+0,y-1, &color_u );
-		u32 color_d; n_posix_bool ret_d = n_bmp_ptr_get( bmp, x+0,y+1, &color_d );
-		u32 color_l; n_posix_bool ret_l = n_bmp_ptr_get( bmp, x-1,y+0, &color_l );
-		u32 color_r; n_posix_bool ret_r = n_bmp_ptr_get( bmp, x+1,y+0, &color_r );
+		u32 color_0;              n_bmp_ptr_get( bmp, x+0,y+0, &color_0 );
+		u32 color_u; BOOL ret_u = n_bmp_ptr_get( bmp, x+0,y-1, &color_u );
+		u32 color_d; BOOL ret_d = n_bmp_ptr_get( bmp, x+0,y+1, &color_d );
+		u32 color_l; BOOL ret_l = n_bmp_ptr_get( bmp, x-1,y+0, &color_l );
+		u32 color_r; BOOL ret_r = n_bmp_ptr_get( bmp, x+1,y+0, &color_r );
 
 		u32 color_z = color_0;
 
 		if (
-			( ret_u == n_posix_false )&&( ret_l == n_posix_false )
+			( ret_u == FALSE )&&( ret_l == FALSE )
 			&&
 			( n_bmp_scaler_big_pixelart_edge_detect( color_0, color_u, color_l ) )
 		)
@@ -966,7 +966,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 			n_posix_loop
 			{
 
-				n_posix_bool ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x+xx,y, 0,-1, xx, color_u, color_z );
+				BOOL ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x+xx,y, 0,-1, xx, color_u, color_z );
 				if ( ret ) { break; }
 
 				xx++;
@@ -985,7 +985,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 
 						u32 c = n_bmp_blend_pixel( color_z, color_u, 1.0 / ( 1 + 1 + 1 + xx ) );
 //c = n_bmp_rgb( 255,0,0 );
-						if ( n_posix_false == n_bmp_is_trans( &tmp, c ) )
+						if ( FALSE == n_bmp_is_trans( &tmp, c ) )
 						{
 							n_bmp_ptr_set( &tmp, x+xx,y+1, c );
 						}
@@ -1008,7 +1008,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 			n_posix_loop
 			{
 
-				n_posix_bool ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x,y+yy, -1,0, yy, color_l, color_z );
+				BOOL ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x,y+yy, -1,0, yy, color_l, color_z );
 				if ( ret ) { break; }
 
 				yy++;
@@ -1026,7 +1026,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 					{
 
 						u32 c = n_bmp_blend_pixel( color_z, color_l, 1.0 / ( 1 + 1 + 1 + yy ) );
-						if ( n_posix_false == n_bmp_is_trans( &tmp, c ) )
+						if ( FALSE == n_bmp_is_trans( &tmp, c ) )
 						{
 							n_bmp_ptr_set( &tmp, x+1,y+yy, c );
 						}
@@ -1047,7 +1047,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 		}
 
 		if (
-			( ret_u == n_posix_false )&&( ret_r == n_posix_false )
+			( ret_u == FALSE )&&( ret_r == FALSE )
 			&&
 			( n_bmp_scaler_big_pixelart_edge_detect( color_0, color_u, color_r ) )
 		)
@@ -1057,7 +1057,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 			n_posix_loop
 			{
 
-				n_posix_bool ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x-xx,y, 0,-1, xx, color_u, color_z );
+				BOOL ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x-xx,y, 0,-1, xx, color_u, color_z );
 				if ( ret ) { break; }
 
 				xx++;
@@ -1076,7 +1076,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 
 						u32 c = n_bmp_blend_pixel( color_z, color_u, 1.0 / ( 1 + 1 + 1 + xx ) );
 //c = n_bmp_rgb( 255,0,0 );
-						if ( n_posix_false == n_bmp_is_trans( &tmp, c ) )
+						if ( FALSE == n_bmp_is_trans( &tmp, c ) )
 						{
 							n_bmp_ptr_set( &tmp, x-xx,y+1, c );
 						}
@@ -1099,7 +1099,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 			n_posix_loop
 			{//break;
 
-				n_posix_bool ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x,y+yy, 1,0, yy, color_r, color_z );
+				BOOL ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x,y+yy, 1,0, yy, color_r, color_z );
 				if ( ret ) { break; }
 
 				yy++;
@@ -1117,7 +1117,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 					{
 
 						u32 c = n_bmp_blend_pixel( color_z, color_r, 1.0 / ( 1 + 1 + 1 + yy ) );
-						if ( n_posix_false == n_bmp_is_trans( &tmp, c ) )
+						if ( FALSE == n_bmp_is_trans( &tmp, c ) )
 						{
 							n_bmp_ptr_set( &tmp, x-1,y+yy, c );
 						}
@@ -1138,7 +1138,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 		}
 
 		if (
-			( ret_d == n_posix_false )&&( ret_l == n_posix_false )
+			( ret_d == FALSE )&&( ret_l == FALSE )
 			&&
 			( n_bmp_scaler_big_pixelart_edge_detect( color_0, color_d, color_l ) )
 		)
@@ -1148,7 +1148,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 			n_posix_loop
 			{
 
-				n_posix_bool ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x+xx,y, 0,1, xx, color_d, color_z );
+				BOOL ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x+xx,y, 0,1, xx, color_d, color_z );
 				if ( ret ) { break; }
 
 				xx++;
@@ -1167,7 +1167,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 
 						u32 c = n_bmp_blend_pixel( color_z, color_d, 1.0 / ( 1 + 1 + 1 + xx ) );
 //c = n_bmp_rgb( 255,0,0 );
-						if ( n_posix_false == n_bmp_is_trans( &tmp, c ) )
+						if ( FALSE == n_bmp_is_trans( &tmp, c ) )
 						{
 							n_bmp_ptr_set( &tmp, x+xx,y-1, c );
 						}
@@ -1190,7 +1190,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 			n_posix_loop
 			{
 
-				n_posix_bool ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x,y-yy, -1,0, yy, color_l, color_z );
+				BOOL ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x,y-yy, -1,0, yy, color_l, color_z );
 				if ( ret ) { break; }
 
 				yy++;
@@ -1208,7 +1208,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 					{
 
 						u32 c = n_bmp_blend_pixel( color_z, color_l, 1.0 / ( 1 + 1 + 1 + yy ) );
-						if ( n_posix_false == n_bmp_is_trans( &tmp, c ) )
+						if ( FALSE == n_bmp_is_trans( &tmp, c ) )
 						{
 							n_bmp_ptr_set( &tmp, x+1,y-yy, c );//n_bmp_rgb( 255,0,0 ) );
 						}
@@ -1229,7 +1229,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 		}
 
 		if (
-			( ret_d == n_posix_false )&&( ret_r == n_posix_false )
+			( ret_d == FALSE )&&( ret_r == FALSE )
 			&&
 			( n_bmp_scaler_big_pixelart_edge_detect( color_0, color_d, color_r ) )
 		)
@@ -1239,7 +1239,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 			n_posix_loop
 			{
 
-				n_posix_bool ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x-xx,y, 0,1, xx, color_d, color_z );
+				BOOL ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x-xx,y, 0,1, xx, color_d, color_z );
 				if ( ret ) { break; }
 
 				xx++;
@@ -1258,7 +1258,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 
 						u32 c = n_bmp_blend_pixel( color_z, color_d, 1.0 / ( 1 + 1 + 1 + xx ) );
 //c = n_bmp_rgb( 255,0,0 );
-						if ( n_posix_false == n_bmp_is_trans( &tmp, c ) )
+						if ( FALSE == n_bmp_is_trans( &tmp, c ) )
 						{
 							n_bmp_ptr_set( &tmp, x-xx,y-1, c );
 						}
@@ -1281,7 +1281,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 			n_posix_loop
 			{
 
-				n_posix_bool ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x,y-yy, 1,0, yy, color_r, color_z );
+				BOOL ret = n_bmp_scaler_big_pixelart_pixel( bmp, &tmp, x,y-yy, 1,0, yy, color_r, color_z );
 				if ( ret ) { break; }
 
 				yy++;
@@ -1299,7 +1299,7 @@ n_bmp_scaler_big_pixelart( n_bmp *bmp, int zoom )
 					{
 
 						u32 c = n_bmp_blend_pixel( color_z, color_r, 1.0 / ( 1 + 1 + 1 + yy ) );
-						if ( n_posix_false == n_bmp_is_trans( &tmp, c ) )
+						if ( FALSE == n_bmp_is_trans( &tmp, c ) )
 						{
 							n_bmp_ptr_set( &tmp, x-1,y-yy, c );
 						}

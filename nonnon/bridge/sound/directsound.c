@@ -57,7 +57,7 @@ typedef struct {
 
 #define n_directsound_zero( p ) n_memory_zero( p, sizeof( n_directsound ) )
 
-n_posix_bool
+BOOL
 n_directsound_exit( n_directsound *p )
 {
 
@@ -83,7 +83,7 @@ n_directsound_exit( n_directsound *p )
 	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_directsound_init( n_directsound *p, HWND hwnd, n_wav *wav )
 {
 
@@ -162,7 +162,7 @@ n_directsound_init( n_directsound *p, HWND hwnd, n_wav *wav )
 	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_directsound_loop( n_directsound *p )
 {
 
@@ -175,7 +175,7 @@ n_directsound_loop( n_directsound *p )
 	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_directsound_stop( n_directsound *p )
 {
 

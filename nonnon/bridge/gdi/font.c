@@ -52,16 +52,16 @@ n_gdi_font_enumfontsproc( const LOGFONT *lf, const TEXTMETRIC *tm, DWORD type, L
 		n_memory_copy( lf, query, sizeof( LOGFONT ) );
 
 
-		return n_posix_false;
+		return FALSE;
 	}
 
 
-	return n_posix_true;
+	return TRUE;
 }
 
 #define n_gdi_font_is_exist_literal( name ) n_gdi_font_is_exist( n_posix_literal( name ) )
 
-n_posix_bool
+BOOL
 n_gdi_font_is_exist( const n_posix_char *name )
 {
 
@@ -74,13 +74,13 @@ n_gdi_font_is_exist( const n_posix_char *name )
 	if ( LF_FACESIZE > n_posix_strlen( name ) ) { n_string_copy( name, lf.lfFaceName ); }
 
 
-	n_posix_bool ret = EnumFonts( hdc, NULL, n_gdi_font_enumfontsproc, (LPARAM) &lf );
+	BOOL ret = EnumFonts( hdc, NULL, n_gdi_font_enumfontsproc, (LPARAM) &lf );
 
 
 	ReleaseDC( hwnd, hdc );
 
 
-	return ( ret == n_posix_false );
+	return ( ret == FALSE );
 }
 
 n_posix_char*
@@ -148,7 +148,7 @@ n_gdi_font_process( const n_gdi *gdi, LOGFONT *lf )
 
 		HDC hdc = GetDC( NULL );
 
-		n_posix_bool ret = EnumFonts( hdc, NULL, n_gdi_font_enumfontsproc, (LPARAM) lf );
+		BOOL ret = EnumFonts( hdc, NULL, n_gdi_font_enumfontsproc, (LPARAM) lf );
 		if ( ret ) { (*lf) = n_gdi_font_hfont2logfont( GetStockObject( DEFAULT_GUI_FONT ) ); }
 
 		ReleaseDC( NULL, hdc );
@@ -182,14 +182,14 @@ n_gdi_font_process( const n_gdi *gdi, LOGFONT *lf )
 	}
 
 
-	if ( n_gdi_fakebold_onoff == n_posix_false )
+	if ( n_gdi_fakebold_onoff == FALSE )
 	{
 		if ( gdi->text_style & N_GDI_FONT_BOLD ) { lf->lfWeight = FW_BOLD; }
 	}
 
-	if ( gdi->text_style & N_GDI_FONT_ITALIC    ) { lf->lfItalic    = n_posix_true; }
-	if ( gdi->text_style & N_GDI_FONT_UNDERLINE ) { lf->lfUnderline = n_posix_true; }
-	if ( gdi->text_style & N_GDI_FONT_STRIKEOUT ) { lf->lfStrikeOut = n_posix_true; }
+	if ( gdi->text_style & N_GDI_FONT_ITALIC    ) { lf->lfItalic    = TRUE; }
+	if ( gdi->text_style & N_GDI_FONT_UNDERLINE ) { lf->lfUnderline = TRUE; }
+	if ( gdi->text_style & N_GDI_FONT_STRIKEOUT ) { lf->lfStrikeOut = TRUE; }
 
 
 	return n_gdi_font_logfont2hfont( lf );
@@ -204,17 +204,17 @@ n_gdi_font( const n_gdi *gdi )
 
 	// [!] : Cache : 20% faster when the same font is requested
 
-	if ( n_posix_false == n_thread_onoff() )
+	if ( FALSE == n_thread_onoff() )
 	{
 
-		static n_posix_bool init  = n_posix_false;
-		static int          style = 0;
-		static LOGFONT      lf;
+		static BOOL    init  = FALSE;
+		static int     style = 0;
+		static LOGFONT lf;
 
 
-		if ( init == n_posix_false )
+		if ( init == FALSE )
 		{
-			init = n_posix_true;
+			init = TRUE;
 			ZeroMemory( &lf, sizeof( LOGFONT ) );
 		}
 

@@ -7,10 +7,10 @@
 //
 //	double-byte code : second byte might include \(0x5C)
 //
-//	IsDBCSLeadByte() returns n_posix_true when second byte has some value
+//	IsDBCSLeadByte() returns TRUE when second byte has some value
 //
 //	maybe 0x83 or higher
-//	full-width katakana "ru" (0x838b) returns n_posix_true
+//	full-width katakana "ru" (0x838b) returns TRUE
 
 
 
@@ -92,16 +92,16 @@ n_string_padding( n_posix_char *str, n_posix_char c, n_type_int len )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_string_is_empty( const n_posix_char *str )
 {
 
-	if ( str == NULL ) { return n_posix_true; }
+	if ( str == NULL ) { return TRUE; }
 
-	if ( str[ 0 ] == N_STRING_CHAR_NUL ) { return n_posix_true; }
+	if ( str[ 0 ] == N_STRING_CHAR_NUL ) { return TRUE; }
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #define n_string_is_blank(         s, i ) n_string_char_is_blank( s[ i ] )
@@ -123,7 +123,7 @@ n_string_is_empty( const n_posix_char *str )
 
 #define n_string_is_hex( s, i ) n_string_char_is_hex( s[ i ] )
 
-n_posix_inline n_posix_bool
+n_posix_inline BOOL
 n_string_char_is_hex( n_posix_char c )
 {
 
@@ -140,14 +140,14 @@ n_string_char_is_hex( n_posix_char c )
 
 }
 
-n_posix_bool
+BOOL
 n_string_tab_is_exist( const n_posix_char *str, n_type_int *ret_cch )
 {
 
-	if ( n_string_is_empty( str ) ) { return n_posix_false; }
+	if ( n_string_is_empty( str ) ) { return FALSE; }
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	n_type_int i = 0;
@@ -158,7 +158,7 @@ n_string_tab_is_exist( const n_posix_char *str, n_type_int *ret_cch )
 
 		if ( str[ i ] == N_STRING_CHAR_TAB )
 		{
-			ret = n_posix_true;
+			ret = TRUE;
 			if ( ret_cch == NULL ) { break; }
 		}
 
@@ -246,22 +246,22 @@ n_string_terminate( n_posix_char *str, n_type_int index )
 }
 
 // internal
-n_posix_bool
+BOOL
 n_string_error( const n_posix_char *arg, n_posix_char *ret )
 {
 
-	if ( ret == NULL ) { return n_posix_true; }
+	if ( ret == NULL ) { return TRUE; }
 
 	if ( n_string_is_empty( arg ) )
 	{
 
 		n_string_truncate( ret );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #define n_string_copy_literal( a,b ) n_string_copy( n_posix_literal( a ), b )
@@ -325,12 +325,12 @@ n_string_copy_partial( const n_posix_char *f, n_posix_char *t, n_type_int len )
 
 #define n_string_free( str ) n_memory_free( str )
 
-#define n_string_new(      cch ) n_string_new_internal( cch, n_posix_true  )
-#define n_string_new_fast( cch ) n_string_new_internal( cch, n_posix_false )
+#define n_string_new(      cch ) n_string_new_internal( cch, TRUE  )
+#define n_string_new_fast( cch ) n_string_new_internal( cch, FALSE )
 
 // internal
 n_posix_char*
-n_string_new_internal( n_type_int length, n_posix_bool zeroclear )
+n_string_new_internal( n_type_int length, BOOL zeroclear )
 {
 //return NULL;
 
@@ -467,17 +467,17 @@ n_string_cb2cch( const n_posix_char *stream, n_type_int cb )
 #define n_string_match_literal( s, w ) n_string_match( s, n_posix_literal( w ) )
 
 // internal
-n_posix_bool
+BOOL
 n_string_match_fast( const n_posix_char *stream, const n_posix_char *word, n_type_int streamlen, n_type_int wordlen )
 {
 
-	if ( stream == NULL ) { return n_posix_false; }
-	if ( word   == NULL ) { return n_posix_false; }
+	if ( stream == NULL ) { return FALSE; }
+	if ( word   == NULL ) { return FALSE; }
 
 
 	// nothing to do
 
-	if ( stream[ 0 ] != word[ 0 ] ) { return n_posix_false; }
+	if ( stream[ 0 ] != word[ 0 ] ) { return FALSE; }
 
 
 	if ( streamlen == 0 ) { streamlen = n_posix_strlen( stream ); }
@@ -486,7 +486,7 @@ n_string_match_fast( const n_posix_char *stream, const n_posix_char *word, n_typ
 
 	// [!] : anti-fault
 
-	if ( streamlen < wordlen ) { return n_posix_false; }
+	if ( streamlen < wordlen ) { return FALSE; }
 
 
 	return n_memory_is_same( stream, word, wordlen * sizeof( n_posix_char ) );
@@ -551,7 +551,7 @@ n_string_upperlower( const n_posix_char *arg, n_posix_char *ret, int mode )
 
 #define n_string_is_same_literal( f, t ) n_string_is_same( n_posix_literal( f ), t )
 
-n_posix_bool
+BOOL
 n_string_is_same( const n_posix_char *str1, const n_posix_char *str2 )
 {
 
@@ -593,7 +593,7 @@ n_string_is_same( const n_posix_char *str1, const n_posix_char *str2 )
 //n_posix_debug( str1 );
 //n_posix_debug( str2 );
 
-	n_posix_bool ret = ( 0 == n_posix_strcmp( s1, s2 ) );
+	BOOL ret = ( 0 == n_posix_strcmp( s1, s2 ) );
 
 	n_string_free( s1 );
 	n_string_free( s2 );
@@ -770,14 +770,14 @@ n_string_safename( const n_posix_char *arg, n_posix_char *ret )
 #define n_string_anglebracket_del( a,r ) n_string_quote_del_literal( a,r, '<','>' )
 
 // internal
-n_posix_inline n_posix_bool
+n_posix_inline BOOL
 n_string_quote_is_samechar( const n_posix_char *stream, n_type_int index, n_posix_char c )
 {
 
-	if ( stream[ index ] == c ) { return n_posix_true; }
+	if ( stream[ index ] == c ) { return TRUE; }
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 void
@@ -802,8 +802,8 @@ n_string_quote
 		n_type_int f = 0;
 		n_type_int t = n_posix_strlen( arg ) - 1;
 
-		n_posix_bool is_same_f = n_string_quote_is_samechar( arg, f, char_open  );
-		n_posix_bool is_same_t = n_string_quote_is_samechar( arg, t, char_close );
+		BOOL is_same_f = n_string_quote_is_samechar( arg, f, char_open  );
+		BOOL is_same_t = n_string_quote_is_samechar( arg, t, char_close );
 
 
 		// [!] : nothing to do / for performance
@@ -818,10 +818,11 @@ n_string_quote
 		if ( is_same_f ) { char_open  = N_STRING_CHAR_NUL; }
 		if ( is_same_t ) { char_close = N_STRING_CHAR_NUL; }
 
-		n_posix_char *s = n_string_new_fast( n_posix_strlen( arg ) + 2 );
+		n_type_int    c = n_posix_strlen( arg ) + 2;
+		n_posix_char *s = n_string_new_fast( c );
 		if ( s != NULL )
 		{
-			n_posix_sprintf_literal( s, "%c%s%c", char_open, arg, char_close );
+			n_posix_snprintf_literal( s, c + 1, "%c%s%c", char_open, arg, char_close );
 			n_string_copy( s, ret );
 
 			n_string_free( s );
@@ -836,13 +837,13 @@ n_string_quote
 		n_type_int f = 0;
 		n_type_int t = n_posix_strlen( arg ) - 1;
 
-		n_posix_bool is_same_f = n_string_quote_is_samechar( arg, f, char_open  );
-		n_posix_bool is_same_t = n_string_quote_is_samechar( arg, t, char_close );
+		BOOL is_same_f = n_string_quote_is_samechar( arg, f, char_open  );
+		BOOL is_same_t = n_string_quote_is_samechar( arg, t, char_close );
 
 
 		// [!] : nothing to do / for performance
 
-		if ( ( is_same_f == n_posix_false )&&( is_same_t == n_posix_false ) )
+		if ( ( is_same_f == FALSE )&&( is_same_t == FALSE ) )
 		{
 			n_string_copy( arg, ret );
 			return;
@@ -851,7 +852,7 @@ n_string_quote
 
 		if ( is_same_f )
 		{
-			n_posix_sprintf_literal( ret, "%s", &arg[ 1 ] );
+			n_posix_snprintf_literal( ret, t, "%s", &arg[ 1 ] );
 			t--;
 		} else {
 			n_string_copy( arg, ret );
@@ -988,7 +989,7 @@ n_string_tab2space( const n_posix_char *arg, n_type_int tabstop, n_type_int *ret
 
 	n_type_int len_f = 0;//n_posix_strlen( arg );
 
-	if ( n_posix_false == n_string_tab_is_exist( arg, &len_f ) )
+	if ( FALSE == n_string_tab_is_exist( arg, &len_f ) )
 	{
 		if ( ret_len != NULL ) { (*ret_len) = len_f; }
 		return n_string_carboncopy_length( arg, len_f );
@@ -1135,7 +1136,7 @@ n_string_replace
 			{
 				// [!] : nothing to do : skipping only
 			} else {
-				ii += n_posix_sprintf_literal( &s[ ii ], "%s", to );
+				ii += n_posix_snprintf_literal( &s[ ii ], len_t - ii + 1, "%s", to );
 			}
 
 			i += cch_f;
@@ -1232,14 +1233,14 @@ n_string_search
 
 #define n_string_search_simple_literal( a, b ) n_string_search_simple( a, n_posix_literal( b ) )
 
-n_posix_bool
+BOOL
 n_string_search_simple( const n_posix_char *stream, const n_posix_char *query )
 {
 
 	// [Mechanism]
 	//
-	//	n_posix_false : not found
-	//	n_posix_true  :     found : "stream" contains "query"
+	//	FALSE : not found
+	//	TRUE  :     found : "stream" contains "query"
 
 
 	n_type_int f = 0;
@@ -1562,13 +1563,13 @@ n_string_int2str( n_posix_char *str, n_type_int n )
 
 	if ( n == 0 )
 	{
-		n_posix_sprintf_literal( str, "%d", 0 );
+		n_posix_snprintf_literal( str, N_STRING_INT2STR_CCH_MAX, "%d", 0 );
 		return;
 	}
 
 	const int count = N_STRING_INT2STR_CCH_MAX - 1;
 
-	n_posix_bool minus = ( n < 0 );
+	BOOL minus = ( n < 0 );
 	if ( minus )
 	{
 		n *= -1;
@@ -1637,7 +1638,7 @@ n_string_int2str( n_posix_char *str, n_type_int n )
 
 		n_posix_char *s = n_string_carboncopy( &str[ 1 ] );
 
-		n_posix_sprintf_literal( str, "%s", s );
+		n_posix_snprintf_literal( str, N_STRING_INT2STR_CCH_MAX, "%s", s );
 
 		n_string_free( s );
 	}
@@ -1647,15 +1648,15 @@ n_string_int2str( n_posix_char *str, n_type_int n )
 }
 
 // internal
-n_posix_bool
+BOOL
 n_string_parameter_match( const n_posix_char *stream, const n_posix_char *query, n_type_int query_index )
 {
 
-	if ( n_string_is_empty( stream ) ) { return n_posix_false; }
-	if ( n_string_is_empty( query  ) ) { return n_posix_false; }
+	if ( n_string_is_empty( stream ) ) { return FALSE; }
+	if ( n_string_is_empty( query  ) ) { return FALSE; }
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	n_type_int i = 0;
@@ -1676,7 +1677,7 @@ n_string_parameter_match( const n_posix_char *stream, const n_posix_char *query,
 			)
 		)
 		{
-			ret = n_posix_true;
+			ret = TRUE;
 			break;
 		}
 
@@ -1693,11 +1694,11 @@ n_string_parameter_match( const n_posix_char *stream, const n_posix_char *query,
 }
 
 #define n_string_parameter_count_literal( a, b, c ) n_string_parameter_count( a, n_posix_literal( b ), n_posix_literal( c ) )
-#define n_string_parameter_count(         a, b, c ) n_string_parameter_internal( a, b, c, 0, NULL, n_posix_true )
+#define n_string_parameter_count(         a, b, c ) n_string_parameter_internal( a, b, c, 0, NULL, TRUE )
 
 #define n_string_parameter_literal( a, b, c, d, e ) n_string_parameter( a, n_posix_literal( b ), n_posix_literal( c ), d, e )
 
-#define n_string_parameter( a, b, c, d, e ) n_string_parameter_internal( a, b, c, d, e, n_posix_false )
+#define n_string_parameter( a, b, c, d, e ) n_string_parameter_internal( a, b, c, d, e, FALSE )
 
 // internal
 n_type_int
@@ -1708,7 +1709,7 @@ n_string_parameter_internal
 	const n_posix_char *quotation,
 	      n_type_int    index,
 	      n_posix_char *ret,
-	      n_posix_bool  is_count
+	      BOOL          is_count
 )
 {
 
@@ -1745,12 +1746,12 @@ n_string_parameter_internal
 		return 0;
 	}
 
-	n_posix_bool quote_onoff = ( n_posix_false == n_string_is_empty( quotation ) );
-	n_posix_bool quote       = n_posix_false;
-	n_posix_bool first       = n_posix_true;
+	BOOL quote_onoff = ( FALSE == n_string_is_empty( quotation ) );
+	BOOL quote       = FALSE;
+	BOOL first       = TRUE;
 
 	// [!] : auto-skipping when space character is used
-	n_posix_bool is_space = n_string_parameter_match( N_STRING_SPACE, delimiter, 0 );
+	BOOL is_space = n_string_parameter_match( N_STRING_SPACE, delimiter, 0 );
 
 	n_type_int i = 0;
 	n_type_int j = 0;
@@ -1762,41 +1763,41 @@ n_string_parameter_internal
 
 		// [!] : delimiter first, quotation second
 
-		n_posix_bool found = n_posix_false;
+		BOOL found = FALSE;
 
-		if ( quote == n_posix_false )
+		if ( quote == FALSE )
 		{
 
 			n_type_int ii = 0;
 			n_posix_loop
 			{
 
-				n_posix_bool b = n_string_parameter_match( delimiter, s, i + ii );
-				if ( b == n_posix_false ) { break; } else { found = b; }
+				BOOL b = n_string_parameter_match( delimiter, s, i + ii );
+				if ( b == FALSE ) { break; } else { found = b; }
 
 				ii += n_string_doublebyte_increment( s[ i + ii ] );
 
-				if ( is_space == n_posix_false ) { break; }
+				if ( is_space == FALSE ) { break; }
 
 			}
 
 			i += ii;
 			if ( N_STRING_CHAR_NUL == s[ i ] ) { break; }
 
-			if ( ( found )&&( first == n_posix_false ) ) { x++; }
+			if ( ( found )&&( first == FALSE ) ) { x++; }
 
 		}
 
-		n_posix_bool q = n_posix_false;
+		BOOL q = FALSE;
 
 		if ( quote_onoff )
 		{
 
-			n_posix_bool pre = n_posix_false;
+			BOOL pre = FALSE;
 
 			if ( i == 0 )
 			{
-				pre = n_posix_true;
+				pre = TRUE;
 			} else {
 				n_type_int k = 0;
 				n_posix_loop
@@ -1813,8 +1814,8 @@ n_string_parameter_internal
 			n_posix_loop
 			{
 
-				n_posix_bool b = n_string_parameter_match( quotation, s, i + ii );
-				if ( b == n_posix_false ) { break; } else { q = b; }
+				BOOL b = n_string_parameter_match( quotation, s, i + ii );
+				if ( b == FALSE ) { break; } else { q = b; }
 
 				ii += n_string_doublebyte_increment( s[ i + ii ] );
 
@@ -1823,7 +1824,7 @@ n_string_parameter_internal
 			i += ii;
 			if ( N_STRING_CHAR_NUL == s[ i ] ) { break; }
 
-			n_posix_bool post = n_string_parameter_match( delimiter, s, i );
+			BOOL post = n_string_parameter_match( delimiter, s, i );
 
 
 			if ( q )
@@ -1831,21 +1832,21 @@ n_string_parameter_internal
 
 				if ( quote )
 				{
-					if ( post ) { quote = n_posix_false; } else { i -= ii; q = n_posix_false; }
+					if ( post ) { quote = FALSE; } else { i -= ii; q = FALSE; }
 				} else {
-					if ( pre  ) { quote = n_posix_true ; } else { i -= ii; q = n_posix_false; }
+					if ( pre  ) { quote = TRUE ; } else { i -= ii; q = FALSE; }
 				}
 
 			}
 
 		}
 
-		if ( ( found == n_posix_false )&&( q == n_posix_false ) )
+		if ( ( found == FALSE )&&( q == FALSE ) )
 		{
 
 			n_type_int c = n_string_doublebyte_increment( s[ i ] );
 
-			if ( ( ret != NULL )&&( is_count == n_posix_false )&&( x == index ) )
+			if ( ( ret != NULL )&&( is_count == FALSE )&&( x == index ) )
 			{
 				ret[ j ] = s[ i ]; j++;
 				if ( c != 1 ) { ret[ j ] = s[ i + 1 ]; j++; }
@@ -1853,14 +1854,14 @@ n_string_parameter_internal
 
 			i += c;
 
-			if ( is_count == n_posix_false )
+			if ( is_count == FALSE )
 			{
 				if ( ( 0 <= index )&&( x > index ) ) { break; }
 			}
 
 		}
 
-		first = n_posix_false;
+		first = FALSE;
 
 	}
 
@@ -1903,11 +1904,11 @@ const n_posix_char n_string_compare_table[] = {
 	                   0
 };
 
-n_posix_bool
+BOOL
 n_string_compare_is_sign( n_posix_char c )
 {
 
-	n_posix_bool is_found = n_posix_false;
+	BOOL is_found = FALSE;
 
 
 	if (
@@ -1920,14 +1921,14 @@ n_string_compare_is_sign( n_posix_char c )
 		( ( c >= 0x007b )&&( c <= 0x007e ) )
 	)
 	{
-		is_found = n_posix_true;
+		is_found = TRUE;
 	}
 
 /*
 	int i = 0;
 	n_posix_loop
 	{
-		if ( c == n_string_compare_table[ i ] ) { is_found = n_posix_true; break; }
+		if ( c == n_string_compare_table[ i ] ) { is_found = TRUE; break; }
 
 		i++;
 		if ( 0 == n_string_compare_table[ i ] ) { break; }
@@ -1984,11 +1985,11 @@ n_string_compare_explorer_compatible( n_posix_char a, n_posix_char b )
 	return 0;
 }
 
-#define n_string_compare(        a, b ) n_string_compare_internal( a, b, n_posix_false )
-#define n_string_compare_strict( a, b ) n_string_compare_internal( a, b, n_posix_true  )
+#define n_string_compare(        a, b ) n_string_compare_internal( a, b, FALSE )
+#define n_string_compare_strict( a, b ) n_string_compare_internal( a, b, TRUE  )
 
-static n_posix_bool                     n_string_compare_charcode_only        = n_posix_true;
-static n_posix_bool                     n_string_compare_CompareString_onoff  = n_posix_false;
+static BOOL                             n_string_compare_charcode_only        = TRUE;
+static BOOL                             n_string_compare_CompareString_onoff  = FALSE;
 static n_string_compare_custom_callback n_string_compare_custom_callback_func = NULL;
 
 // internal
@@ -2000,7 +2001,7 @@ n_string_compare_character( n_posix_char a, n_posix_char b )
 
 	// [!] : katakana to hiragana
 
-	if ( n_string_compare_charcode_only == n_posix_false )
+	if ( n_string_compare_charcode_only == FALSE )
 	{
 		if ( ( a >= 0x30a1 )&&( a <= 0x30fe ) ) { a -= 0x30a1 - 0x3041; }
 		if ( ( b >= 0x30a1 )&&( b <= 0x30fe ) ) { b -= 0x30a1 - 0x3041; }
@@ -2012,7 +2013,7 @@ n_string_compare_character( n_posix_char a, n_posix_char b )
 	int compare = 0;
 
 
-	if ( n_string_compare_charcode_only == n_posix_false )
+	if ( n_string_compare_charcode_only == FALSE )
 	{
 		if ( n_string_compare_custom_callback_func != NULL )
 		{
@@ -2033,7 +2034,7 @@ n_string_compare_character( n_posix_char a, n_posix_char b )
 
 // internal
 int
-n_string_compare_internal( const n_posix_char *arg_a, const n_posix_char *arg_b, n_posix_bool is_strict )
+n_string_compare_internal( const n_posix_char *arg_a, const n_posix_char *arg_b, BOOL is_strict )
 {
 
 #ifdef N_POSIX_PLATFORM_MAC
@@ -2109,7 +2110,7 @@ n_string_compare_internal( const n_posix_char *arg_a, const n_posix_char *arg_b,
 	n_posix_char *a;
 	n_posix_char *b;
 
-	if ( is_strict == n_posix_false )
+	if ( is_strict == FALSE )
 	{
 		a = n_string_carboncopy( arg_a ); n_string_lower( a, a );
 		b = n_string_carboncopy( arg_b ); n_string_lower( b, b );
@@ -2147,7 +2148,7 @@ n_string_compare_internal( const n_posix_char *arg_a, const n_posix_char *arg_b,
 		if ( is_digit == 0 )
 		{
 
-			if ( n_string_compare_charcode_only == n_posix_false )
+			if ( n_string_compare_charcode_only == FALSE )
 			{
 				compare = 0;
 
@@ -2166,7 +2167,7 @@ n_string_compare_internal( const n_posix_char *arg_a, const n_posix_char *arg_b,
 		if ( is_digit == 1 )
 		{
 
-			if ( n_string_compare_charcode_only == n_posix_false )
+			if ( n_string_compare_charcode_only == FALSE )
 			{
 				compare = 0;
 
@@ -2217,7 +2218,7 @@ n_string_compare_internal( const n_posix_char *arg_a, const n_posix_char *arg_b,
 			n_posix_loop
 			{
 
-				if ( n_string_compare_charcode_only == n_posix_false )
+				if ( n_string_compare_charcode_only == FALSE )
 				{
 					compare = 0;
 
@@ -2246,7 +2247,7 @@ n_string_compare_internal( const n_posix_char *arg_a, const n_posix_char *arg_b,
 	}
 
 
-	if ( is_strict == n_posix_false )
+	if ( is_strict == FALSE )
 	{
 		n_string_free( a );
 		n_string_free( b );
@@ -2258,16 +2259,16 @@ n_string_compare_internal( const n_posix_char *arg_a, const n_posix_char *arg_b,
 
 #define n_string_wildcard_literal( a, b ) n_string_wildcard( n_posix_literal( a ), b )
 
-n_posix_bool
+BOOL
 n_string_wildcard( const n_posix_char *str_match, const n_posix_char *str_query )
 {
 
-	if ( n_string_is_same( str_match, str_query ) ) { return n_posix_true; }
+	if ( n_string_is_same( str_match, str_query ) ) { return TRUE; }
 
-	if ( n_string_is_same_literal( "*", str_match ) ) { return n_posix_true; }
+	if ( n_string_is_same_literal( "*", str_match ) ) { return TRUE; }
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 	if ( n_string_is_empty( str_match ) ) { return ret; }
 	if ( n_string_is_empty( str_query ) ) { return ret; }
@@ -2284,7 +2285,7 @@ n_string_wildcard( const n_posix_char *str_match, const n_posix_char *str_query 
 		( n_string_is_same_literal( "?", str_match ) )
 	)
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -2303,7 +2304,7 @@ n_string_wildcard( const n_posix_char *str_match, const n_posix_char *str_query 
 		if ( str_match[ m ] == n_posix_literal( '*' ) )
 		{
 
-			if ( str_match[ m + 1 ] == N_STRING_CHAR_NUL ) { ret = n_posix_true; break; }
+			if ( str_match[ m + 1 ] == N_STRING_CHAR_NUL ) { ret = TRUE; break; }
 			m++;
 /*
 			n_posix_loop
@@ -2311,7 +2312,7 @@ n_string_wildcard( const n_posix_char *str_match, const n_posix_char *str_query 
 
 				// [x] : this cannot handle like "*color*" with "oc_color.c"
 				//
-				//	'c' in "oc_" will be n_posix_true
+				//	'c' in "oc_" will be TRUE
 
 				if ( str_match[ m ] == str_query[ q ] ) { break; }
 
@@ -2365,11 +2366,11 @@ n_string_wildcard( const n_posix_char *str_match, const n_posix_char *str_query 
 						( str_query[ q + qq ] == N_STRING_CHAR_NUL )
 					)
 					{
-						return n_posix_true;
+						return TRUE;
 					} else
 					if ( str_match[ m + mm ] == N_STRING_CHAR_NUL )
 					{
-						return n_posix_false;
+						return FALSE;
 					}
 
 				} else {
@@ -2382,7 +2383,7 @@ n_string_wildcard( const n_posix_char *str_match, const n_posix_char *str_query 
 					if ( str_query[ q + qq ] == N_STRING_CHAR_NUL )
 					{
 //n_posix_debug_literal( " %d %d ", cch_match, ( m + mm ) );
-						if ( cch_match > ( m + mm ) ) { return n_posix_false; }
+						if ( cch_match > ( m + mm ) ) { return FALSE; }
 						break;
 					}
 
@@ -2415,7 +2416,7 @@ n_string_wildcard( const n_posix_char *str_match, const n_posix_char *str_query 
 
 //n_posix_debug_literal( " %d/%d : %d/%d ", m, cch_match, q, cch_query );
 
-	if ( ( m == cch_match )&&( q == cch_query ) ) { ret = n_posix_true; }
+	if ( ( m == cch_match )&&( q == cch_query ) ) { ret = TRUE; }
 
 
 	return ret;
@@ -2423,17 +2424,17 @@ n_string_wildcard( const n_posix_char *str_match, const n_posix_char *str_query 
 
 #define n_string_commandline_option_literal( o, p ) n_string_commandline_option( n_posix_literal( o ), p )
 
-n_posix_bool
+BOOL
 n_string_commandline_option( const n_posix_char *option, n_posix_char *path )
 {
 
 	// [Mechanism] : "-option C:\\Path"
 	//
-	//	ret = n_posix_false : path = "-option C:\\Path"
-	//	ret = n_posix_true  : path = "C:\\Path"
+	//	ret = FALSE : path = "-option C:\\Path"
+	//	ret = TRUE  : path = "C:\\Path"
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 //n_posix_debug_literal( "%s : %s", option, path );
@@ -2442,13 +2443,14 @@ n_string_commandline_option( const n_posix_char *option, n_posix_char *path )
 	if ( n_string_match( path, option ) )
 	{
 
-		ret = n_posix_true;
+		ret = TRUE;
 
 		// [x] : MinGW-w64 : overlap is forbidden
 
+		n_type_int    c = n_posix_strlen( &path[ n_posix_strlen( option ) ] );
 		n_posix_char *s = n_string_carboncopy( &path[ n_posix_strlen( option ) ] );
 
-		n_posix_sprintf_literal( path, "%s", s );
+		n_posix_snprintf_literal( path, c, "%s", s );
 
 		n_string_free( s );
 

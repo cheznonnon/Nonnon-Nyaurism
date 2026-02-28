@@ -28,11 +28,11 @@ n_mac_txtbox_copy( n_txt *txt, n_type_int fr_x, n_type_int fr_y, n_type_int to_x
 		n_type_int    cch = n_posix_strlen( line );
 		n_posix_char *str = n_string_new( cch );
 
-		n_posix_sprintf_literal( str, "%s", line );
+		n_posix_snprintf_literal( str, cch + 1, "%s", line );
 		str[ max_x ] = N_STRING_CHAR_NUL;
 //NSLog( @"Line Max : NSString : %@", n_mac_str2nsstring( str ) );
 
-		n_posix_sprintf_literal( str, "%s", &str[ min_x ] );
+		n_posix_snprintf_literal( str, cch + 1, "%s", &str[ min_x ] );
 //NSLog( @"Line Min : NSString : %@", n_mac_str2nsstring( str ) );
 
 
@@ -97,26 +97,26 @@ n_mac_txtbox_copy( n_txt *txt, n_type_int fr_x, n_type_int fr_y, n_type_int to_x
 
 		n_posix_char *str = n_string_new( cch );
 
-		n_type_int index = n_posix_sprintf_literal( str, "%s", &line[ x1 ] );
+		n_type_int index = n_posix_snprintf_literal( str, cch + 1, "%s", &line[ x1 ] );
 
 		i = 0;
 		n_posix_loop
 		{
-			index += n_posix_sprintf_literal( &str[ index ], "%c", N_STRING_CHAR_LF );
+			index += n_posix_snprintf_literal( &str[ index ], cch - index + 1, "%c", N_STRING_CHAR_LF );
 
 			i++;
 			if ( ( y1 + i ) >= y2 ) { break; }
 
-			index += n_posix_sprintf_literal( &str[ index ], "%s", n_txt_get( txt, y1 + i ) );
+			index += n_posix_snprintf_literal( &str[ index ], cch - index + 1, "%s", n_txt_get( txt, y1 + i ) );
 		}
 
 		{
 			n_posix_char *last = n_txt_get( txt, y1 + i );
 			if ( last[ 0 ] == N_STRING_CHAR_NUL )
 			{
-				//n_posix_sprintf_literal( &str[ index ], "%c", N_STRING_CHAR_LF );
+				//n_posix_snprintf_literal( &str[ index ], cch - index + 1, "%c", N_STRING_CHAR_LF );
 			} else {
-				n_posix_sprintf_literal( &str[ index ], "%s", n_txt_get( txt, y1 + i ) );
+				n_posix_snprintf_literal( &str[ index ], cch - index + 1, "%s", n_txt_get( txt, y1 + i ) );
 				str[ index + x2 ] = N_STRING_CHAR_NUL;
 				//n_posix_strcat( str, N_STRING_LF );
 			}
@@ -151,12 +151,13 @@ n_mac_txtbox_del_internal( n_txt *txt, n_type_int fr_x, n_type_int fr_y, n_type_
 	{
 
 		n_posix_char *line = n_txt_get( txt, fr_y );
+		n_type_int    cch  = n_posix_strlen( line );
 
 		if ( fr_x < to_x )
 		{
-			n_posix_sprintf_literal( &line[ fr_x ], "%s", &line[ to_x ] );
+			n_posix_snprintf_literal( &line[ fr_x ], cch - fr_x + 1, "%s", &line[ to_x ] );
 		} else {
-			n_posix_sprintf_literal( &line[ to_x ], "%s", &line[ fr_x ] );
+			n_posix_snprintf_literal( &line[ to_x ], cch - to_x + 1, "%s", &line[ fr_x ] );
 		}
 
 		ret = TRUE;
@@ -179,12 +180,12 @@ n_mac_txtbox_del_internal( n_txt *txt, n_type_int fr_x, n_type_int fr_y, n_type_
 		n_posix_char *line_t = n_txt_get( txt, to_y );
 
 		line_f[ fr_x ] = N_STRING_CHAR_NUL;
-		n_posix_sprintf_literal( line_t, "%s", &line_t[ to_x ] );
+		n_posix_snprintf_literal( line_t, n_posix_strlen( line_t ) + 1, "%s", &line_t[ to_x ] );
 //NSLog( @"F : %s", line_f );
 //NSLog( @"T : %s", line_t );
 
 		n_posix_char *str = n_string_new( txt->byte );
-		n_posix_sprintf_literal( str, "%s%s", line_f, line_t );
+		n_posix_snprintf_literal( str, ( txt->byte / sizeof( n_posix_char ) ) + 1, "%s%s", line_f, line_t );
 
 		n_type_int i = 0;
 		n_posix_loop
@@ -209,12 +210,12 @@ n_mac_txtbox_del_internal( n_txt *txt, n_type_int fr_x, n_type_int fr_y, n_type_
 		n_posix_char *line_t = n_txt_get( txt, fr_y );
 
 		line_f[ to_x ] = N_STRING_CHAR_NUL;
-		n_posix_sprintf_literal( line_t, "%s", &line_t[ fr_x ] );
+		n_posix_snprintf_literal( line_t, n_posix_strlen( line_t ) + 1, "%s", &line_t[ fr_x ] );
 //NSLog( @"F : %s", line_f );
 //NSLog( @"T : %s", line_t );
 
 		n_posix_char *str = n_string_new( txt->byte );
-		n_posix_sprintf_literal( str, "%s%s", line_f, line_t );
+		n_posix_snprintf_literal( str, ( txt->byte / sizeof( n_posix_char ) ) + 1, "%s%s", line_f, line_t );
 
 		n_type_int i = 0;
 		n_posix_loop

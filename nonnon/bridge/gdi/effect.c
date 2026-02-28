@@ -258,7 +258,7 @@ n_gdi_bmp_effect( const n_gdi *gdi, n_bmp *bmp, n_bmp *obj, int mode )
 			n_bmp_smoothshrink( obj, n_gdi_smoothness );
 			n_gdi_bmp_alpha_enhancer( gdi, obj );
 
-//n_posix_char str[ 100 ]; n_posix_sprintf_literal( str, "%08x.bmp", n_posix_tickcount() );
+//n_posix_char str[ 100 ]; n_posix_snprintf_literal( str, 100, "%08x.bmp", n_posix_tickcount() );
 //n_bmp_save( obj, str );
 
 			sx = N_BMP_SX( obj );
@@ -457,7 +457,7 @@ n_gdi_bmp_effect( const n_gdi *gdi, n_bmp *bmp, n_bmp *obj, int mode )
 		}
 
 //n_posix_char *name = n_string_path_name_new( gdi->icon );
-//n_posix_char str[ 1024 ]; n_posix_sprintf_literal( str, "./_empty/%s.bmp", name );
+//n_posix_char str[ 1024 ]; n_posix_snprintf_literal( str, 1024, "./_empty/%s.bmp", name );
 //n_bmp_save( obj, str );
 //n_string_path_free( name );
 

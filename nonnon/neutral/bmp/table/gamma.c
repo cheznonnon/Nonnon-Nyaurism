@@ -24,7 +24,7 @@
 
 
 
-static n_posix_bool n_bmp_table_gamma_onoff = n_posix_false;
+static BOOL n_bmp_table_gamma_onoff = FALSE;
 
 
 static n_type_real *n_bmp_table_gamma_0_1 = NULL;
@@ -59,7 +59,7 @@ void
 n_bmp_table_gamma_init( void )
 {
 
-	if ( n_bmp_table_gamma_onoff != n_posix_false ) { return; }
+	if ( n_bmp_table_gamma_onoff != FALSE ) { return; }
 
 
 	n_bmp_table_gamma_0_1 = (n_type_real*) malloc( 256 * sizeof( n_type_real ) );
@@ -109,7 +109,7 @@ n_bmp_table_gamma_init( void )
 	}
 
 
-	n_bmp_table_gamma_onoff = n_posix_true;
+	n_bmp_table_gamma_onoff = TRUE;
 
 
 	return;
@@ -119,7 +119,7 @@ void
 n_bmp_table_gamma_exit( void )
 {
 
-	if ( n_bmp_table_gamma_onoff == n_posix_false ) { return; }
+	if ( n_bmp_table_gamma_onoff == FALSE ) { return; }
 
 
 	free( n_bmp_table_gamma_0_1 ); n_bmp_table_gamma_0_1 = NULL;
@@ -142,7 +142,7 @@ n_bmp_table_gamma_exit( void )
 	free( n_bmp_table_gamma_1_9 ); n_bmp_table_gamma_1_9 = NULL;
 
 
-	n_bmp_table_gamma_onoff = n_posix_false;
+	n_bmp_table_gamma_onoff = FALSE;
 
 
 	return;
@@ -153,7 +153,7 @@ n_bmp_table_gamma_exit( void )
 
 #define N_EPSILON 2.2204460492503131e-16
 
-n_posix_bool
+BOOL
 n_bmp_table_gamma_compare( n_type_real d, n_type_real base )
 {
 	return ( fabs( d - base ) < N_EPSILON );
@@ -163,7 +163,7 @@ n_type_real
 n_bmp_table_gamma_channel( n_type_real n, n_type_real gamma )
 {
 
-	if ( n_bmp_table_gamma_onoff == n_posix_false )
+	if ( n_bmp_table_gamma_onoff == FALSE )
 	{
 		atexit( n_bmp_table_gamma_exit );
 		n_bmp_table_gamma_init();
@@ -414,7 +414,7 @@ n_bmp_table_gamma_channel( n_type_real n, n_type_real gamma )
 
 		return v;
 	}
-//if ( n_posix_false != ( 0x8000 & GetAsyncKeyState( VK_F2 ) ) ) { n_posix_debug_literal( "%0.16f", gamma ); }
+//if ( FALSE != ( 0x8000 & GetAsyncKeyState( VK_F2 ) ) ) { n_posix_debug_literal( "%0.16f", gamma ); }
 
 
 	return n_bmp_table_gamma_calc( n, gamma );

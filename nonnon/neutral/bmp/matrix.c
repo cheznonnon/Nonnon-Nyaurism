@@ -36,7 +36,7 @@ typedef struct {
 	n_type_real   ofx,ofy, otx,oty;
 	n_type_real   tsx,tsy;
 	n_type_gfx    bmpsx,bmpsy;
-	n_posix_bool  minimal_size;
+	BOOL          minimal_size;
 	u32           color_bg;
 
 	n_type_real   min_x,min_y;
@@ -159,7 +159,7 @@ n_bmp_matrix_rotate_thread( n_thread_argument p )
 }
 
 void
-n_bmp_matrix_rotate( n_bmp *bmp, int degree, u32 color_bg, n_posix_bool minimal_size )
+n_bmp_matrix_rotate( n_bmp *bmp, int degree, u32 color_bg, BOOL minimal_size )
 {
 
 	if ( n_bmp_error( bmp ) ) { return; }
@@ -274,8 +274,8 @@ n_bmp_matrix_rotate( n_bmp *bmp, int degree, u32 color_bg, n_posix_bool minimal_
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -454,8 +454,8 @@ n_bmp_matrix_mirror( n_bmp *bmp, int mode )
 		n_type_real fy = ( tx * matrix[ 1 ] ) + ( ty * matrix[ 3 ] ) + oy;
 
 		u32  clr = 0;
-		n_posix_bool ret = n_bmp_ptr_get( bmp, (n_type_gfx) fx, (n_type_gfx) fy, &clr );
-		if ( ret == n_posix_false )
+		BOOL ret = n_bmp_ptr_get( bmp, (n_type_gfx) fx, (n_type_gfx) fy, &clr );
+		if ( ret == FALSE )
 		{
 			n_bmp_ptr_set( &b, (n_type_gfx) tx, (n_type_gfx) ty, clr );
 		}

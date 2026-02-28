@@ -21,6 +21,10 @@
 #include "../neutral/bmp/ui/pmr.c"
 #include "../neutral/bmp/ui/progressbar.c"
 
+#include "../win64/mutex.c"
+
+#include "../win64/ui/_color_scheme.c"
+
 
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
 
@@ -209,6 +213,51 @@ n_gdi_crop( n_bmp *bmp, n_bmp *bmp_Aj )
 
 
 
+void
+n_gdi_system_themed( n_bmp *bmp )
+{
+
+#ifdef N_POSIX_PLATFORM_WINDOWS
+
+	u32 base = n_win64_GetSysColor_nbmp( COLOR_ACTIVECAPTION );
+
+#else
+
+#ifdef N_POSIX_PLATFORM_MAC
+
+	NSColor *nscolor_accent = [NSColor controlAccentColor];
+	u32 base = n_mac_nscolor2argb( nscolor_accent );
+
+#else
+
+	u32 base = n_bmp_rgb( 0, 200, 255 );
+
+#endif
+
+#endif
+
+	u32 face = n_bmp_black;
+	u32 lite = n_bmp_white;
+	u32 pink = n_bmp_hue_wheel_tweak_pixel( base, 64 );
+
+	n_bmp_flush_replacer( bmp, n_bmp_rgb( 200,240,255 ), n_bmp_blend_pixel( base, lite, 0.75 ) );
+	n_bmp_flush_replacer( bmp, n_bmp_rgb( 100,220,255 ), n_bmp_blend_pixel( base, lite, 0.50 ) );
+	n_bmp_flush_replacer( bmp, n_bmp_rgb(   0,200,255 ), n_bmp_blend_pixel( base, face, 0.00 ) );
+	n_bmp_flush_replacer( bmp, n_bmp_rgb(   0,150,200 ), n_bmp_blend_pixel( base, face, 0.25 ) );
+	n_bmp_flush_replacer( bmp, n_bmp_rgb(   0,100,150 ), n_bmp_blend_pixel( base, face, 0.50 ) );
+	n_bmp_flush_replacer( bmp, n_bmp_rgb(   0, 50,100 ), n_bmp_blend_pixel( base, face, 0.75 ) );
+
+	n_bmp_flush_replacer( bmp, n_bmp_rgb( 255,  0,150 ), n_bmp_blend_pixel( pink, face, 0.00 ) );
+	n_bmp_flush_replacer( bmp, n_bmp_rgb( 200,  0,100 ), n_bmp_blend_pixel( pink, face, 0.25 ) );
+	n_bmp_flush_replacer( bmp, n_bmp_rgb( 150,  0, 50 ), n_bmp_blend_pixel( pink, face, 0.50 ) );
+
+
+	return;
+}
+
+
+
+
 #define N_GDI_DEFAULT            ( 0 << 0 )
 #define N_GDI_GRAY               ( 1 << 0 )
 #define N_GDI_CLARITY            ( 1 << 1 )
@@ -314,7 +363,7 @@ n_gdi_crop( n_bmp *bmp, n_bmp *bmp_Aj )
 #define N_GDI_ICON_IMAGELOADER   ( N_GDI_ICON_LAST << 1 )
 #define N_GDI_ICON_NOFINALIZE    ( N_GDI_ICON_LAST << 2 )
 #define N_GDI_ICON_FASTMODE      ( N_GDI_ICON_LAST << 3 )
-#define N_GDI_ICON_STRETCH       ( N_GDI_ICON_LAST << 4 )
+#define N_GDI_ICON_UI            ( N_GDI_ICON_LAST << 4 )
 #define N_GDI_ICON_RESOURCE      ( N_GDI_ICON_LAST << 5 )
 #define N_GDI_ICON_RC_RESOLVE    ( N_GDI_ICON_LAST << 6 )
 #define N_GDI_ICON_SYSTEM        ( N_GDI_ICON_LAST << 7 )
@@ -475,6 +524,127 @@ static BOOL n_gdi_gradient_vertical_up_side_down = FALSE;
 
 
 
+#ifdef N_POSIX_PLATFORM_WINDOWS
+
+void
+n_gdi_HICON2nbmp( HICON hicon, n_type_gfx sx, n_type_gfx sy, n_bmp *b, n_bmp *m )
+{
+
+	if ( hicon == NULL ) { return; }
+
+
+	// [Needed] : multi-thread
+
+	HANDLE hmutex = n_win64_mutex_init_and_wait_literal( NULL, "n_win_icon_hicon2bmp_internal()" );
+
+
+	ICONINFO ii; ZeroMemory( &ii, sizeof( ICONINFO ) ); GetIconInfo( hicon, &ii );
+
+
+	// [x] : Win9x : GetDIBits() : fail at WM_SETTINGCHANGE sometimes
+
+	n_bmp_new_fast( b, sx,sy ); 
+	n_bmp_new_fast( m, sx,sy ); 
+
+	n_bmp_flush( b, n_bmp_white_invisible );
+	n_bmp_flush( m, n_bmp_white           );
+
+
+	BITMAPINFO bi_b = { N_BMP_INFOH( b ), { { 0,0,0,0 } } };
+	BITMAPINFO bi_m = { N_BMP_INFOH( m ), { { 0,0,0,0 } } };
+
+
+	HDC hdc = GetDC( NULL );
+
+
+	// [Mechanism]
+	//
+	//	ii.hbmColor may have NULL
+	//	then ii.hbmMask has the both bitmap with vertical offset
+
+	if ( ii.hbmColor != NULL )
+	{
+//n_bmp_flush( b, n_bmp_rgb( 0,200,255 ) );
+//n_bmp_flush( m, 0 );
+
+		GetDIBits( hdc, ii.hbmColor, 0,sy, N_BMP_PTR( b ), &bi_b, DIB_RGB_COLORS );
+		GetDIBits( hdc, ii.hbmMask,  0,sy, N_BMP_PTR( m ), &bi_m, DIB_RGB_COLORS );
+
+	} else {
+//n_bmp_flush( b, n_bmp_rgb( 255,0,200 ) );
+//n_bmp_flush( m, 0 );
+
+		// [Mechanism] : this code is NT only available
+		//
+		//	bi.bmiHeader.biHeight *= 2;
+		//
+		//	GetDIBits( hdc, ii.hbmMask, sy * 0,sy * 1, N_BMP_PTR( b ), &bi_b, DIB_RGB_COLORS );
+		//	GetDIBits( hdc, ii.hbmMask, sy * 1,sy * 2, N_BMP_PTR( m ), &bi_m, DIB_RGB_COLORS );
+
+		bi_b.bmiHeader.biHeight *= 2;
+
+		GetDIBits( hdc, ii.hbmMask, sy * 0,sy * 1, N_BMP_PTR( b ), &bi_b, DIB_RGB_COLORS );
+		GetDIBits( hdc, ii.hbmMask, sy * 0,sy * 1, N_BMP_PTR( m ), &bi_m, DIB_RGB_COLORS );
+
+	}
+
+
+	ReleaseDC( NULL, hdc );
+
+
+	hmutex = n_win64_mutex_exit( hmutex );
+
+
+	DeleteObject( ii.hbmColor );
+	DeleteObject( ii.hbmMask  );
+
+
+	if ( N_BMP_ALPHA_CHANNEL_VISIBLE == 255 )
+	{
+		if ( n_bmp_alpha_is_zero( b ) ) { n_bmp_alpha_reverse( b ); }
+		if ( n_bmp_alpha_is_zero( m ) ) { n_bmp_alpha_reverse( m ); }
+	}
+
+
+	return;
+}
+
+BOOL
+n_gdi_icon_load( const n_gdi *gdi, n_bmp *bmp, n_posix_char *icon_name )
+{
+
+	if ( gdi->icon_style & N_GDI_ICON_RESOURCE ) { return TRUE; }
+
+
+	const HINSTANCE hinst = GetModuleHandle( NULL );
+
+	WORD icon_index = gdi->icon_index;
+
+	HICON hicon = ExtractAssociatedIcon( hinst, icon_name, &icon_index );
+	if ( hicon == NULL ) { return TRUE; }
+
+	n_bmp b; n_bmp_zero( &b );
+	n_bmp m; n_bmp_zero( &m );
+
+	n_gdi_HICON2nbmp( hicon, gdi->icon_sx, gdi->icon_sy, &b, &m ); 
+
+	DestroyIcon( hicon );
+
+
+	n_bmp_free_fast( bmp );
+	n_bmp_alias( &b, bmp );
+
+	n_bmp_free_fast( &m );
+
+
+	return FALSE;
+}
+
+#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
+
+
+
+
 #define n_gdi_base_load( gdi, icon ) n_gdi_image_load( gdi, icon, gdi->base )
 
 BOOL
@@ -483,6 +653,10 @@ n_gdi_image_load( const n_gdi *gdi, n_bmp *icon, n_posix_char *path )
 
 	if (
 		( n_bmp_load   ( icon, path ) )
+#ifdef N_POSIX_PLATFORM_WINDOWS
+		&&
+		( n_gdi_icon_load( gdi, icon, path ) )
+#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 #ifdef _H_NONNON_NEUTRAL_PNG
 		&&
 		( n_png_png2bmp( path, icon ) )
@@ -645,7 +819,11 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 	gdi->base_polkadot_margin = gdi->base_unit + gdi->base_polkadot_margin;
 
-#ifndef N_POSIX_PLATFORM_WINDOWS
+#ifdef N_POSIX_PLATFORM_WINDOWS
+
+	if ( gdi->text_size > 0 ) { gdi->text_size *= -1; }
+
+#else
 
 	NSFont *nsfont;
 	{
@@ -1378,11 +1556,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 			gdi->icon_y += gdi->scale;
 		}
 
-#ifdef N_POSIX_PLATFORM_MINGW
-
-		n_gdi_icon_draw( gdi, &bmp_ret );
-
-#else  // #ifdef N_POSIX_PLATFORM_MINGW
 
 		n_bmp icon; n_bmp_zero( &icon );
 
@@ -1392,14 +1565,32 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 //n_bmp_fastcopy( &icon, bmp, 0,0,64,64, 0,0 );
 
+		if ( gdi->icon_style & N_GDI_ICON_UI )
+		{
+			n_gdi_system_themed( &icon );
+
+			n_posix_loop
+			{
+				if (
+					( gdi->icon_sx >= N_BMP_SX( &icon ) )
+					&&
+					( gdi->icon_sy >= N_BMP_SY( &icon ) )
+				)
+				{
+					break;
+				}
+
+				n_bmp_flush_antialias( &icon, 1.0 );
+				n_bmp_scaler_lil( &icon, 2 );
+			}
+		}
+
 		if ( ret == FALSE )
 		{
 			n_gdi_bmp_effect_icon( gdi, &bmp_ret, &icon );
 		}
 
 		n_bmp_free_fast( &icon );
-
-#endif // #ifdef N_POSIX_PLATFORM_MINGW
 
 	}
 

@@ -30,7 +30,7 @@ n_wav_sandstorm_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	n_random_shuffle();
@@ -70,7 +70,7 @@ n_wav_fade_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ratio
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 f = 0;
@@ -111,7 +111,7 @@ n_wav_delay_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real rati
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 offset = (u32) ( N_WAV_RATE( wav ) / hz );
@@ -160,7 +160,7 @@ n_wav_feedback_left_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_r
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 offset = (u32) ( N_WAV_RATE( wav ) / hz );
@@ -212,7 +212,7 @@ n_wav_feedback_right_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	u32 offset = (u32) ( N_WAV_RATE( wav ) / hz );
@@ -264,7 +264,7 @@ n_wav_tone_up_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ra
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	const u32 turn = sx / 2;
@@ -302,7 +302,7 @@ n_wav_tone_down_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real 
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	const u32 turn = sx / 2;
@@ -340,7 +340,7 @@ n_wav_tone_updown_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_rea
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	const u32 quarter = sx / 4;
@@ -381,7 +381,7 @@ n_wav_tone_downup_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_rea
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	const u32 quarter = sx / 4;
@@ -425,7 +425,7 @@ n_wav_distortion_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	n_type_real hi_l = 0.0;
@@ -501,7 +501,7 @@ n_wav_marsian_partial( n_wav *wav, n_type_real hz, u32 x, u32 sx, n_type_real ra
 
 	if ( n_wav_error_format( wav ) ) { return; }
 
-	if ( n_posix_false == n_wav_sample_is_accessible( wav, x ) ) { return; }
+	if ( FALSE == n_wav_sample_is_accessible( wav, x ) ) { return; }
 
 
 	const u32 unit = (u32) ( (n_type_real) N_WAV_RATE( wav ) * 0.125 );

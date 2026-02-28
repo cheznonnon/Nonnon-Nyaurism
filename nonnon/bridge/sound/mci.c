@@ -37,7 +37,7 @@ typedef struct {
 
 #define n_mci_zero( p ) n_memory_zero( p, sizeof( n_mci ) )
 
-n_posix_bool
+BOOL
 n_mci_init( n_mci *p, const n_posix_char *fname )
 {
 
@@ -50,10 +50,10 @@ n_mci_init( n_mci *p, const n_posix_char *fname )
 	p->id = open.wDeviceID;
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_mci_loop( n_mci *p )
 {
 //n_posix_debug_literal( "MCI : Play" );
@@ -77,10 +77,10 @@ n_mci_loop( n_mci *p )
 //n_posix_debug_literal( "%lu", stat.dwReturn );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_mci_stop( n_mci *p )
 {
 ///n_posix_debug_literal( "MCI : Stop" );
@@ -88,10 +88,10 @@ n_mci_stop( n_mci *p )
 	mciSendCommand( p->id, MCI_STOP, 0, 0 );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_mci_exit( n_mci *p )
 {
 ///n_posix_debug_literal( "MCI : Stop" );
@@ -102,10 +102,10 @@ n_mci_exit( n_mci *p )
 	n_mci_zero( p );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_mci_pause( n_mci *p )
 {
 ///n_posix_debug_literal( "MCI : Pause" );
@@ -113,10 +113,10 @@ n_mci_pause( n_mci *p )
 	mciSendCommand( p->id, MCI_PAUSE, 0, 0 );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_mci_resume( n_mci *p )
 {
 ///n_posix_debug_literal( "MCI : Resume" );
@@ -124,7 +124,7 @@ n_mci_resume( n_mci *p )
 	mciSendCommand( p->id, MCI_RESUME, 0, 0 );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 

@@ -16,19 +16,19 @@
 
 
 
-n_posix_bool
+BOOL
 n_bmp_24bit( n_bmp *bmp )
 {
 
 	if ( n_bmp_safemode )
 	{
-		if ( NULL == N_BMP_PTR( bmp ) ) { return n_posix_true; }
+		if ( NULL == N_BMP_PTR( bmp ) ) { return TRUE; }
 	}
 
 
-	if ( 32 != N_BMP_DEPTH( bmp ) ) { return n_posix_false; }
+	if ( 32 != N_BMP_DEPTH( bmp ) ) { return FALSE; }
 
-	if ( n_bmp_alpha_is_used( bmp ) ) { return n_posix_false; }
+	if ( n_bmp_alpha_is_used( bmp ) ) { return FALSE; }
 
 
 	n_type_gfx sx = N_BMP_SX( bmp );
@@ -87,20 +87,20 @@ n_bmp_24bit( n_bmp *bmp )
 	n_bmp_precalc( bmp );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_bmp_32bit( n_bmp *bmp )
 {
 
 	if ( n_bmp_safemode )
 	{
-		if ( NULL == N_BMP_PTR( bmp ) ) { return n_posix_true; }
+		if ( NULL == N_BMP_PTR( bmp ) ) { return TRUE; }
 	}
 
 
-	if ( 24 != N_BMP_DEPTH( bmp ) ) { return n_posix_false; }
+	if ( 24 != N_BMP_DEPTH( bmp ) ) { return FALSE; }
 
 
 	const n_type_gfx bmpsx = N_BMP_SX( bmp );
@@ -149,23 +149,23 @@ n_bmp_32bit( n_bmp *bmp )
 	n_bmp_replace( &bmp_t, bmp );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_bmp_rle8_decode( n_bmp *bmp )
 {
 
 	if ( n_bmp_safemode )
 	{
-		if ( NULL == N_BMP_PTR( bmp ) ) { return n_posix_true; }
+		if ( NULL == N_BMP_PTR( bmp ) ) { return TRUE; }
 	}
 
 
 	// [Condition] : 8bit palette mode only available by specification
 
-	if (       8 != N_BMP_DEPTH( bmp ) ) { return n_posix_false; }
-	if ( BI_RLE8 != N_BMP_RLE  ( bmp ) ) { return n_posix_false; }
+	if (       8 != N_BMP_DEPTH( bmp ) ) { return FALSE; }
+	if ( BI_RLE8 != N_BMP_RLE  ( bmp ) ) { return FALSE; }
 
 
 	const n_type_gfx bmpsx = N_BMP_SX( bmp );
@@ -307,29 +307,29 @@ n_bmp_rle8_decode( n_bmp *bmp )
 //n_posix_dump_literal( "dump", N_BMP_PTR( bmp ), N_BMP_SIZE( bmp ) );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_bmp_rle8_encode( n_bmp *bmp )
 {
 
 	if ( n_bmp_safemode )
 	{
-		if ( NULL == N_BMP_PTR( bmp ) ) { return n_posix_true; }
+		if ( NULL == N_BMP_PTR( bmp ) ) { return TRUE; }
 	}
 
 
 	// [Condition] : 8bit palette mode only available by specification
 
-	if (       8 != N_BMP_DEPTH( bmp ) ) { return n_posix_false; }
-	if ( BI_RLE8 == N_BMP_RLE  ( bmp ) ) { return n_posix_false; }
+	if (       8 != N_BMP_DEPTH( bmp ) ) { return FALSE; }
+	if ( BI_RLE8 == N_BMP_RLE  ( bmp ) ) { return FALSE; }
 
 
 	n_type_gfx skipbyte = n_bmp_skipbyte( N_BMP_SX( bmp ), 8 );
 
 	n_type_int byte = N_BMP_SIZE( bmp ) * 3;
-	if ( byte > LONG_MAX ) { return n_posix_true; }
+	if ( byte > LONG_MAX ) { return TRUE; }
 
 	u8 *f = (u8*) N_BMP_PTR( bmp );
 	u8 *t = (u8*) n_memory_new( byte );
@@ -439,7 +439,7 @@ ii += 4; y++; i += n_bmp_linebyte( N_BMP_SX( bmp ), 8 );
 	N_BMP_PTR( bmp ) = (u32*) n_memory_resize( t, N_BMP_SIZE( bmp ) );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 int
@@ -565,20 +565,20 @@ n_bmp_pal2full( n_bmp *bmp )
 	n_bmp_replace( &b, bmp );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_bmp_palette( n_bmp *bmp )
 {
 
 	if ( n_bmp_safemode )
 	{
-		if ( NULL == N_BMP_PTR( bmp ) ) { return n_posix_true; }
+		if ( NULL == N_BMP_PTR( bmp ) ) { return TRUE; }
 	}
 
 
-	if ( 32 != N_BMP_DEPTH( bmp ) ) { return n_posix_true; }
+	if ( 32 != N_BMP_DEPTH( bmp ) ) { return TRUE; }
 
 
 	u32        palette[ 256 ];
@@ -612,7 +612,7 @@ n_bmp_palette( n_bmp *bmp )
 				palette[ reg ] = color;
 
 				reg++;
-				if ( reg >= 256 ) { return n_posix_true; }
+				if ( reg >= 256 ) { return TRUE; }
 
 				break;
 			}
@@ -640,7 +640,7 @@ n_bmp_palette( n_bmp *bmp )
 	n_memory_copy( palette, N_BMP_PTR_PAL( bmp ), reg * sizeof( u32 ) );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 void
@@ -749,11 +749,11 @@ n_bmp_full2pal( n_bmp *bmp )
 }
 
 // internal
-n_posix_bool
+BOOL
 n_bmp_is_loadable( n_bmp *bmp, n_type_int ptrsize )
 {
 
-	if ( bmp == NULL ) { return n_posix_false; }
+	if ( bmp == NULL ) { return FALSE; }
 
 
 	// [!] : Not Supported
@@ -818,7 +818,7 @@ n_bmp_is_loadable( n_bmp *bmp, n_type_int ptrsize )
 		)
 	)
 	{
-		return n_posix_false;
+		return FALSE;
 	}
 
 
@@ -851,22 +851,22 @@ n_bmp_is_loadable( n_bmp *bmp, n_type_int ptrsize )
 			( ( BI_RLE8 == N_BMP_RLE( bmp ) )&&( ptrsize < needed_rle8 ) )
 		)
 		{
-			return n_posix_false;
+			return FALSE;
 		}
 //n_posix_debug_literal( "%d : %d", (int) ptrsize, (int) needed_rgb );
 
 	}
 
 
-	return n_posix_true;
+	return TRUE;
 }
 
-#define n_bmp_load(          bmp, filename  ) n_bmp_load_internal( bmp, (void*) filename,    0, n_posix_true  )
-#define n_bmp_load_onmemory( bmp, ptr, size ) n_bmp_load_internal( bmp,              ptr, size, n_posix_false )
+#define n_bmp_load(          bmp, filename  ) n_bmp_load_internal( bmp, (void*) filename,    0, TRUE  )
+#define n_bmp_load_onmemory( bmp, ptr, size ) n_bmp_load_internal( bmp,              ptr, size, FALSE )
 
 // internal
-n_posix_bool
-n_bmp_load_internal( n_bmp *bmp, u8 *ptr, n_type_int ptrsize, n_posix_bool is_file )
+BOOL
+n_bmp_load_internal( n_bmp *bmp, u8 *ptr, n_type_int ptrsize, BOOL is_file )
 {
 
 	// [!] : 4 byte alignment
@@ -882,12 +882,12 @@ n_bmp_load_internal( n_bmp *bmp, u8 *ptr, n_type_int ptrsize, n_posix_bool is_fi
 
 	if ( n_bmp_safemode )
 	{
-		if ( ptr == NULL ) { return n_posix_true; }
-		if ( bmp == NULL ) { return n_posix_true; }
+		if ( ptr == NULL ) { return TRUE; }
+		if ( bmp == NULL ) { return TRUE; }
 	}
 
 
-	n_posix_bool onmemory;
+	BOOL onmemory;
 
 
 	// [!] : try to handle as bitmap
@@ -902,17 +902,17 @@ n_bmp_load_internal( n_bmp *bmp, u8 *ptr, n_type_int ptrsize, n_posix_bool is_fi
 		const n_posix_char *name = (n_posix_char*) ptr;
 
 
-		onmemory = n_posix_false;
+		onmemory = FALSE;
 
 
 		ptrsize = n_posix_stat_size( name );
-		if ( ptrsize < N_BMP_SIZE_HEADER ) { return n_posix_true; }
+		if ( ptrsize < N_BMP_SIZE_HEADER ) { return TRUE; }
 
-		if ( ptrsize > LONG_MAX ) { return n_posix_true; }
+		if ( ptrsize > LONG_MAX ) { return TRUE; }
 
 
 		FILE *fp = n_posix_fopen_read( name );
-		if ( fp == NULL ) { return n_posix_true; }
+		if ( fp == NULL ) { return TRUE; }
 
 
 		// [!] : sniffer
@@ -920,12 +920,12 @@ n_bmp_load_internal( n_bmp *bmp, u8 *ptr, n_type_int ptrsize, n_posix_bool is_fi
 		n_posix_fread( &N_BMP_FILEH( &check ), N_BMP_SIZE_FILEH, 1, fp );
 		n_posix_fread( &N_BMP_INFOH( &check ), N_BMP_SIZE_INFOH, 1, fp );
 
-		if ( n_posix_false == n_bmp_is_loadable( &check, ptrsize ) )
+		if ( FALSE == n_bmp_is_loadable( &check, ptrsize ) )
 		{
 
 			n_posix_fclose( fp );
 
-			return n_posix_true;
+			return TRUE;
 		}
 
 
@@ -939,21 +939,21 @@ n_bmp_load_internal( n_bmp *bmp, u8 *ptr, n_type_int ptrsize, n_posix_bool is_fi
 
 	} else {
 
-		onmemory = n_posix_true;
+		onmemory = TRUE;
 
 
-		if ( ptrsize < N_BMP_SIZE_HEADER ) { return n_posix_true; }
+		if ( ptrsize < N_BMP_SIZE_HEADER ) { return TRUE; }
 
-		if ( ptrsize > LONG_MAX ) { return n_posix_true; }
+		if ( ptrsize > LONG_MAX ) { return TRUE; }
 
 		n_memory_copy( &ptr[                0 ], &N_BMP_FILEH( &check ), N_BMP_SIZE_FILEH );
 		n_memory_copy( &ptr[ N_BMP_SIZE_FILEH ], &N_BMP_INFOH( &check ), N_BMP_SIZE_INFOH );
 
 		N_BMP_TYPE( &check ) = N_BMP_TYPE_BM;
 
-		if ( n_posix_false == n_bmp_is_loadable( &check, ptrsize ) )
+		if ( FALSE == n_bmp_is_loadable( &check, ptrsize ) )
 		{
-			return n_posix_true;
+			return TRUE;
 		}
 
 	}
@@ -961,7 +961,7 @@ n_bmp_load_internal( n_bmp *bmp, u8 *ptr, n_type_int ptrsize, n_posix_bool is_fi
 
 	// Decoder
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	if ( 24 <= N_BMP_DEPTH( &check ) )
@@ -992,7 +992,7 @@ n_bmp_load_internal( n_bmp *bmp, u8 *ptr, n_type_int ptrsize, n_posix_bool is_fi
 
 	// Cleanup
 
-	if ( onmemory == n_posix_false ) { n_memory_free( ptr ); }
+	if ( onmemory == FALSE ) { n_memory_free( ptr ); }
 
 	if ( ret )
 	{
@@ -1021,15 +1021,15 @@ n_bmp_load_internal( n_bmp *bmp, u8 *ptr, n_type_int ptrsize, n_posix_bool is_fi
 
 #define n_bmp_save_literal( bmp, filename ) n_bmp_save( bmp, n_posix_literal( filename ) )
 
-n_posix_bool
+BOOL
 n_bmp_save( const n_bmp *bmp, const n_posix_char *filename )
 {
 
 	if ( n_bmp_safemode )
 	{
-		if ( bmp == NULL ) { return n_posix_true; }
+		if ( bmp == NULL ) { return TRUE; }
 
-		if ( NULL == N_BMP_PTR( bmp ) ) { return n_posix_true; }
+		if ( NULL == N_BMP_PTR( bmp ) ) { return TRUE; }
 	}
 
 
@@ -1041,8 +1041,8 @@ n_bmp_save( const n_bmp *bmp, const n_posix_char *filename )
 
 	// [!] : stop to make an invalid bitmap
 
-	if ( NULL == N_BMP_PTR ( &save ) ) { n_bmp_free( &save ); return n_posix_true; }
-	if (    0 == N_BMP_SIZE( &save ) ) { n_bmp_free( &save ); return n_posix_true; }
+	if ( NULL == N_BMP_PTR ( &save ) ) { n_bmp_free( &save ); return TRUE; }
+	if (    0 == N_BMP_SIZE( &save ) ) { n_bmp_free( &save ); return TRUE; }
 
 
 	// [!] : backward compatibility : all visible will be 0RGB bitmap
@@ -1081,7 +1081,7 @@ n_bmp_save( const n_bmp *bmp, const n_posix_char *filename )
 	{
 
 		FILE  *fp = n_posix_fopen_write( filename );
-		if ( fp == NULL ) { n_bmp_free( &save ); return n_posix_true; }
+		if ( fp == NULL ) { n_bmp_free( &save ); return TRUE; }
 
 		n_posix_fwrite( &N_BMP_FILEH  ( &save ),  N_BMP_SIZE_FILEH,    1, fp );
 		n_posix_fwrite( &N_BMP_INFOH  ( &save ),  N_BMP_SIZE_INFOH,    1, fp );
@@ -1096,7 +1096,7 @@ n_bmp_save( const n_bmp *bmp, const n_posix_char *filename )
 	n_bmp_free( &save );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 

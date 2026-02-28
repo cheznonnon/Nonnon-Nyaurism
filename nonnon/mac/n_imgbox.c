@@ -65,6 +65,11 @@
 
 
 
+- (BOOL) isOpaque {
+//NSLog( @" isOpaque " );
+	return NO;
+}
+
 - (void)drawRect:(NSRect)dirtyRect
 {
 //NSLog( @"drawRect" );

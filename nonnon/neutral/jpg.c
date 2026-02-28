@@ -218,13 +218,13 @@ n_jpg_swaprgb( n_bmp *bmp )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_jpg_bmp2jpg( const n_posix_char *jpgname, const n_bmp *bmp_arg )
 {
 
-	if ( n_string_is_empty( jpgname ) ) { return n_posix_true; }
+	if ( n_string_is_empty( jpgname ) ) { return TRUE; }
 
-	if ( n_bmp_error( bmp_arg ) ) { return n_posix_true; }
+	if ( n_bmp_error( bmp_arg ) ) { return TRUE; }
 
 
 	n_bmp bmp; n_bmp_carboncopy( bmp_arg, &bmp );
@@ -263,10 +263,10 @@ n_jpg_bmp2jpg( const n_posix_char *jpgname, const n_bmp *bmp_arg )
 	jcs.in_color_space   = JCS_RGB;
 
 	jpeg_set_defaults   ( &jcs );
-	jpeg_set_quality    ( &jcs, n_jpg_quality, n_posix_true );
+	jpeg_set_quality    ( &jcs, n_jpg_quality, TRUE );
 
 
-	jpeg_start_compress ( &jcs, n_posix_true );
+	jpeg_start_compress ( &jcs, TRUE );
 
 	u8         *row_ptr    = (void*) N_BMP_PTR( &bmp );
 	JSAMPROW    row_pointer[ 1 ];
@@ -312,16 +312,16 @@ n_jpg_bmp2jpg( const n_posix_char *jpgname, const n_bmp *bmp_arg )
 	n_bmp_free( &bmp );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_jpg_jpg2bmp( const n_posix_char *jpgname, n_bmp *bmp_ret )
 {
 
-	if ( n_string_is_empty( jpgname ) ) { return n_posix_true; }
+	if ( n_string_is_empty( jpgname ) ) { return TRUE; }
 
-	if ( bmp_ret == NULL ) { return n_posix_true; }
+	if ( bmp_ret == NULL ) { return TRUE; }
 
 
 	// [!] : sniffer
@@ -335,23 +335,23 @@ n_jpg_jpg2bmp( const n_posix_char *jpgname, n_bmp *bmp_ret )
 
 		if ( sniffer_byte > n_posix_stat_size( jpgname ) )
 		{
-			return n_posix_true;
+			return TRUE;
 		}
 
 		fp = n_posix_fopen_read( jpgname );
 		if ( fp == NULL )
 		{
-			return n_posix_true;
+			return TRUE;
 		}
 
 		u8 sniffer_ptr[ 3 ];
 		n_posix_fread( sniffer_ptr, sniffer_byte, 1, fp );
 	
-		if ( n_posix_false == n_memory_is_same( sniffer_ptr, sniffer_jpg, sniffer_byte ) )
+		if ( FALSE == n_memory_is_same( sniffer_ptr, sniffer_jpg, sniffer_byte ) )
 		{
 			n_posix_fclose( fp );
 
-			return n_posix_true;
+			return TRUE;
 		}
 
 		// [Needed] : rewind
@@ -384,7 +384,7 @@ n_jpg_jpg2bmp( const n_posix_char *jpgname, n_bmp *bmp_ret )
 #endif // #ifdef N_JPG_NO_MEM_API
 
 
-	jpeg_read_header      ( &jds, n_posix_true );
+	jpeg_read_header      ( &jds, TRUE );
 	jpeg_start_decompress ( &jds );
 //n_posix_debug_literal( " %d ", jds.output_components );
 	if (
@@ -407,7 +407,7 @@ n_jpg_jpg2bmp( const n_posix_char *jpgname, n_bmp *bmp_ret )
 
 		n_posix_fclose( fp );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 
@@ -499,7 +499,7 @@ n_jpg_jpg2bmp( const n_posix_char *jpgname, n_bmp *bmp_ret )
 	n_posix_fclose( fp );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 

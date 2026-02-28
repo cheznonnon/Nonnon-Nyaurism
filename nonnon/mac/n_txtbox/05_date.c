@@ -24,9 +24,10 @@ n_txtbox_date( n_posix_char *str, n_type_int cch )
 	n_time_today( &year, &month, &day, &hour, &minute, &second );
 
 
-	n_posix_sprintf_literal
+	n_posix_snprintf_literal
 	(
 		str,
+		cch + 1,
 		"%04d/%02d/%02d %02d:%02d:%02d",
 		year, month, day,
 		hour, minute, second

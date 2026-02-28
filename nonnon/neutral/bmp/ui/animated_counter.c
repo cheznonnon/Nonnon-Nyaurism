@@ -78,7 +78,7 @@ n_bmp_ui_animated_counter_debug( n_bmp_ui_animated_counter *p )
 	{
 
 		n_posix_char path[ 100 ];
-		n_posix_sprintf( path, "/Users/nonnon2/Desktop/%d.bmp", i );
+		n_posix_snprintf_literal( path, 100, "/Users/nonnon2/Desktop/%d.bmp", i );
 
 		//n_bmp_save( &p->digit[ i ], path );
 		n_bmp_save( p->bmp_new[ i ], path );
@@ -100,10 +100,30 @@ n_bmp_ui_animated_counter_figure_count( int count )
 
 	n_posix_char str[ 100 ];
 
-	n_posix_sprintf_literal( str, "%d", count );
+	n_posix_snprintf_literal( str, 100, "%d", count );
 //NSLog( @"%s", str );
 
 	return (int) n_posix_strlen( str );
+}
+
+void
+n_bmp_ui_animated_counter_exit( n_bmp_ui_animated_counter *p )
+{
+
+	int i = 0;
+	n_posix_loop
+	{
+
+		n_bmp_free( &p->digit[ i ] );
+
+		i++;
+		if ( i >= ( 10 + 1 ) ) { break; }
+	}
+
+	n_bmp_free( &p->bmp_cache );
+
+
+	return;
 }
 
 void
@@ -120,12 +140,12 @@ n_bmp_ui_animated_counter_init( n_bmp_ui_animated_counter *p, n_gdi *gdi, u32 ms
 	n_posix_loop
 	{
 
-		n_posix_sprintf_literal( str, "%d", i );
+		n_posix_snprintf_literal( str, 10, "%d", i );
 //NSLog( @"%s", str );
 
 		// [x] : currently, cropper is buggy
 
-		gdi->text_style = N_GDI_TEXT_MAC_NO_CROP;
+		gdi->text_style |= N_GDI_TEXT_MAC_NO_CROP;
 
 		gdi->text = str;
 		n_gdi_bmp( gdi, &p->digit[ i ] );
@@ -164,8 +184,8 @@ n_bmp_ui_animated_counter_loop_count( n_bmp_ui_animated_counter *p, int count )
 	if ( count >= pow( 10, p->figure ) ) { count = pow( 10, p->figure ) - 1; }
 
 
-	n_posix_sprintf( p->str_old, "%s", p->str_new );
-	n_posix_sprintf( p->str_new, "%*d", p->figure, count );
+	n_posix_snprintf_literal( p->str_old, 15, "%s", p->str_new );
+	n_posix_snprintf_literal( p->str_new, 15, "%*d", p->figure, count );
 //NSLog( @"%s %s", p->str_old, p->str_new );
 
 	int i = 0;

@@ -205,21 +205,21 @@ typedef struct {
 
 	// [!] : for multi-thread
 
-	n_posix_bool transparent_onoff;
+	BOOL transparent_onoff;
 
 } n_bmp;
 
 
 
 
-static n_posix_bool n_bmp_safemode_base = n_posix_true;
-static n_posix_bool n_bmp_safemode      = n_posix_true;
+static BOOL n_bmp_safemode_base = TRUE;
+static BOOL n_bmp_safemode      = TRUE;
 
 
-static n_posix_bool n_bmp_transparent_onoff_default = n_posix_true;
+static BOOL n_bmp_transparent_onoff_default = TRUE;
 
 
-static n_posix_bool n_bmp_flip_onoff = n_posix_false;
+static BOOL n_bmp_flip_onoff = FALSE;
 
 
 
@@ -245,26 +245,26 @@ static n_posix_bool n_bmp_flip_onoff = n_posix_false;
 #define N_BMP_MULTITHREAD_GRANULARITY ( 10000000 )
 
 
-static n_posix_bool n_bmp_is_multithread = n_posix_false;
+static BOOL n_bmp_is_multithread = FALSE;
 
 
 
 
 #define N_BMP_LIMIT_SIZE SHRT_MAX
 
-n_posix_bool
+BOOL
 n_bmp_size_is_overflow( n_type_index size )
 {
 
 	n_type_index base  = N_BMP_LIMIT_SIZE;
 	n_type_index limit = base * base;
 
-	if ( size > limit ) { return n_posix_true; }
+	if ( size > limit ) { return TRUE; }
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_bmp_is_overflow( n_type_gfx sx, n_type_gfx sy )
 {
 
@@ -448,7 +448,7 @@ n_bmp_ptr_set_fast( const n_bmp *bmp, n_type_gfx x, n_type_gfx y, u32 color )
 	return;
 }
 
-n_posix_inline n_posix_bool
+n_posix_inline BOOL
 n_bmp_ptr_is_accessible( const n_bmp *bmp, n_type_gfx x, n_type_gfx y )
 {
 
@@ -461,24 +461,24 @@ n_bmp_ptr_is_accessible( const n_bmp *bmp, n_type_gfx x, n_type_gfx y )
 		( y < 0 )||( y >= N_BMP_SY( bmp ) )
 	)
 	{
-		return n_posix_false;
+		return FALSE;
 	}
 
 
-	return n_posix_true;
+	return TRUE;
 }
 
-n_posix_bool
+BOOL
 n_bmp_ptr_get( const n_bmp *bmp, n_type_gfx x, n_type_gfx y, u32 *color )
 {
 
 	if ( n_bmp_safemode_base )
 	{
-		if (   bmp == NULL ) { return n_posix_true; }
-		if ( color == NULL ) { return n_posix_true; }
+		if (   bmp == NULL ) { return TRUE; }
+		if ( color == NULL ) { return TRUE; }
 
-		if ( NULL == N_BMP_PTR( bmp ) ) { return n_posix_true; }
-		if ( 32 != N_BMP_DEPTH( bmp ) ) { return n_posix_true; }
+		if ( NULL == N_BMP_PTR( bmp ) ) { return TRUE; }
+		if ( 32 != N_BMP_DEPTH( bmp ) ) { return TRUE; }
 	}
 
 
@@ -486,23 +486,23 @@ n_bmp_ptr_get( const n_bmp *bmp, n_type_gfx x, n_type_gfx y, u32 *color )
 	{
 		n_bmp_ptr_get_fast( bmp, x,y, color );
 	} else {
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_bmp_ptr_set( n_bmp *bmp, n_type_gfx x, n_type_gfx y, u32 color )
 {
 
 	if ( n_bmp_safemode_base )
 	{
-		if ( bmp == NULL ) { return n_posix_true; }
+		if ( bmp == NULL ) { return TRUE; }
 
-		if ( NULL == N_BMP_PTR( bmp ) ) { return n_posix_true; }
-		if ( 32 != N_BMP_DEPTH( bmp ) ) { return n_posix_true; }
+		if ( NULL == N_BMP_PTR( bmp ) ) { return TRUE; }
+		if ( 32 != N_BMP_DEPTH( bmp ) ) { return TRUE; }
 	}
 
 
@@ -510,11 +510,11 @@ n_bmp_ptr_set( n_bmp *bmp, n_type_gfx x, n_type_gfx y, u32 color )
 	{
 		n_bmp_ptr_set_fast( bmp, x,y, color );
 	} else {
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #define N_BMP_ALPHA_TOOL_IS_ZERO      ( 0 )
@@ -524,22 +524,22 @@ n_bmp_ptr_set( n_bmp *bmp, n_type_gfx x, n_type_gfx y, u32 color )
 #define n_bmp_alpha_is_zero(      b ) n_bmp_alpha_tool( b, N_BMP_ALPHA_TOOL_IS_ZERO      )
 #define n_bmp_alpha_is_visible(   b ) n_bmp_alpha_tool( b, N_BMP_ALPHA_TOOL_IS_VISIBLE   )
 #define n_bmp_alpha_is_invisible( b ) n_bmp_alpha_tool( b, N_BMP_ALPHA_TOOL_IS_INVISIBLE )
-#define n_bmp_alpha_is_used(      b ) ( n_posix_false == n_bmp_alpha_is_visible( b ) )
+#define n_bmp_alpha_is_used(      b ) ( FALSE == n_bmp_alpha_is_visible( b ) )
 
-n_posix_bool
+BOOL
 n_bmp_alpha_tool( n_bmp *bmp, int mode )
 {
 
 	if ( n_bmp_safemode_base )
 	{
-		if ( bmp == NULL ) { return n_posix_false; }
+		if ( bmp == NULL ) { return FALSE; }
 
-		if ( NULL == N_BMP_PTR( bmp ) ) { return n_posix_false; }
-		if ( 32 != N_BMP_DEPTH( bmp ) ) { return n_posix_false; }
+		if ( NULL == N_BMP_PTR( bmp ) ) { return FALSE; }
+		if ( 32 != N_BMP_DEPTH( bmp ) ) { return FALSE; }
 	}
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	// [!] : 40% faster than using n_bmp_ptr_get_fast()
@@ -564,7 +564,7 @@ n_bmp_alpha_tool( n_bmp *bmp, int mode )
 			if ( a ) { break; }
 
 			i++;
-			if ( i >= count ) { ret = n_posix_true; break; }
+			if ( i >= count ) { ret = TRUE; break; }
 		}
 
 	} else
@@ -584,7 +584,7 @@ n_bmp_alpha_tool( n_bmp *bmp, int mode )
 			if ( a != N_BMP_ALPHA_CHANNEL_VISIBLE ) { break; }
 
 			i++;
-			if ( i >= count ) { ret = n_posix_true; break; }
+			if ( i >= count ) { ret = TRUE; break; }
 		}
 
 	} else
@@ -604,7 +604,7 @@ n_bmp_alpha_tool( n_bmp *bmp, int mode )
 			if ( a != N_BMP_ALPHA_CHANNEL_INVISIBLE ) { break; }
 
 			i++;
-			if ( i >= count ) { ret = n_posix_true; break; }
+			if ( i >= count ) { ret = TRUE; break; }
 		}
 
 	}
@@ -721,8 +721,8 @@ n_bmp_alpha_process( n_bmp *bmp, int mode )
 #endif // #ifdef N_BMP_MULTITHREAD_DEBUG
 
 
-		n_posix_bool p_multithread = n_bmp_is_multithread;
-		n_bmp_is_multithread = n_posix_true;
+		BOOL p_multithread = n_bmp_is_multithread;
+		n_bmp_is_multithread = TRUE;
 
 
 		u32 cores = n_thread_core_count;
@@ -963,11 +963,11 @@ n_bmp_flush( n_bmp *bmp, u32 color )
 #define n_bmp_zero(  f    ) n_memory_zero( f,    sizeof( n_bmp ) )
 #define n_bmp_alias( f, t ) n_memory_copy( f, t, sizeof( n_bmp ) )
 
-#define n_bmp_free(      bmp ) n_bmp_free_internal( bmp, n_posix_true  )
-#define n_bmp_free_fast( bmp ) n_bmp_free_internal( bmp, n_posix_false )
+#define n_bmp_free(      bmp ) n_bmp_free_internal( bmp, TRUE  )
+#define n_bmp_free_fast( bmp ) n_bmp_free_internal( bmp, FALSE )
 
 void
-n_bmp_free_internal( n_bmp *bmp, n_posix_bool zeroclear )
+n_bmp_free_internal( n_bmp *bmp, BOOL zeroclear )
 {
 
 	if ( n_bmp_safemode_base )
@@ -1034,14 +1034,14 @@ n_bmp_replace( n_bmp *f, n_bmp *t )
 	return;
 }
 
-#define n_bmp_new(      bmp, sx, sy ) n_bmp_new_internal( bmp, sx, sy, n_posix_true , n_posix_false )
-#define n_bmp_new_fast( bmp, sx, sy ) n_bmp_new_internal( bmp, sx, sy, n_posix_false, n_posix_false )
+#define n_bmp_new(      bmp, sx, sy ) n_bmp_new_internal( bmp, sx, sy, TRUE , FALSE )
+#define n_bmp_new_fast( bmp, sx, sy ) n_bmp_new_internal( bmp, sx, sy, FALSE, FALSE )
 
-#define n_bmp_1st(      bmp, sx, sy ) n_bmp_new_internal( bmp, sx, sy, n_posix_true , n_posix_true )
-#define n_bmp_1st_fast( bmp, sx, sy ) n_bmp_new_internal( bmp, sx, sy, n_posix_false, n_posix_true )
+#define n_bmp_1st(      bmp, sx, sy ) n_bmp_new_internal( bmp, sx, sy, TRUE , TRUE )
+#define n_bmp_1st_fast( bmp, sx, sy ) n_bmp_new_internal( bmp, sx, sy, FALSE, TRUE )
 
 void
-n_bmp_new_internal( n_bmp *bmp, n_type_gfx sx, n_type_gfx sy, n_posix_bool zeroclear, n_posix_bool is_first )
+n_bmp_new_internal( n_bmp *bmp, n_type_gfx sx, n_type_gfx sy, BOOL zeroclear, BOOL is_first )
 {
 
 	// [Needed]
@@ -1058,7 +1058,7 @@ n_bmp_new_internal( n_bmp *bmp, n_type_gfx sx, n_type_gfx sy, n_posix_bool zeroc
 	}
 
 
-	if ( is_first == n_posix_false ) { n_bmp_free( bmp ); }
+	if ( is_first == FALSE ) { n_bmp_free( bmp ); }
 
 
 	if ( n_bmp_is_overflow( sx,sy ) ) { return; }

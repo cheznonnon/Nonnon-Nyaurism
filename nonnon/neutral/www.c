@@ -16,11 +16,11 @@
 
 
 
-#define n_www_percentencoding_encode( s ) n_www_percentencoding_codec( s, n_posix_true  )
-#define n_www_percentencoding_decode( s ) n_www_percentencoding_codec( s, n_posix_false )
+#define n_www_percentencoding_encode( s ) n_www_percentencoding_codec( s, TRUE  )
+#define n_www_percentencoding_decode( s ) n_www_percentencoding_codec( s, FALSE )
 
 n_posix_char*
-n_www_percentencoding_codec( const n_posix_char *str, n_posix_bool is_encode )
+n_www_percentencoding_codec( const n_posix_char *str, BOOL is_encode )
 {
 
 	// [!] : you need to n_string_free() a returned variable
@@ -40,7 +40,7 @@ n_www_percentencoding_codec( const n_posix_char *str, n_posix_bool is_encode )
 	//
 	//	file protocol is always used, replace with n_string_replace() if necessary
 	//	a returned string needs to be handled as read-only
-	//	"%" will make troubles with sprintf(), use n_posix_dump() to debug
+	//	"%" will make troubles with snprintf(), use n_posix_dump() to debug
 	//
 	//	[ Decoder ]
 	//
@@ -93,7 +93,7 @@ n_www_percentencoding_codec( const n_posix_char *str, n_posix_bool is_encode )
 	{
 
 		n_type_int i  = 3;
-		n_type_int ii = 3 + sprintf( (void*) &t[ 3 ], "file:///" );
+		n_type_int ii = 3 + snprintf( (void*) &t[ 3 ], cb - 3, "file:///" );
 		n_posix_loop
 		{//break;
 
@@ -201,7 +201,7 @@ n_www_percentencoding_codec( const n_posix_char *str, n_posix_bool is_encode )
 	if ( is_encode )
 	{
 
-		n_posix_bool is_same = n_posix_true;
+		BOOL is_same = TRUE;
 
 		if ( is_same )
 		{
@@ -228,7 +228,7 @@ n_www_percentencoding_codec( const n_posix_char *str, n_posix_bool is_encode )
 
 		// [!] : unpredictable : need to do round-trip
 
-		n_posix_bool is_same = n_posix_false;
+		BOOL is_same = FALSE;
 
 		{
 

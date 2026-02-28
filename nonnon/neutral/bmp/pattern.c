@@ -308,7 +308,7 @@ n_bmp_pattern_check( n_bmp *bmp, n_type_gfx size_unit, n_type_real ratio_stripe,
 	}
 
 	n_bmp_resizer( &b, size_unit,size_unit, n_bmp_white_invisible, N_BMP_RESIZER_TILE );
-	n_bmp_flush_copy( &b, &b, n_posix_false, 0.5, 0, N_BMP_COPY_ROTATE_LEFT, 0 );
+	n_bmp_flush_copy( &b, &b, FALSE, 0.5, 0, N_BMP_COPY_ROTATE_LEFT, 0 );
 //n_bmp_save_literal( &b, "check.bmp" );
 
 
@@ -326,7 +326,7 @@ n_bmp_pattern_check( n_bmp *bmp, n_type_gfx size_unit, n_type_real ratio_stripe,
 }
 
 void
-n_bmp_pattern_stripe( n_bmp *bmp, n_type_gfx size_unit, n_posix_bool is_horz, u32 bg, u32 fg )
+n_bmp_pattern_stripe( n_bmp *bmp, n_type_gfx size_unit, BOOL is_horz, u32 bg, u32 fg )
 {
 
 	if ( n_bmp_error( bmp ) ) { return; }

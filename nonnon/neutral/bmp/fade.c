@@ -23,11 +23,11 @@
 
 typedef struct {
 
-	u32          color_fg;
-	u32          color_bg;
-	u32          tick;
-	n_posix_bool stop;
-	int          percent;
+	u32  color_fg;
+	u32  color_bg;
+	u32  tick;
+	BOOL stop;
+	int  percent;
 
 } n_bmp_fade;
 
@@ -36,7 +36,7 @@ typedef struct {
 
 #define n_bmp_fade_zero( p ) n_memory_zero( p, sizeof( n_bmp_fade ) )
 
-#define n_bmp_fade_redraw( p ) ( ( p )->stop = n_posix_false )
+#define n_bmp_fade_redraw( p ) ( ( p )->stop = FALSE )
 
 void
 n_bmp_fade_init( n_bmp_fade *p, u32 color )
@@ -45,7 +45,7 @@ n_bmp_fade_init( n_bmp_fade *p, u32 color )
 	p->color_bg = color;
 	p->color_fg = color;
 	p->tick     = 0;
-	p->stop     = n_posix_true;
+	p->stop     = TRUE;
 	p->percent  = 100;
 
 
@@ -56,14 +56,14 @@ void
 n_bmp_fade_go( n_bmp_fade *p, u32 color )
 {
 
-	if ( p->stop     == n_posix_false ) { return; }
-	if ( p->color_fg == color         ) { return; }
+	if ( p->stop     == FALSE ) { return; }
+	if ( p->color_fg == color ) { return; }
 
 
 	p->color_bg = p->color_fg;
 	p->color_fg = color;
 	p->tick     = n_posix_tickcount();
-	p->stop     = n_posix_false;
+	p->stop     = FALSE;
 	p->percent  = 0;
 
 
@@ -77,7 +77,7 @@ n_bmp_fade_always_on( n_bmp_fade *p, u32 bg, u32 fg )
 	p->color_bg = bg;
 	p->color_fg = fg;
 	p->tick     = n_posix_tickcount();
-	p->stop     = n_posix_false;
+	p->stop     = FALSE;
 	p->percent  = 0;
 
 
@@ -85,15 +85,15 @@ n_bmp_fade_always_on( n_bmp_fade *p, u32 bg, u32 fg )
 }
 
 u32
-n_bmp_fade_engine( n_bmp_fade *p, n_posix_bool onoff )
+n_bmp_fade_engine( n_bmp_fade *p, BOOL onoff )
 {
 
 	if ( p->stop ) { n_bmp_fade_init( p, p->color_fg ); return p->color_fg; }
 
 
-	if ( onoff == n_posix_false )
+	if ( onoff == FALSE )
 	{
-		p->stop    = n_posix_true;
+		p->stop    = TRUE;
 		p->percent = 100;
 
 		return p->color_fg;

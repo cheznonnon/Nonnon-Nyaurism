@@ -122,11 +122,11 @@ n_vfw_free( n_vfw *vfw )
 
 #define n_vfw_is_audio( vfw ) ( (vfw)->csx == 0 )
 
-n_posix_bool
+BOOL
 n_vfw_load( n_vfw *vfw, HWND hwnd, const n_posix_char *fname )
 {
 
-	if ( vfw == NULL ) { return n_posix_true; }
+	if ( vfw == NULL ) { return TRUE; }
 
 
 	n_vfw_free( vfw );
@@ -149,13 +149,13 @@ n_vfw_load( n_vfw *vfw, HWND hwnd, const n_posix_char *fname )
 	if (
 		( vfw->hwnd == NULL )
 		||
-		( n_posix_false == MCIWndCanPlay( vfw->hwnd ) )
+		( FALSE == MCIWndCanPlay( vfw->hwnd ) )
 	)
 	{
 
 		n_vfw_free( vfw );
 
-		return n_posix_true;
+		return TRUE;
 	}
 
 //if ( MCIWndCanRecord( vfw->hwnd ) ) { n_posix_debug_literal( "AUDIO" ); }
@@ -195,7 +195,7 @@ n_vfw_load( n_vfw *vfw, HWND hwnd, const n_posix_char *fname )
 
 		FindClose( FindFirstFile( fname, &f ) );
 
-		n_posix_sprintf_literal( track, "%s", f.cFileName );
+		n_posix_snprintf_literal( track, N_VFW_CCH_MAX, "%s", f.cFileName );
 
 
 		int number = n_posix_atoi( &track[ 5 ] );
@@ -254,14 +254,14 @@ n_vfw_load( n_vfw *vfw, HWND hwnd, const n_posix_char *fname )
 	MoveWindow( vfw->hwnd, 0,0, vfw->csx, vfw->csy, FALSE );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_vfw_is_active( n_vfw *vfw )
 {
 
-	if ( vfw == NULL ) { return n_posix_false; }
+	if ( vfw == NULL ) { return FALSE; }
 
 
 	return ( vfw->hwnd != NULL );
@@ -274,7 +274,7 @@ n_vfw_refresh( n_vfw *vfw )
 	if ( FALSE == n_vfw_is_active( vfw ) ) { return; }
 
 
-	MCIWndRealize( vfw->hwnd, n_posix_true );
+	MCIWndRealize( vfw->hwnd, TRUE );
 
 	//UpdateWindow( vfw->hwnd );
 
@@ -323,7 +323,7 @@ void
 n_vfw_pause( n_vfw *vfw )
 {
 
-	if ( n_posix_false == n_vfw_is_active( vfw ) ) { return; }
+	if ( FALSE == n_vfw_is_active( vfw ) ) { return; }
 
 
 	MCIWndPause( vfw->hwnd );
@@ -404,8 +404,8 @@ n_vfw_seek( n_vfw *vfw, n_type_real ratio )
 
 	if ( FALSE == n_vfw_is_active( vfw ) ) { return; }
 
-	n_posix_bool resume = n_posix_false;
-	if ( n_vfw_is_playing( vfw ) ) { resume = n_posix_true; }
+	BOOL resume = FALSE;
+	if ( n_vfw_is_playing( vfw ) ) { resume = TRUE; }
 
 
 	n_type_real length = (n_type_real) MCIWndGetEnd( vfw->hwnd );

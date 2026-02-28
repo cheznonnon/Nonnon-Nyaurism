@@ -465,8 +465,9 @@ n_mac_webloc_save( const n_posix_char *fname, const n_posix_char *url )
  
 	n_txt txt; n_txt_zero( &txt ); n_txt_new( &txt );
 
-	n_posix_char *str = n_string_new( n_posix_strlen( url ) * 2 );
-	n_posix_sprintf_literal( str, "<string>%s</string>", url );
+	n_type_int    cch = n_posix_strlen( url ) * 2;
+	n_posix_char *str = n_string_new( cch );
+	n_posix_snprintf_literal( str, cch + 1, "<string>%s</string>", url );
 
 	n_txt_add( &txt, 0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" );
 	n_txt_add( &txt, 1, "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">" );

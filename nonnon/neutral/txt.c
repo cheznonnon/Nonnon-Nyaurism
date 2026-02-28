@@ -42,18 +42,19 @@
 
 
 
-#define N_TXT_NEWLINE_BINARY 0
-#define N_TXT_NEWLINE_CR     1
-#define N_TXT_NEWLINE_LF     2
-#define N_TXT_NEWLINE_CRLF   3
+#define N_TXT_NEWLINE_BINARY      0
+#define N_TXT_NEWLINE_CR          1
+#define N_TXT_NEWLINE_LF          2
+#define N_TXT_NEWLINE_CRLF        3
 
-#define N_TXT_UNICODE_NIL    0
-#define N_TXT_UNICODE_LIL    1
-#define N_TXT_UNICODE_BIG    2
-#define N_TXT_UNICODE_UTF    3
+#define N_TXT_UNICODE_NIL         0
+#define N_TXT_UNICODE_LIL         1
+#define N_TXT_UNICODE_BIG         2
+#define N_TXT_UNICODE_UTF         3
+#define N_TXT_UNICODE_UTF8_NO_BOM 4
 
-#define N_TXT_READONLY_OFF   0
-#define N_TXT_READONLY_ON    1
+#define N_TXT_READONLY_OFF        0
+#define N_TXT_READONLY_ON         1
 
 
 typedef struct {
@@ -82,9 +83,9 @@ typedef struct {
 	//	BIG    : UCS-2 Big    Endian : Mac(old)
 	//	UTF    : UTF-8               : Unix, Mac(new)
 
-	int          newline;
-	int          unicode;
-	n_posix_bool readonly;
+	int  newline;
+	int  unicode;
+	BOOL readonly;
 
 } n_txt;
 
@@ -222,18 +223,18 @@ n_txt_newline_check( const n_posix_char *stream, n_type_int byte )
 	return newline;
 }
 
-#define n_txt_load(          v, fname        ) n_txt_load_internal( v, (void*) fname,    0, n_posix_true  )
-#define n_txt_load_onmemory( v, stream, byte ) n_txt_load_internal( v,        stream, byte, n_posix_false )
+#define n_txt_load(          v, fname        ) n_txt_load_internal( v, (void*) fname,    0, TRUE  )
+#define n_txt_load_onmemory( v, stream, byte ) n_txt_load_internal( v,        stream, byte, FALSE )
 
 // internal
-n_posix_bool
-n_txt_load_internal( n_txt *txt, void *stream, n_type_int byte, n_posix_bool is_file )
+BOOL
+n_txt_load_internal( n_txt *txt, void *stream, n_type_int byte, BOOL is_file )
 {
 
 	// [!] : load_onmemory() : don't free "stream" after calling this function
 
 
-	if ( txt == NULL ) { return n_posix_true; }
+	if ( txt == NULL ) { return TRUE; }
 
 
 	n_type_int bom_offset = 0;
@@ -245,7 +246,7 @@ n_txt_load_internal( n_txt *txt, void *stream, n_type_int byte, n_posix_bool is_
 	{
 
 		FILE *fp = n_posix_fopen_read( stream );
-		if ( fp == NULL ) { return n_posix_true; }
+		if ( fp == NULL ) { return TRUE; }
 
 		byte = n_posix_stat_size( stream );
 
@@ -339,8 +340,7 @@ n_txt_load_internal( n_txt *txt, void *stream, n_type_int byte, n_posix_bool is_
 
 	// Decoder
 
-	char         *ptr;
-	n_posix_bool  lost = n_posix_false;
+	BOOL lost = FALSE;
 
 #ifdef UNICODE
 
@@ -350,7 +350,8 @@ n_txt_load_internal( n_txt *txt, void *stream, n_type_int byte, n_posix_bool is_
 
 		// [!] : ANSI only : don't use n_txt_newline_check()
 
-		n_posix_bool binary = n_posix_false;
+		BOOL ascii  =  TRUE;
+		BOOL binary = FALSE;
 
 		u8 *ptr_u8 = (u8*) stream;
 
@@ -358,7 +359,8 @@ n_txt_load_internal( n_txt *txt, void *stream, n_type_int byte, n_posix_bool is_
 		n_posix_loop
 		{
 
-			if ( ptr_u8[ i ] == 0 ) { binary = n_posix_true; break; }
+			if ( ptr_u8[ i ] ==   0 ) { binary =  TRUE; }
+			if ( ptr_u8[ i ] >= 128 ) { ascii  = FALSE; }
 
 			// [!] : some files have NUL at end of file
 
@@ -367,45 +369,95 @@ n_txt_load_internal( n_txt *txt, void *stream, n_type_int byte, n_posix_bool is_
 		}
 
 
-		if ( binary == n_posix_false )
+		if ( binary )
 		{
+//MessageBoxA( NULL, "binary", "DEBUG", 0 );
+			//
+		} else
+		if ( ascii )
+		{
+//MessageBoxA( NULL, "ASCII only", "DEBUG", 0 );
 
-			ptr = n_unicode_alloccopy( &byte, &ptr_u8[ bom_offset ] );
-//MessageBoxA( NULL, (char*) ptr, "DEBUG", 0 );
+			txt->unicode = N_TXT_UNICODE_UTF8_NO_BOM;
 
+			n_type_int byte_f = byte;
+			u8         *ptr_f = n_unicode_alloccopy( &byte_f, &ptr_u8[ bom_offset ] );
 
-			// [!] : n_posix_false is returned always
-
-			//lost = n_unicode_codec_char2wchar( ptr, byte );
-			//n_unicode_bom_remove( ptr, byte );
-
-			lost = n_unicode_codec_char2wchar_no_bom( ptr, byte );
-//MessageBoxW( NULL, (wchar_t*) ptr, L"DEBUG", 0 );
-
+			lost = n_unicode_codec_char2wchar_no_bom( ptr_f, byte_f );
 
 			n_memory_free( stream );
 
+			byte   = n_posix_strlen( (n_posix_char*) ptr_f ) * sizeof( wchar_t );
+			stream = ptr_f;
+		} else {
+			n_type_int byte_utf8 = byte;
+			u8         *ptr_utf8 = n_unicode_alloccopy( &byte_utf8, &ptr_u8[ bom_offset ] );
 
-			byte   = n_posix_strlen( (void*) ptr ) * sizeof( wchar_t );
-			stream = ptr;
+			n_unicode_utf8_decode_no_bom( ptr_utf8, byte_utf8 );
+			n_unicode_utf8_encode_no_bom( ptr_utf8, byte_utf8 );
+//MessageBoxA( NULL, (char*) stream  , "DEBUG", 0 );
+//MessageBoxA( NULL, (char*) ptr_utf8, "DEBUG", 0 );
 
+			BOOL is_utf8 = ( 0 == strcmp( (char*) ptr_utf8, stream ) );
+
+			n_memory_free( ptr_utf8 );
+
+			if ( is_utf8 )
+			{
+//MessageBoxA( NULL, "UTF-8", "DEBUG", 0 );
+
+				if ( bom_offset == 0 )
+				{
+					txt->unicode = N_TXT_UNICODE_UTF8_NO_BOM;
+				} else {
+					txt->unicode = N_TXT_UNICODE_UTF;
+				}
+
+				n_type_int byte_f = byte;
+				u8         *ptr_f = n_unicode_alloccopy( &byte_f, &ptr_u8[ bom_offset ] );
+
+				n_unicode_utf8_decode_no_bom( ptr_f, byte_f );
+
+				n_memory_free( stream );
+
+				byte   = n_posix_strlen( (n_posix_char*) ptr_f ) * sizeof( wchar_t );
+				stream = ptr_f;
+			} else {
+//MessageBoxA( NULL, "ANSI", "DEBUG", 0 );
+
+				// [!] : ANSI text : force migration
+
+				txt->unicode = N_TXT_UNICODE_UTF8_NO_BOM;
+
+				n_type_int byte_f = byte;
+				u8         *ptr_f = n_unicode_alloccopy( &byte_f, &ptr_u8[ bom_offset ] );
+
+				lost = n_unicode_codec_char2wchar_no_bom( ptr_f, byte_f );
+
+				n_memory_free( stream );
+
+				byte   = n_posix_strlen( (n_posix_char*) ptr_f ) * sizeof( wchar_t );
+				stream = ptr_f;
+			}
 		}
 
 	} else {
 
 		u8 *ptr_u8 = (u8*) stream;
 
-		ptr = n_unicode_alloccopy( &byte, &ptr_u8[ bom_offset ] );
+		char *ptr = n_unicode_alloccopy( &byte, &ptr_u8[ bom_offset ] );
 
 
 		if ( txt->unicode == N_TXT_UNICODE_BIG )
 		{
+//MessageBoxA( NULL, "Unicode Big Endian", "DEBUG", 0 );
 
 			n_unicode_endianness( ptr, byte );
 
 		} else
 		if ( txt->unicode == N_TXT_UNICODE_UTF )
 		{
+//MessageBoxA( NULL, "Unicode UTF-8", "DEBUG", 0 );
 
 			n_unicode_utf8_decode_no_bom( ptr, byte );
 
@@ -424,13 +476,12 @@ n_txt_load_internal( n_txt *txt, void *stream, n_type_int byte, n_posix_bool is_
 
 #else // #ifdef UNICODE
 
-
 	if ( txt->unicode != N_TXT_UNICODE_NIL )
 	{
 
 		u8 *ptr_u8 = (u8*) stream;
 
-		ptr = n_unicode_alloccopy( &byte, &ptr_u8[ bom_offset ] );
+		char *ptr = n_unicode_alloccopy( &byte, &ptr_u8[ bom_offset ] );
 
 
 		if ( txt->unicode == N_TXT_UNICODE_BIG )
@@ -482,27 +533,38 @@ n_txt_load_internal( n_txt *txt, void *stream, n_type_int byte, n_posix_bool is_
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_txt_save_main( n_txt *txt, const n_posix_char *fname )
 {
 
-	if ( n_txt_error( txt ) ) { return n_posix_true; }
+	if ( n_txt_error( txt ) ) { return TRUE; }
 
 
-	if ( txt->readonly ) { return n_posix_true; }
+	if ( txt->readonly ) { return TRUE; }
 
 
 	// Encoder
 
-	n_posix_bool  is_allocated = n_posix_true;
-	char         *ptr;
-	n_type_int    byte;
+	BOOL        is_allocated = TRUE;
+	char       *ptr;
+	n_type_int  byte;
 
 #ifdef UNICODE
 
+	if ( txt->unicode == N_TXT_UNICODE_UTF8_NO_BOM )
+	{
+
+		byte = txt->byte;
+		ptr  = n_unicode_alloccopy( &byte, txt->stream );
+
+		n_unicode_utf8_encode_no_bom( ptr, byte );
+
+		byte = strlen( ptr );
+
+	} else
 	if ( txt->unicode == N_TXT_UNICODE_NIL )
 	{
 
@@ -511,8 +573,8 @@ n_txt_save_main( n_txt *txt, const n_posix_char *fname )
 
 //MessageBoxW( NULL, (wchar_t*) ptr, L"DEBUG", 0 );
 
-		n_posix_bool lost = n_unicode_codec_wchar2char_no_bom( ptr, byte );
-		if ( lost ) { n_memory_free( ptr ); return n_posix_true; }
+		BOOL lost = n_unicode_codec_wchar2char_no_bom( ptr, byte );
+		if ( lost ) { n_memory_free( ptr ); return TRUE; }
 
 
 		byte = strlen( ptr );
@@ -559,7 +621,7 @@ n_txt_save_main( n_txt *txt, const n_posix_char *fname )
 	if ( txt->unicode == N_TXT_UNICODE_NIL )
 	{
 
-		is_allocated = n_posix_false;
+		is_allocated = FALSE;
 
 		byte = txt->byte;
 		ptr  = txt->stream;
@@ -572,10 +634,10 @@ n_txt_save_main( n_txt *txt, const n_posix_char *fname )
 		ptr  = n_unicode_alloccopy( &byte, txt->stream );
 
 
-		// [!] : n_posix_false is returned always
+		// [!] : FALSE is returned always
 
-		n_posix_bool lost = n_unicode_codec_char2wchar( ptr, byte );
-		if ( lost ) { n_memory_free( ptr ); return n_posix_true; }
+		BOOL lost = n_unicode_codec_char2wchar( ptr, byte );
+		if ( lost ) { n_memory_free( ptr ); return TRUE; }
 
 
 		byte = wcslen( (wchar_t*) ptr ) * sizeof( wchar_t );
@@ -603,13 +665,13 @@ n_txt_save_main( n_txt *txt, const n_posix_char *fname )
 #endif // #ifdef UNICODE
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	FILE *fp = n_posix_fopen_write( fname );
 	if ( fp == NULL )
 	{
-		ret = n_posix_true;
+		ret = TRUE;
 	} else {
 		n_posix_fwrite( ptr, byte, 1, fp );
 	}
@@ -624,14 +686,14 @@ n_txt_save_main( n_txt *txt, const n_posix_char *fname )
 
 #define n_txt_save_literal( txt, fname ) n_txt_save( txt, n_posix_literal( fname ) )
 
-n_posix_bool
+BOOL
 n_txt_save( n_txt *txt, const n_posix_char *fname )
 {
 
-	if ( n_txt_error( txt ) ) { return n_posix_true; }
+	if ( n_txt_error( txt ) ) { return TRUE; }
 
 
-	if ( txt->readonly ) { return n_posix_true; }
+	if ( txt->readonly ) { return TRUE; }
 
 
 	n_txt_stream( txt );
@@ -679,11 +741,11 @@ n_txt_copy( n_txt *p_old, n_txt *p_new )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_txt_is_same( const n_txt *txt_f, const n_txt *txt_t )
 {
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	if ( n_txt_error( txt_f ) ) { return ret; }
@@ -698,14 +760,14 @@ n_txt_is_same( const n_txt *txt_f, const n_txt *txt_t )
 	n_posix_loop
 	{
 
-		if ( n_posix_false == n_string_is_same( n_txt_get( txt_f, i ), n_txt_get( txt_t, i ) ) )
+		if ( FALSE == n_string_is_same( n_txt_get( txt_f, i ), n_txt_get( txt_t, i ) ) )
 		{
-			ret = n_posix_false;
+			ret = FALSE;
 			break;
 		}
 
 		i++;
-		if ( i >= txt_f->sy ) { ret = n_posix_true; break; }
+		if ( i >= txt_f->sy ) { ret = TRUE; break; }
 	}
 
 
@@ -727,7 +789,19 @@ n_txt_debug_printf( const n_posix_char *format, ... )
 
 	va_start( vl, format );
 
-	n_posix_vsprintf( str, format, vl );
+#ifdef N_POSIX_PLATFORM_MINGW64
+
+#ifdef UNICODE
+	n_posix_vsprintf( str, 1024, format, vl );
+#else
+	n_posix_vsprintf( str,       format, vl );
+#endif
+
+#else
+
+	n_posix_vsprintf( str,       format, vl );
+
+#endif
 
 	va_end( vl );
 

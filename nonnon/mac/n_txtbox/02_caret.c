@@ -67,7 +67,7 @@ n_txtbox_caret_detect_pixel2caret
 		NSRect     char_rect = rect;
 
 		n_posix_char *character;
-		character = n_mac_txtbox_character( font, font_size, (u8*) line, index, &char_size, &char_index, &tab );
+		character = n_mac_txtbox_character( font, font_size, line, index, &char_size, &char_index, &tab );
 
 		CGFloat half_sx = char_size.width / 2;
 
@@ -113,7 +113,7 @@ n_txtbox_caret_detect_cch2pixel
 		CGSize     char_size;
 		n_type_int char_index;
 
-		n_mac_txtbox_character( font, font_size, (u8*) line, index, &char_size, &char_index, &tab );
+		n_mac_txtbox_character( font, font_size, line, index, &char_size, &char_index, &tab );
 
 		if ( index >= caret_cch ) { break; }
 
@@ -276,7 +276,7 @@ n_mac_txtbox_caret_tail
 	BOOL       *is_tail
 )
 {
-//NSLog( @"%f", n_focus );
+//NSLog( @"%f", txtbox->focus );
 
 
 	n_posix_char *line = n_txt_get( txt, focus );

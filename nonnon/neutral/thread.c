@@ -40,8 +40,8 @@
 
 
 
-static u32          n_thread_core_count   = 1;
-static n_posix_bool n_thread_is_available = n_posix_false;
+static u32  n_thread_core_count   = 1;
+static BOOL n_thread_is_available = FALSE;
 
 
 
@@ -51,18 +51,18 @@ static n_posix_bool n_thread_is_available = n_posix_false;
 
 
 
-n_posix_bool
+BOOL
 n_thread_onoff( void )
 {
 
-	static n_posix_bool ret = n_posix_false;
+	static BOOL ret = FALSE;
 //return ret;
 
-	static n_posix_bool is_first = n_posix_true;
+	static BOOL is_first = TRUE;
 
 	if ( is_first )
 	{
-		is_first = n_posix_false;
+		is_first = FALSE;
 
 		n_thread_core_count   = n_posix_cpu_count();
 		n_thread_is_available = n_posix_thread_is_available();
@@ -210,28 +210,28 @@ n_thread_mutex_init_and_wait( HANDLE hmutex, const n_thread_mutex_char *name )
 
 
 
-n_posix_bool
+BOOL
 n_thread_onoff( void )
 {
 
-	static n_posix_bool ret = n_posix_false;
+	static BOOL ret = FALSE;
 
 
-	static n_posix_bool is_first = n_posix_true;
+	static BOOL is_first = TRUE;
 
 	if ( is_first )
 	{
-		is_first = n_posix_false;
+		is_first = FALSE;
 
 #ifdef N_POSIX_PLATFORM_MAC
 
 		n_thread_core_count   = n_posix_cpu_count();
-		n_thread_is_available = n_posix_true;
+		n_thread_is_available = TRUE;
 
 #else  // #ifdef N_POSIX_PLATFORM_MAC
 
 		n_thread_core_count   = n_posix_cpu_count();
-		n_thread_is_available = n_posix_false;
+		n_thread_is_available = FALSE;
 
 #endif // #ifdef N_POSIX_PLATFORM_MAC
 
@@ -293,13 +293,13 @@ n_thread_exit( n_thread thread )
 
 /*
 void
-n_thread_sync( n_thread thread, n_posix_bool *onoff )
+n_thread_sync( n_thread thread, BOOL *onoff )
 {
 
 	// [ Mechanism ]
 	//
 	//	implement "onoff" checker in loop of a thread
-	//	set "onoff" n_posix_true
+	//	set "onoff" TRUE
 	//	call this
 
 
@@ -313,7 +313,7 @@ n_thread_sync( n_thread thread, n_posix_bool *onoff )
 	u32 timeout = n_posix_tickcount() + 1000;
 	n_posix_loop
 	{
-		if ( (*onoff) == n_posix_false ) { break; } else { n_posix_sleep( 1 ); }
+		if ( (*onoff) == FALSE ) { break; } else { n_posix_sleep( 1 ); }
 
 		// [x] : hang-up here
 
@@ -329,7 +329,7 @@ n_thread_sync( n_thread thread, n_posix_bool *onoff )
 			if ( 0 == GetExitCodeThread( thread, &dw ) ) { break; }
 			if ( dw != STILL_ACTIVE ) { break; }
 
-			(*onoff) = n_posix_true;
+			(*onoff) = TRUE;
 			dw = ResumeThread( thread );
 			if ( dw == (DWORD) -1 ) { break; }
 		}
@@ -367,16 +367,16 @@ n_thread_sync_event_main( n_thread thread, const n_posix_char *str_namespace )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_thread_sync_event_sub_is_closed( n_thread thread, const n_posix_char *str_namespace, u32 wait_msec )
 {
 
 	// [ Mechanism ] : call this in a made thread
 
 
-	HANDLE h_event = OpenEvent( EVENT_ALL_ACCESS, n_posix_false, str_namespace );
+	HANDLE h_event = OpenEvent( EVENT_ALL_ACCESS, FALSE, str_namespace );
 
-	n_posix_bool ret = ( WaitForSingleObject( h_event, wait_msec ) == WAIT_OBJECT_0 );
+	BOOL ret = ( WaitForSingleObject( h_event, wait_msec ) == WAIT_OBJECT_0 );
 
 	CloseHandle( h_event );
 

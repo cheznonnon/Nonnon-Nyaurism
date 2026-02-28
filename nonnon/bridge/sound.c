@@ -108,7 +108,7 @@ typedef struct {
 #define n_game_sound_zero(      s    ) n_memory_zero( s, sizeof( n_game_sound )       )
 #define n_game_sound_bulk_zero( s, c ) n_memory_zero( s, sizeof( n_game_sound ) * (c) )
 
-n_posix_bool
+BOOL
 n_game_sound_timer( n_game_sound *s )
 {
 
@@ -118,11 +118,11 @@ n_game_sound_timer( n_game_sound *s )
 	if ( ( cur - s->tmr ) >= s->len )
 	{
 		s->tmr = cur;
-		return n_posix_true;
+		return TRUE;
 	}
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #define n_game_sound_init_literal( a, b, c ) n_game_sound_init( a, b, n_posix_literal( c ) )
@@ -137,7 +137,7 @@ n_game_sound_init( n_game_sound *s, HWND hwnd_parent, const n_posix_char *fname 
 	s->tmr = 0;
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 #ifdef _H_NONNON_WIN32_GAME_RC
 	ret = n_game_rc_load_wav( &s->wav, fname );
@@ -149,7 +149,7 @@ n_game_sound_init( n_game_sound *s, HWND hwnd_parent, const n_posix_char *fname 
 	if ( ret ) { n_wav_load( &s->wav, fname ); }
 
 
-	n_posix_bool n_wav_safemode_prev = n_wav_safemode; n_wav_safemode = n_posix_true;
+	BOOL n_wav_safemode_prev = n_wav_safemode; n_wav_safemode = TRUE;
 	if ( n_wav_error( &s->wav, -100 ) )
 	{
 
@@ -165,7 +165,7 @@ n_game_sound_init( n_game_sound *s, HWND hwnd_parent, const n_posix_char *fname 
 
 		// [x] : Win9x/2000/XP : DirectSound is unstable
 
-		n_posix_bool ret = n_posix_true;
+		BOOL ret = TRUE;
 
 #ifdef N_POSIX_PLATFORM_MINGW
 		if ( n_sysinfo_version_vista_or_later() )

@@ -61,8 +61,8 @@ n_tar_name_check( n_posix_char *name )
 }
 
 // internal
-n_posix_bool
-n_tar_archive_single( const n_posix_char *relname, n_posix_bool is_first, n_posix_bool cleanup )
+BOOL
+n_tar_archive_single( const n_posix_char *relname, BOOL is_first, BOOL cleanup )
 {
 
 	static n_posix_char *first = NULL;
@@ -70,13 +70,13 @@ n_tar_archive_single( const n_posix_char *relname, n_posix_bool is_first, n_posi
 	if ( cleanup )
 	{
 		n_string_path_free( first );
-		return n_posix_false;
+		return FALSE;
 	}
 
 
-	if ( n_posix_false == n_posix_stat_is_exist( relname ) ) { return n_posix_true; }
+	if ( FALSE == n_posix_stat_is_exist( relname ) ) { return TRUE; }
 
-	if ( 100 <= n_posix_strlen( relname ) ) { return n_posix_true; }
+	if ( 100 <= n_posix_strlen( relname ) ) { return TRUE; }
 
 
 	FILE *fp_i, *fp_o;
@@ -99,7 +99,7 @@ n_tar_archive_single( const n_posix_char *relname, n_posix_bool is_first, n_posi
 
 	}
 
-	if ( fp_o == NULL ) { return n_posix_true; }
+	if ( fp_o == NULL ) { return TRUE; }
 
 
 
@@ -115,9 +115,9 @@ n_tar_archive_single( const n_posix_char *relname, n_posix_bool is_first, n_posi
 		n_posix_char *str = n_string_carboncopy( relname ); n_tar_name_check( str );
 
 #ifdef UNICODE
-		sprintf( &tar[   0 ], "%ls",  str );
+		snprintf( &tar[   0 ], 512, "%ls",  str );
 #else
-		sprintf( &tar[   0 ], "%s",   str );
+		snprintf( &tar[   0 ], 512, "%s",   str );
 #endif
 
 		n_string_free( str );
@@ -125,25 +125,25 @@ n_tar_archive_single( const n_posix_char *relname, n_posix_bool is_first, n_posi
 	}
 
 
-	sprintf( &tar[ 100 ], "%6d ", 777 );
-	sprintf( &tar[ 108 ], "%6d ",   0 );
-	sprintf( &tar[ 116 ], "%6d ",   0 );
+	snprintf( &tar[ 100 ], 512 - 100, "%6d ", 777 );
+	snprintf( &tar[ 108 ], 512 - 108, "%6d ",   0 );
+	snprintf( &tar[ 116 ], 512 - 116, "%6d ",   0 );
 
-	sprintf( &tar[ 124 ], "%11lo ", (u32) fsize );
-	sprintf( &tar[ 136 ], "%11lo ", (u32) mtime );
+	snprintf( &tar[ 124 ], 512 - 124, "%11lo ", (u32) fsize );
+	snprintf( &tar[ 136 ], 512 - 136, "%11lo ", (u32) mtime );
 
 #ifdef UNICODE
-	sprintf( &tar[ 148 ], "%8lc", N_STRING_CHAR_SPACE );
+	snprintf( &tar[ 148 ], 512 - 148, "%8lc", N_STRING_CHAR_SPACE );
 #else
-	sprintf( &tar[ 148 ], "%8c",  N_STRING_CHAR_SPACE );
+	snprintf( &tar[ 148 ], 512 - 148, "%8c",  N_STRING_CHAR_SPACE );
 #endif
 
 
 	if ( n_posix_stat_is_dir( relname ) )
 	{
-		sprintf( &tar[ 156 ], "5" );
+		snprintf( &tar[ 156 ], 512 - 156, "5" );
 	} else {
-		sprintf( &tar[ 156 ], "0" );
+		snprintf( &tar[ 156 ], 512 - 156, "0" );
 	}
 
 
@@ -156,7 +156,7 @@ n_tar_archive_single( const n_posix_char *relname, n_posix_bool is_first, n_posi
 		i++;
 		if ( i >= ( 156 + 1 ) ) { break; }
 	}
-	sprintf( &tar[ 148 ], "%6o ", (unsigned int) checksum );
+	snprintf( &tar[ 148 ], 512 - 148, "%6o ", (unsigned int) checksum );
 
 
 	n_posix_fwrite( &tar, 512, 1, fp_o );
@@ -168,7 +168,7 @@ n_tar_archive_single( const n_posix_char *relname, n_posix_bool is_first, n_posi
 	{
 
 		fp_i = n_posix_fopen_read( relname );
-		if ( fp_i == NULL ) { n_posix_fclose( fp_o ); return n_posix_true; }
+		if ( fp_i == NULL ) { n_posix_fclose( fp_o ); return TRUE; }
 
 		n_filer_copy_file( fp_i, fp_o, fsize );
 
@@ -197,22 +197,22 @@ n_tar_archive_single( const n_posix_char *relname, n_posix_bool is_first, n_posi
 	n_posix_fclose( fp_o );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 // internal
-n_posix_bool
+BOOL
 n_tar_archive_dir( const n_posix_char *reldir )
 {
 
-	if ( n_posix_false == n_posix_stat_is_dir( reldir ) ) { return n_posix_true; }
+	if ( FALSE == n_posix_stat_is_dir( reldir ) ) { return TRUE; }
 //n_posix_debug( reldir );
 
 
 	n_posix_DIR *dp = n_posix_opendir_nodot( reldir );
-	if ( dp == NULL ) { return n_posix_true; }
+	if ( dp == NULL ) { return TRUE; }
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 	n_posix_loop
 	{
@@ -224,7 +224,7 @@ n_tar_archive_dir( const n_posix_char *reldir )
 		n_posix_char *rel = n_string_path_make_new( reldir, dirent->d_name );
 //n_posix_debug( rel );
 
-		ret = n_tar_archive_single( rel, n_posix_false, n_posix_false );
+		ret = n_tar_archive_single( rel, FALSE, FALSE );
 		//if ( ret ) { break; }
 
 
@@ -245,50 +245,50 @@ n_tar_archive_dir( const n_posix_char *reldir )
 }
 
 // internal
-n_posix_bool
+BOOL
 n_tar_archive_simple( const n_posix_char *rel )
 {
 
-	n_posix_bool ret;
+	BOOL ret;
 
 
 	if ( n_posix_stat_is_file( rel ) )
 	{
 //n_posix_debug_literal( "FILE" );
 
-		ret = n_tar_archive_single( rel, n_posix_true, n_posix_false );
+		ret = n_tar_archive_single( rel, TRUE, FALSE );
 
 	} else {
 //n_posix_debug_literal( "DIR" );
 
 		n_posix_chdir( N_STRING_DOTDOT );
 
-		ret  = n_tar_archive_single( rel, n_posix_true, n_posix_false );
+		ret  = n_tar_archive_single( rel, TRUE, FALSE );
 		ret |= n_tar_archive_dir( rel );
 
 	}
 
 
-	n_tar_archive_single( NULL, n_posix_false, n_posix_true );
+	n_tar_archive_single( NULL, FALSE, TRUE );
 
 
 	return ret;
 }
 
 // internal
-n_posix_bool
+BOOL
 n_tar_dearchive( const n_posix_char *relname, n_type_int *offset )
 {
 
-	if ( offset == NULL ) { return n_posix_true; }
+	if ( offset == NULL ) { return TRUE; }
 
 
 	// [!] : not exist and not a file
 
-	if ( n_posix_false == n_posix_stat_is_file( relname ) ) { return n_posix_true; }
+	if ( FALSE == n_posix_stat_is_file( relname ) ) { return TRUE; }
 
 
-	if ( n_posix_false == n_string_path_ext_is_same( N_TAR_EXT, relname ) ) { return n_posix_true; }
+	if ( FALSE == n_string_path_ext_is_same( N_TAR_EXT, relname ) ) { return TRUE; }
 
 	n_type_int fsize = n_posix_stat_size( relname );
 	if ( (*offset) >= fsize )
@@ -296,7 +296,7 @@ n_tar_dearchive( const n_posix_char *relname, n_type_int *offset )
 
 		(*offset) = 0;
 
-		return n_posix_false;
+		return FALSE;
 	}
 
 
@@ -306,7 +306,7 @@ n_tar_dearchive( const n_posix_char *relname, n_type_int *offset )
 
 
 	fp_i = n_posix_fopen_read( relname );
-	if ( fp_i == NULL ) { return n_posix_true; }
+	if ( fp_i == NULL ) { return TRUE; }
 
 
 	n_posix_fseek( fp_i, (long) (*offset), SEEK_SET );
@@ -346,7 +346,7 @@ n_tar_dearchive( const n_posix_char *relname, n_type_int *offset )
 
 
 		fp_o = n_posix_fopen_write( newname );
-		if ( fp_o == NULL ) { n_posix_fclose( fp_i ); return n_posix_true; }
+		if ( fp_o == NULL ) { n_posix_fclose( fp_i ); return TRUE; }
 
 		n_filer_copy_file( fp_i, fp_o, byte );
 
@@ -414,15 +414,15 @@ n_tar_dearchive( const n_posix_char *relname, n_type_int *offset )
 	n_string_path_free( newname );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 // internal
-n_posix_bool
+BOOL
 n_tar_dearchive_simple( const n_posix_char *relname )
 {
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	n_type_int offset = 0;
@@ -443,7 +443,7 @@ n_tar_dearchive_simple( const n_posix_char *relname )
 	return ret;
 }
 
-n_posix_bool
+BOOL
 n_tar_main( n_posix_char *abspath )
 {
 
@@ -455,9 +455,9 @@ n_tar_main( n_posix_char *abspath )
 
 	// [!] : 2 == n_posix_strlen_literal( "./" ) )
 
-	n_posix_char *rel = n_string_path_new( n_posix_strlen( abspath ) + 2 );
-	n_string_path_name( abspath, rel );
-	n_string_path_make( N_STRING_DOT, rel, rel );
+	n_posix_char *_rel = n_string_path_name_new( abspath );
+	n_posix_char * rel = n_string_path_make_new( N_STRING_DOT, _rel );
+	n_string_free( _rel );
 //n_posix_debug( rel );
 
 
@@ -467,7 +467,7 @@ n_tar_main( n_posix_char *abspath )
 
 	// [!] : need to check ".tar" or not many times
 
-	n_posix_bool ret;
+	BOOL ret;
 
 	if ( n_string_path_ext_is_same( N_TAR_EXT, rel ) )
 	{
@@ -479,7 +479,7 @@ n_tar_main( n_posix_char *abspath )
 
 		ret = n_tar_archive_simple( rel );
 
-		if ( ret == n_posix_false )
+		if ( ret == FALSE )
 		{
 			n_string_path_ext_mod( N_TAR_EXT, abspath );
 		}

@@ -57,7 +57,7 @@ n_bmp_ui_search_icon_crop( n_bmp *bmp, u32 color_trans )
 	}
 
 	// [!] : Top
-	
+
 	x = y = 0;
 	n_posix_loop
 	{
@@ -76,7 +76,7 @@ n_bmp_ui_search_icon_crop( n_bmp *bmp, u32 color_trans )
 	}
 
 	// [!] : Right
-	
+
 	x = bmpsx - 1;
 	y = 0;
 	n_posix_loop
@@ -96,7 +96,7 @@ n_bmp_ui_search_icon_crop( n_bmp *bmp, u32 color_trans )
 	}
 
 	// [!] : Bottom
-	
+
 	x = 0;
 	y = bmpsy - 1;
 	n_posix_loop
@@ -140,7 +140,9 @@ n_bmp_ui_search_icon_png_save( n_bmp *bmp, n_posix_char *path )
 
 	n_png png = n_png_template;
 
+#ifdef N_POSIX_PLATFORM_MAC
 	n_bmp_mac( bmp );
+#endif
 
 	n_png_compress( &png, bmp );
 	n_png_save( &png, path );
@@ -155,7 +157,7 @@ void
 n_bmp_ui_search_icon_make( n_bmp *bmp_ret, n_type_gfx canvas_size, u32 color_contour, u32 color_body )
 {
 
-	n_posix_bool prv_trans = n_bmp_transparent_onoff_default;
+	BOOL prv_trans = n_bmp_transparent_onoff_default;
 	n_bmp_transparent_onoff_default = FALSE;
 
 
@@ -239,8 +241,7 @@ n_bmp_ui_search_icon_make( n_bmp *bmp_ret, n_type_gfx canvas_size, u32 color_con
 
 	{
 		n_bmp bmp;
-	
-	
+
 		n_bmp_carboncopy( &bmp_contour, &bmp );
 
 		n_bmp_flush_transcopy( &bmp_handle, &bmp );
@@ -261,6 +262,10 @@ n_bmp_ui_search_icon_make( n_bmp *bmp_ret, n_type_gfx canvas_size, u32 color_con
 
 
 		n_bmp_flush_mirror( &bmp, N_BMP_MIRROR_LEFTSIDE_RIGHT );
+
+#ifndef N_POSIX_PLATFORM_MAC
+		n_bmp_flush_mirror( &bmp, N_BMP_MIRROR_UPSIDE_DOWN );
+#endif
 
 //n_bmp_ui_search_icon_png_save( &bmp, "/Users/nonnon2/Desktop/icon.png" );
 

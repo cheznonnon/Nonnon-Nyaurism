@@ -119,7 +119,7 @@ typedef struct {
 } n_wav;
 
 
-static n_posix_bool n_wav_safemode = n_posix_true;
+static BOOL n_wav_safemode = TRUE;
 
 
 
@@ -174,11 +174,11 @@ n_wav_carboncopy( const n_wav *f, n_wav *t )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_wav_is_loadable( const n_wav *wav, int id )
 {
 
-	if ( wav == NULL ) { return n_posix_false; }
+	if ( wav == NULL ) { return FALSE; }
 
 
 	// [!] : supported : 1 = WAVE_FORMAT_PCM
@@ -193,7 +193,7 @@ n_wav_is_loadable( const n_wav *wav, int id )
 	{
 		//
 	} else {
-		return n_posix_false;
+		return FALSE;
 	}
 
 
@@ -224,28 +224,28 @@ n_wav_is_loadable( const n_wav *wav, int id )
 		)
 	)
 	{
-		return n_posix_false;
+		return FALSE;
 	}
 
 
-	return n_posix_true;
+	return TRUE;
 }
 
-n_posix_bool
+BOOL
 n_wav_error( const n_wav *wav, int id )
 {
 
-	if ( n_wav_safemode == n_posix_false ) { return n_posix_false; }
+	if ( n_wav_safemode == FALSE ) { return FALSE; }
 
 
-	if ( NULL ==            wav   ) { return n_posix_true; }
-	if ( NULL == N_WAV_PTR( wav ) ) { return n_posix_true; }
+	if ( NULL ==            wav   ) { return TRUE; }
+	if ( NULL == N_WAV_PTR( wav ) ) { return TRUE; }
 
 
-	if ( n_posix_false == n_wav_is_loadable( wav, id ) ) { return n_posix_true; }
+	if ( FALSE == n_wav_is_loadable( wav, id ) ) { return TRUE; }
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 void
@@ -987,18 +987,18 @@ n_wav_reducer( n_wav *wav )
 	return;
 }
 
-n_posix_bool
+BOOL
 n_wav_search_chunk_onmemory( const u8 *ptr, n_type_int ptrsize, const char *chunk, n_type_int *offset )
 {
 
-	if (    ptr == NULL ) { return n_posix_true; }
-	if (  chunk == NULL ) { return n_posix_true; }
-	if ( offset == NULL ) { return n_posix_true; }
+	if (    ptr == NULL ) { return TRUE; }
+	if (  chunk == NULL ) { return TRUE; }
+	if ( offset == NULL ) { return TRUE; }
 
-	if ( ptrsize > UINT_MAX ) { return n_posix_true; }
+	if ( ptrsize > UINT_MAX ) { return TRUE; }
 
 
-	if ( 4 != strlen( chunk ) ) { return n_posix_true; }
+	if ( 4 != strlen( chunk ) ) { return TRUE; }
 
 
 	n_type_int i = 0;
@@ -1009,30 +1009,30 @@ n_wav_search_chunk_onmemory( const u8 *ptr, n_type_int ptrsize, const char *chun
 
 
 		i++;
-		if ( i >= ( ptrsize - 4 ) ) { return n_posix_true; }
+		if ( i >= ( ptrsize - 4 ) ) { return TRUE; }
 	}
 
 
 	(*offset) = i;
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-#define n_wav_load(          wav, fname     ) n_wav_load_internal( wav, (void*) fname,    0, n_posix_true  )
-#define n_wav_load_onmemory( wav, ptr, size ) n_wav_load_internal( wav,           ptr, size, n_posix_false )
+#define n_wav_load(          wav, fname     ) n_wav_load_internal( wav, (void*) fname,    0, TRUE  )
+#define n_wav_load_onmemory( wav, ptr, size ) n_wav_load_internal( wav,           ptr, size, FALSE )
 
 // internal
-n_posix_bool
-n_wav_load_internal( n_wav *wav, void *ptr, n_type_int ptrsize, n_posix_bool is_file )
+BOOL
+n_wav_load_internal( n_wav *wav, void *ptr, n_type_int ptrsize, BOOL is_file )
 {
 //NSLog( @"n_wav_load_internal()" );
 
-	if ( ptr == NULL ) { return n_posix_true; }
-	if ( wav == NULL ) { return n_posix_true; }
+	if ( ptr == NULL ) { return TRUE; }
+	if ( wav == NULL ) { return TRUE; }
 
 
-	n_posix_bool is_onmemory = n_posix_true;
+	BOOL is_onmemory = TRUE;
 
 
 	if ( is_file )
@@ -1041,10 +1041,10 @@ n_wav_load_internal( n_wav *wav, void *ptr, n_type_int ptrsize, n_posix_bool is_
 		const n_posix_char *fname = (n_posix_char*) ptr;
 
 		ptrsize = n_posix_stat_size( fname );
-		if ( ptrsize > UINT_MAX ) { return n_posix_true; }
+		if ( ptrsize > UINT_MAX ) { return TRUE; }
 
 		FILE *fp = n_posix_fopen_read( fname );
-		if ( fp == NULL ) { return n_posix_true; }
+		if ( fp == NULL ) { return TRUE; }
 
 		ptr = n_memory_new( ptrsize );
 
@@ -1053,11 +1053,11 @@ n_wav_load_internal( n_wav *wav, void *ptr, n_type_int ptrsize, n_posix_bool is_
 		n_posix_fclose( fp );
 
 
-		is_onmemory = n_posix_false;
+		is_onmemory = FALSE;
 
 	} else {
 
-		if ( ptrsize > UINT_MAX ) { return n_posix_true; }
+		if ( ptrsize > UINT_MAX ) { return TRUE; }
 
 	}
 
@@ -1071,7 +1071,7 @@ n_wav_load_internal( n_wav *wav, void *ptr, n_type_int ptrsize, n_posix_bool is_
 	n_type_int i;
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 	// Subchunk : "fmt " : WAVEFORMATEX
@@ -1092,18 +1092,18 @@ n_wav_load_internal( n_wav *wav, void *ptr, n_type_int ptrsize, n_posix_bool is_
 
 	if ( ret )
 	{
-		if ( is_onmemory == n_posix_false ) { n_memory_free( ptr ); }
-		return n_posix_true;
+		if ( is_onmemory == FALSE ) { n_memory_free( ptr ); }
+		return TRUE;
 	}
 
 	n_memory_copy( &p[ i + 4 ], &N_WAV_SIZE( &check ), 4 );
 
 
-	if ( n_posix_false == n_wav_is_loadable( &check, -1 ) )
+	if ( FALSE == n_wav_is_loadable( &check, -1 ) )
 	{
 //NSLog( @"unloadable" );
-		if ( is_onmemory == n_posix_false ) { n_memory_free( ptr ); }
-		return n_posix_true;
+		if ( is_onmemory == FALSE ) { n_memory_free( ptr ); }
+		return TRUE;
 	}
 
 
@@ -1119,7 +1119,7 @@ n_wav_load_internal( n_wav *wav, void *ptr, n_type_int ptrsize, n_posix_bool is_
 	n_memory_copy( &p[ i + 8 ], N_WAV_PTR( wav ), size );
 
 
-	if ( is_onmemory == n_posix_false ) { n_memory_free( ptr ); }
+	if ( is_onmemory == FALSE ) { n_memory_free( ptr ); }
 
 
 	// [!] : remember original file spec
@@ -1133,7 +1133,7 @@ n_wav_load_internal( n_wav *wav, void *ptr, n_type_int ptrsize, n_posix_bool is_
 	n_wav_enhancer( wav );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #define n_wav_new(           wav, v ) n_wav_new_internal( wav, v, 0 )
@@ -1205,7 +1205,7 @@ n_wav_new_internal( n_wav *wav, u32 msec_or_sample, int mode )
 
 #define n_wav_save_literal( wav, fname ) n_wav_save( wav, n_posix_literal( fname ) )
 
-n_posix_bool
+BOOL
 n_wav_save( const n_wav *wav, const n_posix_char *fname )
 {
 
@@ -1215,11 +1215,11 @@ n_wav_save( const n_wav *wav, const n_posix_char *fname )
 	const u32 DATA = 0x61746164;
 
 
-	if ( n_wav_error( wav, 7 ) ) { return n_posix_true; }
+	if ( n_wav_error( wav, 7 ) ) { return TRUE; }
 
 
 	FILE *fp = n_posix_fopen_write( fname );
-	if ( fp == NULL ) { return n_posix_true; }
+	if ( fp == NULL ) { return TRUE; }
 
 
 	// [!] : parameter non-breaking
@@ -1258,7 +1258,7 @@ n_wav_save( const n_wav *wav, const n_posix_char *fname )
 	n_posix_fclose( fp );
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 

@@ -9,7 +9,7 @@
 
 
 n_type_int
-n_mac_txtbox_utf8_cb( n_posix_char *str )
+n_mac_txtbox_utf8_cb( char *str )
 {
 
 	n_type_int cb;
@@ -210,7 +210,7 @@ n_mac_txtbox_is_accentmark( char *str, n_type_int cch )
 }
 
 BOOL
-n_mac_txtbox_is_digit_fullwidth( n_posix_char *str, n_type_int index )
+n_mac_txtbox_is_digit_fullwidth( char *str, n_type_int index )
 {
 
 	BOOL ret = FALSE;
@@ -221,14 +221,14 @@ n_mac_txtbox_is_digit_fullwidth( n_posix_char *str, n_type_int index )
 	if ( index < 0 ) { return ret; } 
 
 
-	n_posix_char *fullwidth_digit[ 10 ] = {
+	char *fullwidth_digit[ 10 ] = {
 		"０", "１", "２", "３", "４", "５", "６", "７", "８", "９"
 	};
 
 	int utf8 = 0;
 	n_posix_loop
 	{
-		n_posix_char *cmp = fullwidth_digit[ utf8 ];
+		char *cmp = fullwidth_digit[ utf8 ];
 
 		if (
 			(
@@ -263,7 +263,7 @@ n_mac_txtbox_is_digit_fullwidth( n_posix_char *str, n_type_int index )
 }
 
 BOOL
-n_mac_txtbox_digit_detect( n_posix_char *starting_char, n_posix_char *str, n_type_int index )
+n_mac_txtbox_digit_detect( char *starting_char, char *str, n_type_int index )
 {
 
 	// [!] : is_digit : set starting char status
@@ -314,16 +314,16 @@ n_mac_txtbox_digit_detect( n_posix_char *starting_char, n_posix_char *str, n_typ
 static bool n_mac_txtbox_character_monospace_onoff = FALSE;
 
 // internal
-n_posix_char*
+char*
 n_mac_txtbox_character
 (
-	      NSFont     *nsfont,
-	      CGSize      nsfont_size,
-	const u8         *str,
-	      n_type_int  index,
-	      CGSize     *ret_size,
-	      n_type_int *ret_cch,
-	      n_type_int *ret_tab
+	      NSFont       *nsfont,
+	      CGSize        nsfont_size,
+	const n_posix_char *str_in,
+	      n_type_int    index,
+	      CGSize       *ret_size,
+	      n_type_int   *ret_cch,
+	      n_type_int   *ret_tab
 )
 {
 
@@ -337,7 +337,10 @@ n_mac_txtbox_character
 	//	ret_tab  : tabbed character count
 
 
-	static n_posix_char character[ 20 ];
+	u8 *str = (u8*) str_in;
+
+
+	static char character[ 20 ];
 
 	if ( ret_size == NULL ) { n_string_truncate( character ); }
 

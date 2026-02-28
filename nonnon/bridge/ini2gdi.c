@@ -128,7 +128,7 @@ n_ini2gdi_option n_ini2gdi_option_icon[] = {
 	{ n_posix_literal( "contour_fog" ), N_GDI_ICON_CONTOUR_FOG },
 	{ n_posix_literal( "sink"        ), N_GDI_ICON_SINK        },
 	{ n_posix_literal( "smooth"      ), N_GDI_ICON_SMOOTH      },
-	{ n_posix_literal( "stretch"     ), N_GDI_ICON_STRETCH     },
+	{ n_posix_literal( "ui"          ), N_GDI_ICON_UI          },
 	{ n_posix_literal( ""            ), 0                      }
 
 };
@@ -813,7 +813,7 @@ n_ini2gdi_load( const n_posix_char *abspath, n_bmp *b )
 	n_posix_loop
 	{
 
-		n_posix_char lval   [ N_INI2GDI_CCH ]; n_posix_sprintf_literal( lval, "%d", i );
+		n_posix_char lval   [ N_INI2GDI_CCH ]; n_posix_snprintf_literal( lval, N_INI2GDI_CCH, "%d", i );
 		n_posix_char defval [ N_INI2GDI_CCH ]; n_string_zero( defval, N_INI2GDI_CCH );
 		n_posix_char label  [ N_INI2GDI_CCH ]; n_string_zero(  label, N_INI2GDI_CCH );
 		n_posix_char ret    [ N_INI2GDI_CCH ]; n_string_zero(    ret, N_INI2GDI_CCH );
@@ -834,8 +834,8 @@ n_ini2gdi_load( const n_posix_char *abspath, n_bmp *b )
 			if ( first == -1 ) { first = i; }
 
 
-			n_posix_sprintf_literal(   lval, "layer" );
-			n_posix_sprintf_literal( defval, "0 0 0 0" );
+			n_posix_snprintf_literal(   lval, N_INI2GDI_CCH, "layer" );
+			n_posix_snprintf_literal( defval, N_INI2GDI_CCH, "0 0 0 0" );
 
 			n_ini_value_str( &ini, label, lval, defval, ret, N_INI2GDI_CCH );
 
@@ -845,8 +845,8 @@ n_ini2gdi_load( const n_posix_char *abspath, n_bmp *b )
 			layer[ i ].rotate = n_ini2gdi_str2val( ret, 3 );
 
 
-			n_posix_sprintf_literal(   lval, "base_color" );
-			n_posix_sprintf_literal( defval, "0 255 255 255, 0 255 255 255" );
+			n_posix_snprintf_literal(   lval, N_INI2GDI_CCH, "base_color" );
+			n_posix_snprintf_literal( defval, N_INI2GDI_CCH, "0 255 255 255, 0 255 255 255" );
 
 			n_ini_value_str( &ini, label, lval, defval, ret, N_INI2GDI_CCH );
 

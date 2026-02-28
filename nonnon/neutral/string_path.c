@@ -117,11 +117,11 @@ n_string_path_copy( const n_posix_char *f, n_posix_char *t )
 	return i;
 }
 
-n_posix_bool
+BOOL
 n_string_path_slash_check( const n_posix_char *str, n_type_int index )
 {
 
-	if ( n_string_is_empty( str ) ) { return n_posix_false; }
+	if ( n_string_is_empty( str ) ) { return FALSE; }
 
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
@@ -134,22 +134,22 @@ n_string_path_slash_check( const n_posix_char *str, n_type_int index )
 	}
 //n_posix_debug_literal( "%d %d", i, index );
 
-	if ( i != index ) { return n_posix_false; }
+	if ( i != index ) { return FALSE; }
 
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
-	if ( str[ index ] == N_POSIX_CHAR_SLASH ) { return n_posix_true; }
+	if ( str[ index ] == N_POSIX_CHAR_SLASH ) { return TRUE; }
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
-n_posix_bool
+BOOL
 n_string_path_is_abspath( const n_posix_char *path )
 {
 
-	if ( n_string_is_empty( path ) ) { return n_posix_false; }
+	if ( n_string_is_empty( path ) ) { return FALSE; }
 
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
@@ -170,33 +170,33 @@ n_string_path_is_abspath( const n_posix_char *path )
 		)
 	)
 	{
-		return n_posix_true;
+		return TRUE;
 	}
 
 #else
 
-	if ( n_string_path_slash_check( path, 0 ) ) { return n_posix_true; }
+	if ( n_string_path_slash_check( path, 0 ) ) { return TRUE; }
 
 #endif
 
 
-	return n_posix_false;
+	return FALSE;
 }
 
 #define n_string_path_is_drivename n_posix_is_drivename
 
-#define n_string_path_drivename_slash_add( path ) n_string_path_drivename_slash_set( path, n_posix_true  )
-#define n_string_path_drivename_slash_del( path ) n_string_path_drivename_slash_set( path, n_posix_false )
+#define n_string_path_drivename_slash_add( path ) n_string_path_drivename_slash_set( path, TRUE  )
+#define n_string_path_drivename_slash_del( path ) n_string_path_drivename_slash_set( path, FALSE )
 
 // internal
 void
-n_string_path_drivename_slash_set( n_posix_char *path, n_posix_bool is_add )
+n_string_path_drivename_slash_set( n_posix_char *path, BOOL is_add )
 {
 
 	if ( n_string_is_empty( path ) ) { return; }
 
 
-	if ( n_posix_false == n_string_path_is_drivename( path ) ) { return; }
+	if ( FALSE == n_string_path_is_drivename( path ) ) { return; }
 
 
 	n_type_int cch = n_posix_strlen( path );
@@ -204,7 +204,7 @@ n_string_path_drivename_slash_set( n_posix_char *path, n_posix_bool is_add )
 	if ( is_add )
 	{
 
-		if ( n_posix_false == n_string_path_slash_check( path, cch - 1 ) )
+		if ( FALSE == n_string_path_slash_check( path, cch - 1 ) )
 		{
 			n_posix_strcat( path, N_POSIX_SLASH );
 			n_string_path_terminate( path, cch + 1 );
@@ -212,7 +212,7 @@ n_string_path_drivename_slash_set( n_posix_char *path, n_posix_bool is_add )
 
 	} else {
 
-		if ( n_posix_false != n_string_path_slash_check( path, cch - 1 ) )
+		if ( FALSE != n_string_path_slash_check( path, cch - 1 ) )
 		{
 			n_string_path_terminate( path, cch - 1 );
 		}
@@ -225,11 +225,11 @@ n_string_path_drivename_slash_set( n_posix_char *path, n_posix_bool is_add )
 
 #define n_string_path_free( str ) n_string_free( str )
 
-#define n_string_path_new(      cch ) n_string_path_new_internal( cch, n_posix_false )
-#define n_string_path_new_fast( cch ) n_string_path_new_internal( cch, n_posix_true  )
+#define n_string_path_new(      cch ) n_string_path_new_internal( cch, FALSE )
+#define n_string_path_new_fast( cch ) n_string_path_new_internal( cch, TRUE  )
 
 n_posix_char*
-n_string_path_new_internal( n_type_int cch, n_posix_bool is_fast )
+n_string_path_new_internal( n_type_int cch, BOOL is_fast )
 {
 //return NULL;
 
@@ -253,11 +253,11 @@ n_string_path_new_internal( n_type_int cch, n_posix_bool is_fast )
 	return s;
 }
 
-#define n_string_path_carboncopy(          path ) n_string_path_carboncopy_internal( path, n_posix_false )
-#define n_string_path_carboncopy_multiple( path ) n_string_path_carboncopy_internal( path, n_posix_true  )
+#define n_string_path_carboncopy(          path ) n_string_path_carboncopy_internal( path, FALSE )
+#define n_string_path_carboncopy_multiple( path ) n_string_path_carboncopy_internal( path, TRUE  )
 
 n_posix_char*
-n_string_path_carboncopy_internal( const n_posix_char *str, n_posix_bool is_multi )
+n_string_path_carboncopy_internal( const n_posix_char *str, BOOL is_multi )
 {
 //return NULL;
 
@@ -374,7 +374,7 @@ n_string_path_cat( n_posix_char *first, ... )
 				if ( str == NULL ) { break; }
 			}
 
-			i += n_posix_sprintf_literal( &ret[ i ], "%s", str );
+			i += n_posix_snprintf_literal( &ret[ i ], cch - i + 1, "%s", str );
 
 		}
 
@@ -395,7 +395,7 @@ n_string_path_slash_new( const n_posix_char *path )
 	// [!] : 1 == n_posix_strlen( N_POSIX_SLASH )
 
 	n_type_int cch = 1;
-	if ( n_posix_false == n_string_is_empty( path ) ) { cch += n_posix_strlen( path ); }
+	if ( FALSE == n_string_is_empty( path ) ) { cch += n_posix_strlen( path ); }
 
 	n_posix_char *ret = n_string_path_new_fast( cch );
 
@@ -443,12 +443,12 @@ n_string_path_multiple_cch( const n_posix_char *path, n_type_int index )
 	return j;
 }
 
-#define n_string_path_multiple_count( str ) n_string_path_multiple_internal( str, 0, NULL, n_posix_true )
+#define n_string_path_multiple_count( str ) n_string_path_multiple_internal( str, 0, NULL, TRUE )
 
-#define n_string_path_multiple( str, i, ret ) n_string_path_multiple_internal( str, i, ret, n_posix_false )
+#define n_string_path_multiple( str, i, ret ) n_string_path_multiple_internal( str, i, ret, FALSE )
 
 n_type_int
-n_string_path_multiple_internal( const n_posix_char *path, n_type_int index, n_posix_char *ret, n_posix_bool is_count )
+n_string_path_multiple_internal( const n_posix_char *path, n_type_int index, n_posix_char *ret, BOOL is_count )
 {
 
 	// [ Mechanism ]
@@ -468,7 +468,7 @@ n_string_path_multiple_internal( const n_posix_char *path, n_type_int index, n_p
 	{
 		if ( path[ i ] == N_STRING_CHAR_NUL ) { break; }
 
-		if ( ( is_count == n_posix_false )&&( count == index ) )
+		if ( ( is_count == FALSE )&&( count == index ) )
 		{
 			if ( ret != NULL )
 			{
@@ -508,12 +508,13 @@ n_type_int
 n_string_path_make_cch( const n_posix_char *dir, const n_posix_char *file )
 {
 	// [!] : 1 == n_posix_strlen( N_POSIX_SLASH )
+	// [!] : 2 == NUL NUL
 
-	return ( n_posix_strlen( dir ) + 1 + n_posix_strlen( file ) );
+	return ( n_posix_strlen( dir ) + 1 + n_posix_strlen( file ) + 2 );
 }
 
 void
-n_string_path_make( const n_posix_char *dir, const n_posix_char *file, n_posix_char *ret )
+n_string_path_make( const n_posix_char *dir, const n_posix_char *file, n_posix_char *ret, n_type_int ret_cch )
 {
 
 	if ( ret == NULL ) { return; }
@@ -541,7 +542,7 @@ n_string_path_make( const n_posix_char *dir, const n_posix_char *file, n_posix_c
 	}
 
 
-	n_type_int cch = n_posix_sprintf_literal( ret, "%s%s%s", tmp_dir, N_POSIX_SLASH, &tmp_file[ skip ] );
+	n_type_int cch = n_posix_snprintf_literal( ret, ret_cch + 1, "%s%s%s", tmp_dir, N_POSIX_SLASH, &tmp_file[ skip ] );
 	n_string_path_terminate( ret, cch );
 
 
@@ -562,7 +563,7 @@ n_string_path_make_new( const n_posix_char *dir, const n_posix_char *file )
 	n_posix_char *ret = n_string_path_new_fast( cch );
 
 
-	n_string_path_make( dir, file, ret );
+	n_string_path_make( dir, file, ret, cch );
 
 
 	return ret;
@@ -574,7 +575,7 @@ n_string_path_split_cch( const n_posix_char *path, n_type_int index )
 
 	// [!] : not a path name
 
-	if ( n_posix_false == n_string_path_is_abspath( path ) ) { return 0; }
+	if ( FALSE == n_string_path_is_abspath( path ) ) { return 0; }
 
 
 	// [!] : "C:\" => "C:" if needed
@@ -633,7 +634,7 @@ n_string_path_split( const n_posix_char *path, n_posix_char *ret, n_type_int ind
 
 	// [!] : not a path name
 
-	if ( n_posix_false == n_string_path_is_abspath( path ) ) { return 0; }
+	if ( FALSE == n_string_path_is_abspath( path ) ) { return 0; }
 
 
 	// [!] : "C:\" => "C:" if needed
@@ -784,7 +785,7 @@ n_string_path_upperfolder( const n_posix_char *arg_path, n_posix_char *arg_ret )
 
 //n_posix_debug_literal( "Path:%s\nName:%s", path, name );
 
-	if ( n_posix_false == n_string_is_same( path, name ) )
+	if ( FALSE == n_string_is_same( path, name ) )
 	{
 		n_type_int index = n_posix_strlen( path ) - n_posix_strlen( name );
 		if ( index >= 1 ) { index--; }
@@ -830,14 +831,14 @@ n_string_path_upperfolder_new( const n_posix_char *path )
 }
 
 // internal
-n_posix_bool
+BOOL
 n_string_path_short2long_is_shortname( const n_posix_char *path, n_type_int *cch )
 {
 
-	if ( n_string_is_empty( path ) ) { return n_posix_false; }
+	if ( n_string_is_empty( path ) ) { return FALSE; }
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 	n_type_int i = 0;
 	n_posix_loop
@@ -845,7 +846,7 @@ n_string_path_short2long_is_shortname( const n_posix_char *path, n_type_int *cch
 
 		if ( path[ i ] == N_STRING_CHAR_NUL ) { break; }
 
-		if ( path[ i ] == N_STRING_CHAR_TILDE ) { ret = n_posix_true; }
+		if ( path[ i ] == N_STRING_CHAR_TILDE ) { ret = TRUE; }
 
 		i++;
 
@@ -861,7 +862,7 @@ n_string_path_short2long_is_shortname( const n_posix_char *path, n_type_int *cch
 #define n_string_path_short2long_cch( path, ret_is_shortname ) n_string_path_short2long( path, NULL, ret_is_shortname )
 
 n_type_int
-n_string_path_short2long( const n_posix_char *arg_path, n_posix_char *arg_ret, n_posix_bool *ret_is_shortname )
+n_string_path_short2long( const n_posix_char *arg_path, n_posix_char *arg_ret, BOOL *ret_is_shortname )
 {
 
 	if ( n_string_is_empty( arg_path ) ) { return 0; }
@@ -873,12 +874,12 @@ n_string_path_short2long( const n_posix_char *arg_path, n_posix_char *arg_ret, n
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
-	if ( ret_is_shortname != NULL ) { (*ret_is_shortname) = n_posix_false; }
+	if ( ret_is_shortname != NULL ) { (*ret_is_shortname) = FALSE; }
 
 
 	// [!] : not a short name
 
-	if ( n_posix_false == n_string_path_short2long_is_shortname( arg_path, &cch ) )
+	if ( FALSE == n_string_path_short2long_is_shortname( arg_path, &cch ) )
 	{
 
 		if ( arg_ret != NULL )
@@ -891,7 +892,7 @@ n_string_path_short2long( const n_posix_char *arg_path, n_posix_char *arg_ret, n
 	}
 
 
-	if ( n_posix_false == n_string_path_is_abspath( arg_path ) )
+	if ( FALSE == n_string_path_is_abspath( arg_path ) )
 	{
 
 		// [!] : not a path : send back
@@ -923,7 +924,7 @@ n_string_path_short2long( const n_posix_char *arg_path, n_posix_char *arg_ret, n
 
 	// [!] : add a drive name
 
-	if ( ret_is_shortname != NULL ) { (*ret_is_shortname) = n_posix_true; }
+	if ( ret_is_shortname != NULL ) { (*ret_is_shortname) = TRUE; }
 
 	n_posix_char *longname = n_string_path_split_new( arg_path, 0 );
 	n_type_int    count    = n_string_path_split( arg_path, NULL, 0 );
@@ -998,11 +999,11 @@ n_string_path_short2long_new( const n_posix_char *path )
 
 #define n_string_path_folder_change_fast( dir ) n_posix_chdir( dir );
 
-n_posix_bool
+BOOL
 n_string_path_folder_change( const n_posix_char *path )
 {
 
-	if ( n_string_is_empty( path ) ) { return n_posix_true; }
+	if ( n_string_is_empty( path ) ) { return TRUE; }
 
 
 	n_posix_char *dir;
@@ -1023,7 +1024,7 @@ n_string_path_folder_change( const n_posix_char *path )
 }
 
 n_type_int
-n_string_path_folder_current_cch( n_posix_bool *is_shortname )
+n_string_path_folder_current_cch( BOOL *is_shortname )
 {
 
 	// [x] : at least PATH_MAX is needed
@@ -1054,7 +1055,7 @@ n_string_path_folder_current_cch( n_posix_bool *is_shortname )
 }
 
 void
-n_string_path_folder_current( n_posix_char *ret, n_type_int cch, n_posix_bool is_shortname )
+n_string_path_folder_current( n_posix_char *ret, n_type_int cch, BOOL is_shortname )
 {
 
 	if ( ret == NULL ) { return; }
@@ -1075,17 +1076,17 @@ n_posix_char*
 n_string_path_folder_current_new( void )
 {
 
-	n_posix_bool  is_shortname = n_posix_false;
+	BOOL          is_shortname = FALSE;
 	n_type_int    cch = n_string_path_folder_current_cch( &is_shortname );
 	n_posix_char *ret = n_string_path_new_fast( cch ); n_string_path_folder_current( ret, cch, is_shortname );
 
 	return ret;
 }
 
-#define n_string_path_ext_get_cch( path ) n_string_path_ext_get( path, NULL )
+#define n_string_path_ext_get_cch( path ) n_string_path_ext_get( path, NULL, 0 )
 
 n_type_int
-n_string_path_ext_get( const n_posix_char *path, n_posix_char *ret )
+n_string_path_ext_get( const n_posix_char *path, n_posix_char *ret, n_type_int ret_cch )
 {
 
 	if ( n_string_is_empty( path ) ) { return 0; }
@@ -1099,7 +1100,7 @@ n_string_path_ext_get( const n_posix_char *path, n_posix_char *ret )
 	// [!] : "." is DBCS safe
 
 
-	n_posix_bool found = n_posix_false;
+	BOOL found = FALSE;
 
 	n_type_int pos = 0;
 
@@ -1113,7 +1114,7 @@ n_string_path_ext_get( const n_posix_char *path, n_posix_char *ret )
 
 			pos = i;
 
-			found = n_posix_true;
+			found = TRUE;
 
 			break;
 
@@ -1139,7 +1140,7 @@ n_string_path_ext_get( const n_posix_char *path, n_posix_char *ret )
 			cch = n_posix_strlen( &path[ pos ] );
 		} else {
 			// [x] : don't use n_string_path_copy() or n_string_copy()
-			cch = n_posix_sprintf_literal( ret, "%s", &path[ pos ] );
+			cch = n_posix_snprintf_literal( ret, ret_cch + 1, "%s", &path[ pos ] );
 			n_string_path_terminate( ret, cch );
 		}
 	}
@@ -1153,24 +1154,29 @@ n_string_path_ext_get_new( const n_posix_char *path )
 {
 
 	n_type_int    cch = n_string_path_ext_get_cch( path );
-	n_posix_char *ret = n_string_path_new_fast( cch ); n_string_path_ext_get( path, ret );
+	n_posix_char *ret = n_string_path_new_fast( cch );
+//NSLog( @"%s : %lld", ret, cch );
+
+	n_string_path_ext_get( path, ret, cch );
+//NSLog( @"%s : %lld", ret, cch );
+
 
 	return ret;
 }
 
-#define n_string_path_ext_is_same_literal( f, t ) n_string_path_ext_is_same_internal( n_posix_literal( f ), t, n_posix_true )
-#define n_string_path_ext_is_same(         f, t ) n_string_path_ext_is_same_internal( f, t, n_posix_false )
+#define n_string_path_ext_is_same_literal( f, t ) n_string_path_ext_is_same_internal( n_posix_literal( f ), t, TRUE )
+#define n_string_path_ext_is_same(         f, t ) n_string_path_ext_is_same_internal( f, t, FALSE )
 
 // internal
-n_posix_bool
-n_string_path_ext_is_same_internal( const n_posix_char *path1, const n_posix_char *path2, n_posix_bool is_literal )
+BOOL
+n_string_path_ext_is_same_internal( const n_posix_char *path1, const n_posix_char *path2, BOOL is_literal )
 {
 
-	if ( n_string_is_empty( path1 ) ) { return n_posix_false; }
-	if ( n_string_is_empty( path2 ) ) { return n_posix_false; }
+	if ( n_string_is_empty( path1 ) ) { return FALSE; }
+	if ( n_string_is_empty( path2 ) ) { return FALSE; }
 
 
-	n_posix_bool ret;
+	BOOL ret;
 
 	if ( is_literal )
 	{
@@ -1201,16 +1207,16 @@ n_string_path_ext_is_same_internal( const n_posix_char *path1, const n_posix_cha
 #define N_STRING_PATH_EXT_SET_ADD 0
 #define N_STRING_PATH_EXT_SET_DEL 1
 
-#define n_string_path_ext_add( e, p ) n_string_path_ext_set_internal(    e, p, N_STRING_PATH_EXT_SET_ADD, n_posix_false )
-#define n_string_path_ext_mod( e, p ) n_string_path_ext_set_internal(    e, p, N_STRING_PATH_EXT_SET_DEL, n_posix_false )
-#define n_string_path_ext_del(    p ) n_string_path_ext_set_internal( NULL, p, N_STRING_PATH_EXT_SET_DEL, n_posix_false )
+#define n_string_path_ext_add( e, p ) n_string_path_ext_set_internal(    e, p, N_STRING_PATH_EXT_SET_ADD, FALSE )
+#define n_string_path_ext_mod( e, p ) n_string_path_ext_set_internal(    e, p, N_STRING_PATH_EXT_SET_DEL, FALSE )
+#define n_string_path_ext_del(    p ) n_string_path_ext_set_internal( NULL, p, N_STRING_PATH_EXT_SET_DEL, FALSE )
 
-#define n_string_path_ext_add_literal( a,b ) n_string_path_ext_set_internal( n_posix_literal( a ), b, N_STRING_PATH_EXT_SET_ADD, n_posix_true )
-#define n_string_path_ext_mod_literal( a,b ) n_string_path_ext_set_internal( n_posix_literal( a ), b, N_STRING_PATH_EXT_SET_DEL, n_posix_true )
+#define n_string_path_ext_add_literal( a,b ) n_string_path_ext_set_internal( n_posix_literal( a ), b, N_STRING_PATH_EXT_SET_ADD, TRUE )
+#define n_string_path_ext_mod_literal( a,b ) n_string_path_ext_set_internal( n_posix_literal( a ), b, N_STRING_PATH_EXT_SET_DEL, TRUE )
 
 // internal
 void
-n_string_path_ext_set_internal( const n_posix_char *ext, n_posix_char *path, int mode, n_posix_bool is_literal )
+n_string_path_ext_set_internal( const n_posix_char *ext, n_posix_char *path, int mode, BOOL is_literal )
 {
 
 	// [Mechanism] : "ext"
@@ -1288,7 +1294,7 @@ n_string_path_ext_mod_new( const n_posix_char *path, const n_posix_char *ext )
 	return str;
 }
 
-#define n_string_path_tmpname_cch() ( ( 4 + 2 + 2 ) + 1 + ( 2 + 2 + 2 ) )
+#define n_string_path_tmpname_cch() ( ( 4 + 2 + 2 ) + 1 + ( 2 + 2 + 2 ) + 2 )
 
 void
 n_string_path_tmpname( n_posix_char *str )
@@ -1306,9 +1312,10 @@ n_string_path_tmpname( n_posix_char *str )
 	n_time_today( &year, &month, &day, &hour, &minute, &second );
 
 
-	n_posix_sprintf_literal
+	n_posix_snprintf_literal
 	(
 		str,
+		n_string_path_tmpname_cch(),
 		"%04d%02d%02d_%02d%02d%02d",
 		year, month, day,
 		hour, minute, second
@@ -1318,11 +1325,11 @@ n_string_path_tmpname( n_posix_char *str )
 	return;
 }
 
-#define n_string_path_tmpname_new_literal( ext ) n_string_path_tmpname_new_internal( n_posix_literal( ext ), n_posix_true  )
-#define n_string_path_tmpname_new(         ext ) n_string_path_tmpname_new_internal(                  ext  , n_posix_false )
+#define n_string_path_tmpname_new_literal( ext ) n_string_path_tmpname_new_internal( n_posix_literal( ext ), TRUE  )
+#define n_string_path_tmpname_new(         ext ) n_string_path_tmpname_new_internal(                  ext  , FALSE )
 
 n_posix_char*
-n_string_path_tmpname_new_internal( const n_posix_char *ext, n_posix_bool is_literal )
+n_string_path_tmpname_new_internal( const n_posix_char *ext, BOOL is_literal )
 {
 
 	// [!] : you need to n_string_path_free() a returned variable
@@ -1404,7 +1411,7 @@ n_string_path_cmdline2multipath( const n_posix_char *cmdline )
 			n_string_parameter( str, delim, quote, i, ret );
 //n_posix_debug_literal( "Ret : %s" , ret );
 
-			j += n_posix_sprintf_literal( &cmd[ j ], "%s", ret );
+			j += n_posix_snprintf_literal( &cmd[ j ], cch - j + 1, "%s", ret );
 			cmd[ j ] = N_STRING_CHAR_NUL; j++;
 		}
 		n_string_path_free( ret );
@@ -1422,17 +1429,17 @@ n_string_path_cmdline2multipath( const n_posix_char *cmdline )
 
 #define n_string_path_commandline_option_literal( o, p, m ) n_string_path_commandline_option( n_posix_literal( o ), p, m )
 
-n_posix_bool
-n_string_path_commandline_option( const n_posix_char *option, n_posix_char *path, n_posix_bool match_only )
+BOOL
+n_string_path_commandline_option( const n_posix_char *option, n_posix_char *path, BOOL match_only )
 {
 
 	// [Mechanism]
 	//
-	//	ret = n_posix_false : no touch
-	//	ret = n_posix_true  : "option" will be removed
+	//	ret = FALSE : no touch
+	//	ret = TRUE  : "option" will be removed
 
 
-	n_posix_bool ret = n_posix_false;
+	BOOL ret = FALSE;
 
 
 //n_posix_debug_literal( "%s : %s", option, path );
@@ -1440,13 +1447,13 @@ n_string_path_commandline_option( const n_posix_char *option, n_posix_char *path
 
 	if (
 		(
-			( match_only != n_posix_false )
+			( match_only != FALSE )
 			&&
 			( n_string_match( path, option ) )
 		)
 		||
 		(
-			( match_only == n_posix_false )
+			( match_only == FALSE )
 			&&
 			( n_string_match( path, option ) )
 			&&
@@ -1459,7 +1466,7 @@ n_string_path_commandline_option( const n_posix_char *option, n_posix_char *path
 	)
 	{
 
-		ret = n_posix_true;
+		ret = TRUE;
 
 		n_posix_char *tmp = n_string_path_carboncopy( path );
 
@@ -1492,7 +1499,7 @@ n_string_path_commandline_option( const n_posix_char *option, n_posix_char *path
 	return ret;
 }
 
-n_posix_bool
+BOOL
 n_string_path_rename( const n_posix_char *f, const n_posix_char *t )
 {
 
@@ -1502,10 +1509,10 @@ n_string_path_rename( const n_posix_char *f, const n_posix_char *t )
 	return ( ret == -1 );
 }
 
-#define n_string_path_relative_cch( str ) n_string_path_relative( str, NULL )
+#define n_string_path_relative_cch( str ) n_string_path_relative( str, NULL, 0 )
 
 n_type_int
-n_string_path_relative( const n_posix_char *str, n_posix_char *ret )
+n_string_path_relative( const n_posix_char *str, n_posix_char *ret, n_type_int ret_cch )
 {
 
 	if ( n_string_is_empty( str ) ) { return 0; }
@@ -1538,7 +1545,7 @@ n_string_path_relative( const n_posix_char *str, n_posix_char *ret )
 
 		cch = 1 + 1 + n_posix_strlen( str );
 	} else {
-		cch = n_posix_sprintf_literal( ret, "%s%s%s", N_STRING_DOT, N_POSIX_SLASH, str );
+		cch = n_posix_snprintf_literal( ret, ret_cch + 1, "%s%s%s", N_STRING_DOT, N_POSIX_SLASH, str );
 	}
 
 
@@ -1555,7 +1562,7 @@ n_string_path_relative_new( const n_posix_char *name )
 	n_posix_char *str = n_string_path_new_fast( cch );
 
 
-	n_string_path_relative( name, str );
+	n_string_path_relative( name, str, cch );
 
 
 	return str;

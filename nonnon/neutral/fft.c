@@ -64,7 +64,7 @@ typedef struct {
 
 #ifdef N_FFT_VERSION_2
 	double        *gains_db;
-	n_posix_bool   is_bypass;
+	BOOL           is_bypass;
 #endif
 
 	int            resolution;
@@ -147,7 +147,7 @@ n_fft_equalizer_init( int band_count, int channel_count, int sample_count, int r
 	eq->resolution    = resolution;
 
 #ifdef N_FFT_VERSION_2
-	eq->is_bypass = n_posix_true;
+	eq->is_bypass = TRUE;
 	eq->gains_db  = (double*) malloc( band_count * sizeof( double ) );
 #endif
 
@@ -228,12 +228,12 @@ n_fft_equalizer_gain_db_set( n_fft_equalizer *eq, int band, double gain_db )
 #ifdef N_FFT_VERSION_2
 		eq->gains_db[ band ] = gain_db;
 
-		eq->is_bypass = n_posix_true;
+		eq->is_bypass = TRUE;
 		for( int i = 0; i < eq->band_count; i++ )
 		{
 			if ( fabs( eq->gains_db[ i ]) > 0.1 )
 			{
-				eq->is_bypass = n_posix_false;
+				eq->is_bypass = FALSE;
 				break;
 			}
 		}
@@ -252,12 +252,12 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int ch )
 #ifdef N_FFT_VERSION_2
 	if ( eq->is_bypass ) { return; }
 
-	n_posix_bool all_unity = n_posix_true;
+	BOOL all_unity = TRUE;
 	for( int i = 0; i < eq->band_count; i++ )
 	{
 		if ( fabs( eq->band_gains[ i ] - 1.0 ) > 1e-6 )
 		{
-			all_unity = n_posix_false;
+			all_unity = FALSE;
 			break;
 		}
 	}
@@ -321,7 +321,7 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int ch )
 
 #ifdef N_FFT_VERSION_2
 
-		n_posix_bool modified = n_posix_false;
+		BOOL modified = FALSE;
 
 		double freq_resolution = (double) N_FFT_RATE / eq->resolution;
 
@@ -342,7 +342,7 @@ n_fft_equalizer_channel_process( n_fft_equalizer *eq, double *audio, int ch )
 
 			if ( fabs( eq->band_gains[ band_idx ] - 1.0 ) > 1e-6 )
 			{
-				modified = n_posix_true;
+				modified = TRUE;
 
 				buffer[ i ] *= eq->band_gains[ band_idx ];
 				if ( ( i > 0 )&&( i < ( eq->resolution / 2 ) ) )
@@ -712,7 +712,7 @@ n_fft_histogram_make( n_wav *wav, int band_count, int resolution )
 }
 
 void
-n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, int resolution, n_posix_bool debug )
+n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, int resolution, BOOL debug )
 {
 
 	int    N  = resolution;
