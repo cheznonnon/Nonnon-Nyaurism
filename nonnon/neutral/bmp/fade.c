@@ -23,8 +23,10 @@
 
 typedef struct {
 
-	u32  color_fg;
-	u32  color_bg;
+	u32  msec;
+	u32  color_fr;
+	u32  color_to;
+	u32  color_md;
 	u32  tick;
 	BOOL stop;
 	int  percent;
@@ -42,8 +44,10 @@ void
 n_bmp_fade_init( n_bmp_fade *p, u32 color )
 {
 
-	p->color_bg = color;
-	p->color_fg = color;
+	p->msec     = N_BMP_FADE_MSEC;
+	p->color_fr = color;
+	p->color_to = color;
+	p->color_md = color;
 	p->tick     = 0;
 	p->stop     = TRUE;
 	p->percent  = 100;
@@ -57,11 +61,11 @@ n_bmp_fade_go( n_bmp_fade *p, u32 color )
 {
 
 	if ( p->stop     == FALSE ) { return; }
-	if ( p->color_fg == color ) { return; }
+	if ( p->color_to == color ) { return; }
 
 
-	p->color_bg = p->color_fg;
-	p->color_fg = color;
+	p->color_fr = p->color_md;
+	p->color_to = color;
 	p->tick     = n_posix_tickcount();
 	p->stop     = FALSE;
 	p->percent  = 0;
@@ -71,11 +75,12 @@ n_bmp_fade_go( n_bmp_fade *p, u32 color )
 }
 
 void
-n_bmp_fade_always_on( n_bmp_fade *p, u32 bg, u32 fg )
+n_bmp_fade_always_on( n_bmp_fade *p, u32 from, u32 to )
 {
 
-	p->color_bg = bg;
-	p->color_fg = fg;
+	p->color_fr = from;
+	p->color_to = to;
+	p->color_md = from;
 	p->tick     = n_posix_tickcount();
 	p->stop     = FALSE;
 	p->percent  = 0;
@@ -88,7 +93,7 @@ u32
 n_bmp_fade_engine( n_bmp_fade *p, BOOL onoff )
 {
 
-	if ( p->stop ) { n_bmp_fade_init( p, p->color_fg ); return p->color_fg; }
+	if ( p->stop ) { n_bmp_fade_init( p, p->color_to ); return p->color_to; }
 
 
 	if ( onoff == FALSE )
@@ -96,7 +101,7 @@ n_bmp_fade_engine( n_bmp_fade *p, BOOL onoff )
 		p->stop    = TRUE;
 		p->percent = 100;
 
-		return p->color_fg;
+		return p->color_to;
 	}
 
 
@@ -109,19 +114,19 @@ n_bmp_fade_engine( n_bmp_fade *p, BOOL onoff )
 		if ( p->tick != 0 )
 		{
 			delta = n_posix_tickcount() - p->tick;
-			ratio = delta / N_BMP_FADE_MSEC;
+			ratio = delta / p->msec;
 		}
 
 	}
 
 
-	u32 color_ret = n_bmp_blend_pixel( p->color_bg, p->color_fg, ratio );
-	p->percent = n_posix_minmax( 0, 100, (int) ( ratio * 100 ) );
+	p->color_md = n_bmp_blend_pixel( p->color_fr, p->color_to, ratio );
+	p->percent  = n_posix_minmax( 0, 100, (int) ( ratio * 100 ) );
 
-	if ( p->percent >= 100 ) { n_bmp_fade_init( p, p->color_fg ); }
+	if ( p->percent >= 100 ) { n_bmp_fade_init( p, p->color_to ); }
 
 
-	return color_ret;
+	return p->color_md;
 }
 
 

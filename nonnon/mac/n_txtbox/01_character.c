@@ -466,13 +466,16 @@ n_mac_txtbox_character
 
 			(*ret_size) = NSMakeSize( MAX( kaku, tabs ), nsfont_size.height );
 		} else
+/*
 		if ( nsfont.fixedPitch )
 		{
 			CGFloat kaku = nsfont_size.width * _width;
 			CGFloat tabs = nsfont_size.width * _tab  ;
 
 			(*ret_size) = NSMakeSize( MAX( kaku, tabs ), nsfont_size.height );
-		} else {
+		} else
+*/
+		{
 			NSString *nsstr = n_mac_str2nsstring( character );
 			(*ret_size) = n_mac_image_text_pixelsize( nsstr, nsfont );
 		}

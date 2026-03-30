@@ -148,7 +148,6 @@ n_ini2gdi_option n_ini2gdi_option_text[] = {
 	{ n_posix_literal( "contour_fog" ), N_GDI_TEXT_CONTOUR_FOG },
 	{ n_posix_literal( "sink"        ), N_GDI_TEXT_SINK        },
 	{ n_posix_literal( "smooth"      ), N_GDI_TEXT_SMOOTH      },
-	{ n_posix_literal( "clear"       ), N_GDI_TEXT_CLEAR       },
 	{ n_posix_literal( "gradient"    ), N_GDI_TEXT_GRADIENT    },
 	{ n_posix_literal( ""            ), 0                      }
 

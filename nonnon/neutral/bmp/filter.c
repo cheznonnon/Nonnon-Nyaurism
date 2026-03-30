@@ -2260,10 +2260,10 @@ n_bmp_reducer( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx
 	return;
 }
 
-#define n_bmp_rasterizer(      fr, to, tx, ty,        color, clear ) n_bmp_rasterizer_clip( fr, to, tx, ty,  NULL, color, NULL,0,0, clear )
-#define n_bmp_rasterizer_main( fr, to, tx, ty, bmp_c, color, clear ) n_bmp_rasterizer_clip( fr, to, tx, ty, bmp_c, color, NULL,0,0, clear )
+#define n_bmp_rasterizer(      fr, to, tx, ty,        color ) n_bmp_rasterizer_clip( fr, to, tx, ty,  NULL, color, NULL,0,0 )
+#define n_bmp_rasterizer_main( fr, to, tx, ty, bmp_c, color ) n_bmp_rasterizer_clip( fr, to, tx, ty, bmp_c, color, NULL,0,0 )
 
-#define n_bmp_rasterizer_clip( fr, to, tx, ty, bmp_c,color, bmp_clip,cx,cy, clear ) n_bmp_rasterizer_all( fr, to, 0, 0, N_BMP_SX( fr ), N_BMP_SY( fr ), tx, ty, bmp_c,color, bmp_clip,cx,cy, clear )
+#define n_bmp_rasterizer_clip( fr, to, tx, ty, bmp_c,color, bmp_clip,cx,cy ) n_bmp_rasterizer_all( fr, to, 0, 0, N_BMP_SX( fr ), N_BMP_SY( fr ), tx, ty, bmp_c,color, bmp_clip,cx,cy )
 
 typedef struct {
 
@@ -2276,7 +2276,6 @@ typedef struct {
 	n_bmp        *bmp_clip;
 	n_type_gfx    cx;
 	n_type_gfx    cy;
-	BOOL          clear_onoff;
 	u32           oy, cores;
 
 } n_bmp_rasterizer_thread_struct;
@@ -2296,142 +2295,6 @@ n_bmp_rasterizer_thread_main( n_bmp_rasterizer_thread_struct *p )
 
 	BOOL clip_onoff = ( FALSE == n_bmp_error( p->bmp_clip ) );
 
-	if ( p->clear_onoff )
-	{
-
-		n_type_real value = 0;
-
-		//const u32    color_red     = n_bmp_rgb( 255,  0,  0 );
-		const u32    color_blue    = n_bmp_rgb(   0,  0,255 );
-		const u32    color_green   = n_bmp_rgb(   0,255,  0 );
-		const u32    color_cyan    = n_bmp_rgb(   0,255,255 );
-		const u32    color_magenta = n_bmp_rgb( 255,  0,255 );
-		//const u32    color_yellow  = n_bmp_rgb( 255,255,  0 );
-
-		const u32    color_default = 0;//0xffffffff;
-		const u32    color_u       = color_green;
-		const u32    color_d       = color_blue;
-		const u32    color_l       = color_magenta;
-		const u32    color_r       = color_cyan;
-		const int    cutoff        = 128;
-
-		const n_type_real ratio = 0.25;
-
-		n_posix_loop
-		{//break;
-
-			int alpha = N_BMP_ALPHA_CHANNEL_VISIBLE;
-
-			if ( clip_onoff )
-			{
-				u32 color_clip = n_bmp_black_invisible;
-				n_bmp_ptr_get( p->bmp_clip, p->cx + x, p->cy + y, &color_clip );
-				alpha = n_bmp_a( color_clip );
-			}
-
-			if (
-				( clip_onoff == FALSE )
-				||
-				( N_BMP_ALPHA_CHANNEL_VISIBLE != alpha )
-			)
-			{
-
-				u32 f,t;
-				n_bmp_ptr_get( p->bmp_f, p->fx + x, p->fy + y, &f );
-
-				if (
-					( FALSE == n_bmp_is_trans( p->bmp_f, f ) )
-					&&
-					( FALSE == n_bmp_ptr_get( p->bmp_t, p->tx + x, p->ty + y, &t ) )
-				)
-				{
-
-					int v = n_bmp_r( f );
-					if ( v != value )
-					{
-						value = v;
-
-						blend = n_bmp_table_coeff_channel( value );
-						if ( clip_onoff ) { blend *= n_bmp_blend_alpha2ratio( alpha ); }
-					} else {
-						if ( N_BMP_ALPHA_CHANNEL_INVISIBLE != alpha )
-						{
-							if ( clip_onoff ) { blend = 0.0; }
-						}
-					}
-
-
-					u32 tt;
-					if ( p->bmp_color != NULL )
-					{
-						u32 c; n_bmp_ptr_get( p->bmp_color, p->fx + x, p->fy + y, &c );
-						tt = n_bmp_blend_pixel( t,        c, blend );
-					} else {
-						tt = n_bmp_blend_pixel( t, p->color, blend );
-					}
-
-
-					// [!] : Engine
-
-					u32 u = color_default; n_bmp_ptr_get( p->bmp_f, p->fx + x, p->fy + y - 1, &u );
-					u32 d = color_default; n_bmp_ptr_get( p->bmp_f, p->fx + x, p->fy + y + 1, &d );
-
-					BOOL is_u = ( cutoff > (int) n_bmp_r( u ) );
-					BOOL is_d = ( cutoff > (int) n_bmp_r( d ) );
-
-					if ( ( is_u )&&( is_d ) )
-					{
-						//
-					} else
-					if ( is_u )
-					{
-						tt = n_bmp_blend_pixel( tt, color_u, ratio );
-					} else
-					if ( is_d )
-					{
-						tt = n_bmp_blend_pixel( tt, color_d, ratio );
-					}
-
-
-					u32 l = color_default; n_bmp_ptr_get( p->bmp_f, p->fx + x - 1, p->fy + y, &l );
-					u32 r = color_default; n_bmp_ptr_get( p->bmp_f, p->fx + x + 1, p->fy + y, &r );
-
-					BOOL is_l = ( cutoff > (int) n_bmp_r( l ) );
-					BOOL is_r = ( cutoff > (int) n_bmp_r( r ) );
-
-					if ( ( is_l )&&( is_r ) )
-					{
-						//
-					} else
-					if ( is_l )
-					{
-						tt = n_bmp_blend_pixel( tt, color_l, ratio );
-					} else
-					if ( is_r )
-					{
-						tt = n_bmp_blend_pixel( tt, color_r, ratio );
-					}
-
-
-					if ( t != tt ) { n_bmp_ptr_set_fast( p->bmp_t, p->tx + x, p->ty + y,  tt ); }
-
-				}
-
-			}
-
-
-			x++;
-			if ( x >= sx )
-			{
-
-				x = 0;
-
-				y += p->cores;
-				if ( y >= sy ) { break; }
-			}
-		}
-
-	} else
 	if ( clip_onoff )
 	{
 
@@ -2663,8 +2526,7 @@ n_bmp_rasterizer_all
 	n_type_gfx fx, n_type_gfx fy, n_type_gfx fsx, n_type_gfx fsy,
 	n_type_gfx tx, n_type_gfx ty,
 	n_bmp *bmp_color, u32 color,
-	n_bmp *bmp_clip, n_type_gfx cx, n_type_gfx cy,
-	BOOL   clear_onoff
+	n_bmp *bmp_clip, n_type_gfx cx, n_type_gfx cy
 )
 {
 
@@ -2673,7 +2535,6 @@ n_bmp_rasterizer_all
 	//	fr          : gray-scaled + antialiased bitmap
 	//	to          : canvas
 	//	color       : color to mix
-	//	clear_onoff : use ClearType-like technique
 	//
 	//	alpha value is not supported for performance
 
@@ -2720,7 +2581,7 @@ n_bmp_rasterizer_all
 		n_posix_loop
 		{
 
-			n_bmp_rasterizer_thread_struct tmp = { fr,to, fx,fy,fsx,fsy, tx,ty, bmp_color, color, bmp_clip,cx,cy, clear_onoff, i,cores };
+			n_bmp_rasterizer_thread_struct tmp = { fr,to, fx,fy,fsx,fsy, tx,ty, bmp_color, color, bmp_clip,cx,cy, i,cores };
 			n_memory_copy( &tmp, &p[ i ], sizeof( n_bmp_rasterizer_thread_struct ) );
 
 			h[ i ] = n_thread_init( n_bmp_rasterizer_thread, &p[ i ] );
@@ -2758,7 +2619,7 @@ n_bmp_rasterizer_all
 
 	} else {
 
-		n_bmp_rasterizer_thread_struct p = { fr,to, fx,fy,fsx,fsy, tx,ty, bmp_color, color, bmp_clip,cx,cy, clear_onoff, 0,1 };
+		n_bmp_rasterizer_thread_struct p = { fr,to, fx,fy,fsx,fsy, tx,ty, bmp_color, color, bmp_clip,cx,cy, 0,1 };
 
 		n_bmp_rasterizer_thread_main( &p );
 
@@ -2772,7 +2633,7 @@ n_bmp_rasterizer_all
 #define n_bmp_cornermask_rich( b, r, f, ul, ur, dl, dr ) n_bmp_cornermask_internal( b, 0, 0, N_BMP_SX( b ), N_BMP_SY( b ), r, f, ul, ur, dl, dr )
 
 #define n_bmp_rasterizer_cornermask( fr, to, fx, fy, fsx, fsy, tx, ty, color )\
-	n_bmp_rasterizer_all(        fr, to, fx, fy, fsx, fsy, tx, ty, NULL, color, NULL,0,0, FALSE )
+	n_bmp_rasterizer_all(        fr, to, fx, fy, fsx, fsy, tx, ty, NULL, color, NULL,0,0 )
 
 // internal
 void
@@ -2820,7 +2681,7 @@ n_bmp_cornermask_internal
 
 		// [!] : slow mode only
 
-		n_bmp_rasterizer( &b, bmp, x,y, bg_ul, FALSE );
+		n_bmp_rasterizer( &b, bmp, x,y, bg_ul );
 
 	} else {
 

@@ -308,7 +308,7 @@ n_bmp_ui_pmr_draw_internal
 
 		if ( calc_only == FALSE )
 		{
-			n_bmp_rasterizer( &bmp_char, bmp, x + xx, y + yy, color, FALSE );
+			n_bmp_rasterizer( &bmp_char, bmp, x + xx, y + yy, color );
 		}
 
 		if ( direction == N_GAME_PMR_DRAW_L2R )

@@ -149,6 +149,9 @@
 	);
 
 
+	[self NonnonTxtboxCaretOutOfCanvasUpDown];
+
+
 	return;
 }
 
@@ -355,7 +358,7 @@
 		CGFloat csy              = self.frame.size.height - ( txtbox->offset_y * 2 );
 		CGFloat items_per_canvas = csy / txtbox->font_size.height;
 
-		txtbox->scroll -= items_per_canvas;
+		txtbox->scr.unit_pos -= items_per_canvas;
 
 		[self NonnonTxtboxRedraw];
 
@@ -377,7 +380,7 @@
 		CGFloat csy              = self.frame.size.height - ( txtbox->offset_y * 2 );
 		CGFloat items_per_canvas = csy / txtbox->font_size.height;
 
-		txtbox->scroll += items_per_canvas;
+		txtbox->scr.unit_pos += items_per_canvas;
 
 		[self NonnonTxtboxRedraw];
 
@@ -416,9 +419,9 @@
 				} else {
 					txtbox->focus--;
 					self.txtbox->listbox_edit_onoff = FALSE;
+					[self NonnonTxtboxCaretOutOfCanvasUpDown];
 				}
 
-				[self NonnonTxtboxCaretOutOfCanvasUpDownListbox];
 				[self NonnonTxtboxRedraw];
 
 				if ( delegate_option & N_MAC_TXTBOX_DELEGATE_LISTBOX_MOVED )
@@ -446,7 +449,6 @@
 
 		}
 
-		[self NonnonTxtboxCaretOutOfCanvasUpDown];
 		[self NonnonTxtboxRedraw];
 	}
 	break;
@@ -483,9 +485,9 @@
 				} else {
 					txtbox->focus++;
 					self.txtbox->listbox_edit_onoff = FALSE;
+					[self NonnonTxtboxCaretOutOfCanvasUpDown];
 				}
 
-				[self NonnonTxtboxCaretOutOfCanvasUpDownListbox];
 				[self NonnonTxtboxRedraw];
 
 				if ( delegate_option & N_MAC_TXTBOX_DELEGATE_LISTBOX_MOVED )
@@ -513,7 +515,6 @@
 
 		}
 
-		[self NonnonTxtboxCaretOutOfCanvasUpDown];
 		[self NonnonTxtboxRedraw];
 	}
 	break;
@@ -541,7 +542,6 @@
 			[self NonnonTxtboxKeyboardMoveDetect:nil ud:0 lr:-1 oneline:FALSE];
 		}
 
-		[self NonnonTxtboxCaretOutOfCanvasUpDown];
 		[self NonnonTxtboxRedraw];
 	}
 	break;
@@ -567,7 +567,6 @@
 			[self NonnonTxtboxKeyboardMoveDetect:nil ud:0 lr:1 oneline:FALSE];
 		}
 
-		[self NonnonTxtboxCaretOutOfCanvasUpDown];
 		[self NonnonTxtboxRedraw];
 	}
 	break;
@@ -646,6 +645,8 @@
 			txtbox->focus++;
 			txtbox->caret_fr = txtbox->caret_to = NonnonMakeCaret( 0, txtbox->focus * txtbox->font_size.height, 0, txtbox->focus );
 
+			[self NonnonTxtboxCaretOutOfCanvasUpDown];
+
 
 			self.txtbox->is_enter_pressed = TRUE;
 			[self NonnonTxtboxEditedNotify:TRUE];
@@ -653,7 +654,6 @@
 
 		}
 
-		[self NonnonTxtboxCaretOutOfCanvasUpDown];
 		[self NonnonTxtboxRedraw];
 
 	}
@@ -667,7 +667,6 @@
 
 		if ( [self NonnonTxtboxKeyboardIsFullStop] )
 		{
-			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 			break;
 		}
 
@@ -699,7 +698,6 @@
 					cch
 				);
 
-				[self NonnonTxtboxCaretOutOfCanvasUpDown];
 				[self NonnonTxtboxRedraw];
 			}
 
@@ -721,7 +719,6 @@
 
 			[self NonnonTxtboxEditedNotify:TRUE];
 
-			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 			[self NonnonTxtboxRedraw];
 
 			break;
@@ -769,6 +766,8 @@
 
 			n_string_free( s );
 
+			[self NonnonTxtboxCaretOutOfCanvasUpDown];
+
 		} else {
 //NSLog( @"Backspace : normal" );
 
@@ -792,7 +791,6 @@
 
 		[self NonnonTxtboxEditedNotify:TRUE];
 
-		[self NonnonTxtboxCaretOutOfCanvasUpDown];
 		[self NonnonTxtboxRedraw];
 
 	}
@@ -922,7 +920,6 @@
 
 			[self NonnonTxtboxEditedNotify:TRUE];
 
-			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 			[self NonnonTxtboxRedraw];
 		}
 
@@ -958,12 +955,10 @@
 				txtbox->caret_fr.cch.x
 			);
 
-			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 			[self NonnonTxtboxRedraw];
 
 		} else {
 
-			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 			[self NonnonTxtboxKeyboardInputMethod:[event characters]];
 
 		}
@@ -1146,20 +1141,20 @@ n_posix_loop
 
 				CGFloat csy              = self.frame.size.height - ( txtbox->offset_y * 2 );
 				CGFloat items_per_canvas = csy / txtbox->font_size.height;
-				CGFloat edge             = trunc( txtbox->scroll + items_per_canvas );
+				CGFloat edge             = trunc( txtbox->scr.unit_pos + items_per_canvas );
 //NSLog( @"Focus %lld : Edge %0.2f : Scroll %0.2f", txtbox->focus, edge, scroll );
 
-				if ( p_focus < txtbox->scroll )
+				if ( p_focus < txtbox->scr.unit_pos )
 				{
-					txtbox->scroll = p_focus;
+					txtbox->scr.unit_pos = p_focus;
 					[self NonnonTxtboxDrawScrollClamp];
-					edge = trunc( txtbox->scroll + items_per_canvas );
+					edge = trunc( txtbox->scr.unit_pos + items_per_canvas );
 				}
 
 				if ( txtbox->focus >= edge )
 				{
-					txtbox->scroll = txtbox->scroll + ( txtbox->focus - edge );
-					txtbox->scroll = ceil( txtbox->scroll ) + 1;
+					txtbox->scr.unit_pos = txtbox->scr.unit_pos + ( txtbox->focus - edge );
+					txtbox->scr.unit_pos = ceil( txtbox->scr.unit_pos ) + 1;
 				}
 
 
@@ -1318,10 +1313,8 @@ n_posix_loop
 				n_posix_strlen( n_txt_get( txtbox->txt_data, txtbox->focus ) )
 			);
 
-			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 			[self NonnonTxtboxRedraw];
 		} else {
-			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 			[self NonnonTxtboxKeyboardInputMethod:[event characters]];
 		}
 

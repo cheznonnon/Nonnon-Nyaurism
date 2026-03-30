@@ -30,7 +30,7 @@ n_gdi_effect_fogmaker( n_bmp *bmp, n_type_real effect_count, BOOL is_icon, BOOL 
 
 	if ( fog_onoff )
 	{
-		coeff = (n_type_real) ( 1.0 / n_posix_max_n_type_real( 1, effect_count ) ) * n_posix_max_n_type_real( 1, effect_count * 0.05 );
+		coeff = (n_type_real) ( 1.0 / n_posix_max_n_type_real( 1, effect_count ) ) * n_posix_max_n_type_real( 1, effect_count * 0.10 );
 	} else
 	if ( smooth_onoff )
 	{
@@ -153,8 +153,7 @@ n_gdi_bmp_effect_text_go
 			&fog,
 			 bmp,   x + fx_x - o,  y + fx_y - o,
 			NULL, clr,
-			&clip, cx + fx_x - o, cy + fx_y - o,
-			FALSE
+			&clip, cx + fx_x - o, cy + fx_y - o
 		);
 
 		fx_x++;
@@ -224,21 +223,19 @@ n_gdi_bmp_effect( const n_gdi *gdi, n_bmp *bmp, n_bmp *obj, int mode )
 	if ( n_bmp_error( obj ) ) { return; }
 
 
-	int        style, clear;
+	int        style;
 	n_type_gfx x,y;
 
 	if ( mode == N_GDI_EFFECT_ICON )
 	{
 
 		style = gdi->icon_style;
-		clear = FALSE;
 		x     = gdi->icon_x;
 		y     = gdi->icon_y;
 
 	} else {
 
 		style = gdi->text_style;
-		clear = style & N_GDI_TEXT_CLEAR;
 		x     = gdi->text_x;
 		y     = gdi->text_y;
 
@@ -467,10 +464,10 @@ n_gdi_bmp_effect( const n_gdi *gdi, n_bmp *bmp, n_bmp *obj, int mode )
 		{
 			n_bmp b; n_bmp_zero( &b ); n_bmp_1st_fast( &b, sx,sy );
 			n_bmp_flush_gradient( &b, clr_main,clr_grad, N_BMP_GRADIENT_VERTICAL );
-			n_bmp_rasterizer_main( obj, bmp, x,y, &b, 0, clear );
+			n_bmp_rasterizer_main( obj, bmp, x,y, &b, 0 );
 			n_bmp_free_fast( &b );
 		} else {
-			n_bmp_rasterizer( obj, bmp, x,y, clr_main, clear );
+			n_bmp_rasterizer( obj, bmp, x,y, clr_main );
 		}
 
 	}

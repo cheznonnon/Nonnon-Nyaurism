@@ -915,17 +915,20 @@ n_fft_histogram_main( n_wav *wav, double *histogram, int histogram_count, int re
 void
 n_fft_histogram_test( n_wav *wav )
 {
+#ifdef N_POSIX_PLATFORM_MAC
 
 	int count = 10;
 
 	double histogram[ count ];
 
-	n_fft_histogram_main( wav, histogram, count, 2048, YES );
+	n_fft_histogram_main( wav, histogram, count, 2048, TRUE );
 
 	for( int i = 0; i < count; i++ )
 	{
 		NSLog( @"%f", histogram[ i ] );
 	}
+
+#endif // #ifdef N_POSIX_PLATFORM_MAC
 
 
 	return;

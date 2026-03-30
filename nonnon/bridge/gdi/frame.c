@@ -199,7 +199,7 @@ n_gdi_frame_roundframe_luna
 		n_bmp_roundrect( &gradient, fx+(sz*1)+o,fy+(sz*1)+o,fsx-(sz*2)-oo,fsy-(sz*2)-oo, n_bmp_black_invisible, r );
 		n_bmp_cornermask( &gradient, r, sz+o, gdi->frame_corner_color );
 
-		n_bmp_rasterizer( &gradient, bmp, 0,0, clr_fg, FALSE );
+		n_bmp_rasterizer( &gradient, bmp, 0,0, clr_fg );
 
 		n_bmp_free( &gradient );
 
@@ -317,8 +317,8 @@ n_gdi_frame_bmp_cornermask_aqua( n_bmp *bmp, n_type_gfx round_size, n_type_gfx f
 	u32        sh = n_bmp_black_invisible;
 	n_type_gfx hf = sy / 2;
 
-	n_bmp_rasterizer( &b, &b_f, 0,0, bg, FALSE );
-	n_bmp_rasterizer( &b, &b_t, 0,0, sh, FALSE );
+	n_bmp_rasterizer( &b, &b_f, 0,0, bg );
+	n_bmp_rasterizer( &b, &b_t, 0,0, sh );
 
 	//n_bmp_flush_antialias( &b_f, 1.0 );
 	//n_bmp_flush_antialias( &b_t, 1.0 );

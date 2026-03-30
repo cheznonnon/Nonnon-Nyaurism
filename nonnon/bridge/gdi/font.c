@@ -174,6 +174,10 @@ n_gdi_font_process( const n_gdi *gdi, LOGFONT *lf )
 	//	not available : ANTIALIASED_QUALITY
 	//	extensible with "w95gray.exe"
 
+	if ( gdi->text_style & N_GDI_TEXT_SYS_SMOOTH )
+	{
+		lf->lfQuality = CLEARTYPE_NATURAL_QUALITY;
+	} else
 	if ( gdi->text_style & N_GDI_TEXT_PRINTER )
 	{
 		lf->lfQuality =    ANTIALIASED_QUALITY;

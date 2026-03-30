@@ -343,14 +343,14 @@ n_gdi_system_themed( n_bmp *bmp )
 #define N_GDI_TEXT_CONTOUR_FOG   ( N_GDI_TEXT_LAST <<  4 )
 #define N_GDI_TEXT_SINK          ( N_GDI_TEXT_LAST <<  5 )
 #define N_GDI_TEXT_SMOOTH        ( N_GDI_TEXT_LAST <<  6 )
-#define N_GDI_TEXT_CLEAR         ( N_GDI_TEXT_LAST <<  7 )
-#define N_GDI_TEXT_GRADIENT      ( N_GDI_TEXT_LAST <<  8 )
-#define N_GDI_TEXT_ELLIPSIS      ( N_GDI_TEXT_LAST <<  9 )
-#define N_GDI_TEXT_PRINTER       ( N_GDI_TEXT_LAST << 10 )
-#define N_GDI_TEXT_NO_MARGIN     ( N_GDI_TEXT_LAST << 11 )
-#define N_GDI_TEXT_MAC_NO_CROP   ( N_GDI_TEXT_LAST << 12 )
-#define N_GDI_TEXT_MAC_BASELINE  ( N_GDI_TEXT_LAST << 13 )
-#define N_GDI_TEXT_POP           ( N_GDI_TEXT_LAST << 14 )
+#define N_GDI_TEXT_GRADIENT      ( N_GDI_TEXT_LAST <<  7 )
+#define N_GDI_TEXT_ELLIPSIS      ( N_GDI_TEXT_LAST <<  8 )
+#define N_GDI_TEXT_PRINTER       ( N_GDI_TEXT_LAST <<  9 )
+#define N_GDI_TEXT_NO_MARGIN     ( N_GDI_TEXT_LAST << 10 )
+#define N_GDI_TEXT_MAC_NO_CROP   ( N_GDI_TEXT_LAST << 11 )
+#define N_GDI_TEXT_MAC_BASELINE  ( N_GDI_TEXT_LAST << 12 )
+#define N_GDI_TEXT_POP           ( N_GDI_TEXT_LAST << 13 )
+#define N_GDI_TEXT_SYS_SMOOTH    ( N_GDI_TEXT_LAST << 14 )
 
 #define N_GDI_ICON_DEFAULT       N_GDI_TEXT_DEFAULT
 #define N_GDI_ICON_SHADOW        N_GDI_TEXT_SHADOW
@@ -407,6 +407,7 @@ typedef struct {
 	BOOL          frame_is_hot;
 
 	n_posix_char *icon;
+	n_bmp        *icon_in;
 	n_type_gfx    icon_index;
 	int           icon_bpp;
 	int           icon_rsrc;
@@ -713,7 +714,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 
 	BOOL      onoff = ( FALSE == ( gdi->style & N_GDI_CALCONLY ) );
-	BOOL icon_onoff = ( FALSE == n_string_is_empty( gdi->icon ) );
+	BOOL icon_onoff = ( ( FALSE == n_string_is_empty( gdi->icon ) )||( gdi->icon_in != NULL ) );
 	BOOL text_onoff = ( FALSE == n_string_is_empty( gdi->text ) );
 //NSLog( @"%s", gdi->text );
 
@@ -800,11 +801,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 	if ( gdi->text_font == NULL )
 	{
 		gdi->text_font = N_STRING_EMPTY;
-	}
-
-	if ( gdi->text_style & N_GDI_TEXT_CLEAR )
-	{
-		gdi->text_style |= N_GDI_TEXT_SMOOTH;
 	}
 
 	if ( gdi->icon_bpp <= 0 )
@@ -1557,9 +1553,16 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		}
 
 
-		n_bmp icon; n_bmp_zero( &icon );
+		n_bmp icon;
 
-		BOOL ret = n_gdi_image_load( gdi, &icon, gdi->icon );
+		BOOL ret = FALSE;
+		if ( gdi->icon_in == NULL )
+		{
+			n_bmp_zero( &icon );
+			ret = n_gdi_image_load( gdi, &icon, gdi->icon );
+		} else {
+			n_bmp_carboncopy( gdi->icon_in, &icon );
+		}
 //NSLog( @"%s : Ret %d : SX %d : Error %d", gdi->icon, ret, N_BMP_SX( &icon ), n_bmp_error( &icon ) );
 //NSLog( @"%d %d", N_BMP_SX( &icon ), N_BMP_SY( &icon ) );
 

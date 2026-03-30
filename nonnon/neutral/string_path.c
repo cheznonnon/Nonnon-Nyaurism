@@ -1294,7 +1294,7 @@ n_string_path_ext_mod_new( const n_posix_char *path, const n_posix_char *ext )
 	return str;
 }
 
-#define n_string_path_tmpname_cch() ( ( 4 + 2 + 2 ) + 1 + ( 2 + 2 + 2 ) + 2 )
+#define n_string_path_tmpname_cch() ( 1024 )//( ( 4 + 2 + 2 ) + 1 + ( 2 + 2 + 2 ) + 2 )
 
 void
 n_string_path_tmpname( n_posix_char *str )

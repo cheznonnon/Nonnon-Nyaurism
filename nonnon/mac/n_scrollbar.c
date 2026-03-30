@@ -102,10 +102,7 @@ n_win_scrollbar_rect_is_hovered( n_win_scrollbar_rect *p, NSView *view )
 #define N_WIN_SCROLLBAR_OPTION_NONE            ( 0 <<  0 )
 #define N_WIN_SCROLLBAR_OPTION_NO_ARROWS       ( 1 <<  0 )
 #define N_WIN_SCROLLBAR_OPTION_PAGER           ( 1 <<  1 )
-#define N_WIN_SCROLLBAR_OPTION_RECALC_UNIT_MAX ( 1 <<  2 )
-#define N_WIN_SCROLLBAR_OPTION_CLAMP_BIG_THUMB ( 1 <<  3 )
-#define N_WIN_SCROLLBAR_OPTION_SHAFT_GRADIENT  ( 1 <<  4 )
-//#define N_WIN_SCROLLBAR_OPTION_NO_MAX_CLAMP    ( 1 <<  5 )
+#define N_WIN_SCROLLBAR_OPTION_SHAFT_GRADIENT  ( 1 <<  2 )
 
 #define N_WIN_SCROLLBAR_SCROLL_NONE            ( 0 )
 #define N_WIN_SCROLLBAR_SCROLL_SEND            ( 1 )
@@ -153,19 +150,18 @@ typedef struct {
 	n_bmp_fade           fade_ul;
 	n_bmp_fade           fade_dr;
 
+	n_type_real          csx,csy;
+
 	n_type_real          unit_pos , pixel_pos;
 	n_type_real          unit_max , pixel_max;
 	n_type_real          unit_page, pixel_page;
 	n_type_real          unit_step, pixel_step;
-	n_type_real          unit_max_original;
-	n_type_real          pixel_thumb_original;
 	n_type_real          pixel_thumb;
 	n_type_real          pixel_minim;
 	n_type_real          pixel_arrow_sx, pixel_arrow_sy;
 	n_type_real          pixel_shaft;
 	n_type_real          pixel_offset;
 	n_type_real          pixel_offset_prv;
-	n_type_real          pixel_patch;
 	n_type_real          prev_pos;
 
 	n_win_scrollbar_rect rect_shaft;
@@ -176,8 +172,6 @@ typedef struct {
 	BOOL                 enabled_global;
 	BOOL                 enabled_ul;
 	BOOL                 enabled_dr;
-
-	n_type_gfx           sx,sy;
 
 	n_type_gfx           prv_cursor_x;
 	n_type_gfx           prv_cursor_y;
@@ -203,26 +197,7 @@ typedef struct {
 	BOOL                 drag_onoff;
 	BOOL                 drag_clamp;
 
-	BOOL                 gray_onoff;
-
 } n_win_scrollbar;
-
-
-
-
-BOOL
-n_win_scrollbar_is_thumb_minimal( n_win_scrollbar *p )
-{
-
-	BOOL ret = FALSE;
-
-	if ( p->pixel_thumb_original < p->pixel_thumb )
-	{
-		ret = TRUE;
-	}
-
-	return ret;
-}
 
 
 
@@ -268,7 +243,7 @@ n_win_scrollbar_ui_arrowbutton( n_win_scrollbar *p )
 				color = p->color__back;
 
 				n_type_real d = (n_type_real) p->fade_ul.percent * 0.01;
-				if ( p->fade_ul.color_fg == n_bmp_white )
+				if ( p->fade_ul.color_to == n_bmp_white )
 				{
 					//
 				} else {
@@ -288,11 +263,6 @@ n_win_scrollbar_ui_arrowbutton( n_win_scrollbar *p )
 			)
 			{
 				color_arrow = n_bmp_blend_pixel( p->color_arrow, p->color_shaft, 0.9 );
-			}
-
-			if ( p->gray_onoff )
-			{
-				color_arrow = n_bmp_blend_pixel( color_arrow, p->color_shaft, 0.9 );
 			}
 
 			NSImage *img = n_mac_image_nbmp2nsimage( &p->bmp_ul );
@@ -328,7 +298,7 @@ n_win_scrollbar_ui_arrowbutton( n_win_scrollbar *p )
 				color = p->color__back;
 
 				n_type_real d = (n_type_real) p->fade_dr.percent * 0.01;
-				if ( p->fade_dr.color_fg == n_bmp_white )
+				if ( p->fade_dr.color_to == n_bmp_white )
 				{
 					//
 				} else {
@@ -350,11 +320,6 @@ n_win_scrollbar_ui_arrowbutton( n_win_scrollbar *p )
 				color_arrow = n_bmp_blend_pixel( p->color_arrow, p->color_shaft, 0.9 );
 			}
 
-			if ( p->gray_onoff )
-			{
-				color_arrow = n_bmp_blend_pixel( color_arrow, p->color_shaft, 0.9 );
-			}
-
 			NSImage *img = n_mac_image_nbmp2nsimage( &p->bmp_dr );
 			n_mac_image_text_native
 			(
@@ -365,7 +330,7 @@ n_win_scrollbar_ui_arrowbutton( n_win_scrollbar *p )
 				0, 1
 			);
 
-			NSRect rect = NSMakeRect( p->sx-ctl,0,ctl,csy );
+			NSRect rect = NSMakeRect( p->csx-ctl,0,ctl,csy );
 			[img drawInRect:rect];
 
 		}
@@ -389,8 +354,8 @@ n_win_scrollbar_ui( n_win_scrollbar *p )
 	{
 		n_type_gfx  x = 0;
 		n_type_gfx  y = 0;
-		n_type_gfx sx = p->sx;
-		n_type_gfx sy = p->sy;
+		n_type_gfx sx = p->csx;
+		n_type_gfx sy = p->csy;
 
 		n_bmp_new_fast( &p->bmp_sh, sx,sy );
 
@@ -429,7 +394,7 @@ n_win_scrollbar_ui( n_win_scrollbar *p )
 			color = p->color_thumb;
 
 			n_type_real d = (n_type_real) p->fade_th.percent * 0.01;
-			if ( p->fade_th.color_fg == n_bmp_white )
+			if ( p->fade_th.color_to == n_bmp_white )
 			{
 				//
 			} else {
@@ -492,13 +457,13 @@ n_win_scrollbar_position_pixel2unit( n_win_scrollbar *p )
 n_type_real
 n_win_scrollbar_position_last_unit( n_win_scrollbar *p )
 {
-	return p->unit_max - p->unit_page;
+	return p->unit_max;
 }
 
 n_type_real
 n_win_scrollbar_position_last_pixel( n_win_scrollbar *p )
 {
-	return p->pixel_max - p->pixel_page;
+	return p->pixel_max;
 }
 
 void
@@ -555,10 +520,7 @@ n_win_scrollbar_position_thumb( n_win_scrollbar *p, n_type_real *x, n_type_real 
 
 	// [!] : clamper
 
-	n_type_real d = 0;
-	if ( p->option & N_WIN_SCROLLBAR_OPTION_RECALC_UNIT_MAX ) { d = p->pixel_patch; }
-
-	n_type_real pixel_last = n_win_scrollbar_position_last_pixel( p ) - d;
+	n_type_real pixel_last = n_win_scrollbar_position_last_pixel( p );
 
 	if ( p->layout == N_WIN_SCROLLBAR_LAYOUT_HORIZONTAL )
 	{
@@ -589,32 +551,10 @@ void
 n_win_scrollbar_arrowbutton_onoff( n_win_scrollbar *p, n_type_real f, n_type_real t, n_type_real pos )
 {
 
+	//if ( p->enabled )
 	{
-
-		//BOOL p_enabled_ul = p->enabled_ul;
-		//BOOL p_enabled_dr = p->enabled_dr;
-
-		n_type_real delta_f = fabs( pos - f );
-		n_type_real delta_t = fabs( pos - t );
-
-		// [!] : delta will be non-zero value
-
-		if ( delta_f < 0.0000000001 ) { p->enabled_ul = FALSE; } else { p->enabled_ul = TRUE; }
-		if ( delta_t < 0.0000000001 ) { p->enabled_dr = FALSE; } else { p->enabled_dr = TRUE; }
-
-		if ( delta_f < p->pixel_step )
-		{
-			p->enabled_ul = FALSE;
-
-			if ( p->option & N_WIN_SCROLLBAR_OPTION_CLAMP_BIG_THUMB )
-			{
-				p->unit_pos = 0;
-			}
-		}
-
-		//if ( p_enabled_ul != p->enabled_ul ) { n_bmp_free( &p->bmp_ul ); }
-		//if ( p_enabled_dr != p->enabled_dr ) { n_bmp_free( &p->bmp_dr ); }
-
+		if ( p->unit_pos <=           0 ) { p->enabled_ul = FALSE; } else { p->enabled_ul = TRUE; }
+		if ( p->unit_pos >= p->unit_max ) { p->enabled_dr = FALSE; } else { p->enabled_dr = TRUE; }
 	}
 
 
@@ -666,100 +606,39 @@ n_win_scrollbar_on_settingchange( n_win_scrollbar *p, BOOL auto_style, BOOL redr
 }
 
 void
-n_win_scrollbar_init( n_win_scrollbar *p, NonnonScrollbar *view )
-{
-
-	n_win_scrollbar_zero( p );
-
-
-	p->view   = view;
-	p->layout = N_WIN_SCROLLBAR_LAYOUT_HORIZONTAL;
-	p->option = N_WIN_SCROLLBAR_OPTION_NONE;
-
-	p->round_param = 5;
-
-
-	// [x] : memory leak
-
-	n_win_scrollbar_on_settingchange( p, 0, FALSE );
-
-
-	p->drag_clamp = TRUE;
-
-
-	n_bmp_fade_init( &p->fade_th, n_bmp_black );
-	n_bmp_fade_init( &p->fade_ul, n_bmp_black );
-	n_bmp_fade_init( &p->fade_dr, n_bmp_black );
-
-
-	p->enabled_global = TRUE;
-
-
-	return;
-}
-
-void
-n_win_scrollbar_exit( n_win_scrollbar *p )
-{
-
-	n_bmp_free_fast( &p->bmp_sh );
-	n_bmp_free_fast( &p->bmp_ul );
-	n_bmp_free_fast( &p->bmp_dr );
-	n_bmp_free_fast( &p->bmp_th );
-	n_bmp_free_fast( &p->bmp_gr );
-
-
-	n_win_scrollbar_zero( p );
-
-
-	return;
-}
-
-void
 n_win_scrollbar_metrics( n_win_scrollbar *p )
 {
 //return;
 
-	p->sx = [p->view frame].size.width;
-	p->sy = [p->view frame].size.height;
+	p->csx = [p->view frame].size.width;
+	p->csy = N_MAC_SCROLLBAR_STDSIZE;//[p->view frame].size.height;
 
-
-	p->sx = p->sx;
-	p->sy = N_MAC_SCROLLBAR_STDSIZE;
+	p->pixel_minim = N_MAC_SCROLLBAR_STDSIZE;
 
 	if ( p->option & N_WIN_SCROLLBAR_OPTION_NO_ARROWS )
 	{
 
-		if ( p->layout == N_WIN_SCROLLBAR_LAYOUT_HORIZONTAL )
-		{
-			p->pixel_arrow_sx = p->pixel_arrow_sy = 0;
-			p->pixel_minim = p->sy;
-		} else {
-			p->pixel_arrow_sx = p->pixel_arrow_sy = 0;
-			p->pixel_minim = p->sx;
-		}
+		p->pixel_arrow_sx = 0;
+		p->pixel_arrow_sy = 0;
 
 	} else {
 
 		if ( p->layout == N_WIN_SCROLLBAR_LAYOUT_HORIZONTAL )
 		{
-			p->pixel_minim    = p->sy;
-			p->pixel_arrow_sx = (n_type_real) p->sy;
-			p->pixel_arrow_sy = p->sy;
+			p->pixel_arrow_sx = p->pixel_minim;
+			p->pixel_arrow_sy = p->pixel_minim;
 		} else {
-			p->pixel_minim    = p->sx;
-			p->pixel_arrow_sx = p->sx;
-			p->pixel_arrow_sy = (n_type_real) p->sx;
+			p->pixel_arrow_sx = p->pixel_minim;
+			p->pixel_arrow_sy = p->pixel_minim;
 		}
 
 	}
 
-
 	if ( p->layout == N_WIN_SCROLLBAR_LAYOUT_HORIZONTAL )
 	{
-		p->pixel_shaft = p->sx - ( p->pixel_arrow_sx * 2 );
+		p->pixel_shaft = p->csx - ( p->pixel_arrow_sx * 2 );
 	} else {
-		p->pixel_shaft = p->sy - ( p->pixel_arrow_sy * 2 );
+		p->pixel_shaft = p->csy - ( p->pixel_arrow_sy * 2 );
 	}
 
 	p->pixel_shaft = n_posix_max_n_type_real( p->pixel_minim, p->pixel_shaft );
@@ -767,78 +646,36 @@ n_win_scrollbar_metrics( n_win_scrollbar *p )
 
 	// [!] : the second mode
 
-	p->unit_max   = p->unit_max_original;
-
-	p->pixel_max  = n_posix_max_n_type_real( 1.0, p->pixel_shaft );
+	p->pixel_max  = p->pixel_shaft;
 	p->pixel_step = ( p->unit_step / p->unit_max ) * p->pixel_max;
 	p->pixel_page = ( p->unit_page / p->unit_max ) * p->pixel_max;
 	p->pixel_pos  = ( p->unit_pos  / p->unit_max ) * p->pixel_max;
 //n_win_scrollbar_hwndprintf_literal( p, " %g %g %g ", p->pixel_max, p->pixel_step, p->pixel_page );
 
-	// [!] : minimum thumb size
+	p->pixel_thumb = p->pixel_page;
 
-	p->pixel_thumb_original = p->pixel_page;
-	p->pixel_thumb          = n_posix_max_n_type_real( p->pixel_page, p->pixel_minim );
-
-	// [Needed] : rounding is needed
-
-	p->pixel_thumb_original = ceil( p->pixel_thumb_original );
-	p->pixel_thumb          = ceil( p->pixel_thumb          );
-
-//if ( p->layout == 1 ) { n_win_scrollbar_hwndprintf_literal( p, " %g %g ", p->pixel_thumb_original, p->pixel_thumb ); }
+	// [!] : straight mode : thumb will be 0 px in some cases
+	//return;
 
 
 	// [!] : the third mode
 
-	if ( p->pixel_thumb_original < p->pixel_thumb )
-	{
-//n_win_scrollbar_debug_count( p );
+	p->pixel_thumb = n_posix_max_n_type_real( p->pixel_thumb, p->pixel_minim );
 
-//n_win_scrollbar_hwndprintf_literal( p, " %g %g ", (n_type_real) p->sy, (n_type_real) p->pixel_max );
-
-		p->pixel_patch = ( p->pixel_max - p->pixel_page + p->pixel_thumb ) - p->pixel_max;
-
-//n_win_scrollbar_hwndprintf_literal( p, " %g ", p->pixel_patch );
-
-		if ( p->option & N_WIN_SCROLLBAR_OPTION_RECALC_UNIT_MAX )
-		{
-			n_type_real d = ( p->pixel_patch / ( p->pixel_max - p->pixel_patch ) ) * p->unit_max_original;
-//n_win_scrollbar_hwndprintf_literal( p, " %g ", d );
-
-//n_win_scrollbar_hwndprintf_literal( p, " %g %g %g ", p->unit_max_original, p->unit_step, p->unit_page );
-
-			p->unit_max   = p->unit_max_original + d;
-			p->pixel_step = ( p->unit_step / p->unit_max ) * p->pixel_max;
-			p->pixel_page = ( p->unit_page / p->unit_max ) * p->pixel_max;
-			p->pixel_pos  = ( p->unit_pos  / p->unit_max ) * p->pixel_max;
-
-//n_win_scrollbar_hwndprintf_literal( p, " %g ", p->unit_max );
-		} else {
-			p->pixel_max  = n_posix_max_n_type_real( 1.0, p->pixel_max - p->pixel_patch );
-			p->pixel_step = ( p->unit_step / p->unit_max ) * p->pixel_max;
-			p->pixel_page = ( p->unit_page / p->unit_max ) * p->pixel_max;
-			p->pixel_pos  = ( p->unit_pos  / p->unit_max ) * p->pixel_max;
-		}
-
-	} else {
-
-		p->pixel_patch = 0;
-
-	}
+	p->pixel_max  = n_posix_max_n_type_real( 1.0, p->pixel_shaft - p->pixel_thumb );
+	p->pixel_step = ( p->unit_step / p->unit_max ) * p->pixel_max;
+	p->pixel_page = ( p->unit_page / p->unit_max ) * p->pixel_max;
+	p->pixel_pos  = ( p->unit_pos  / p->unit_max ) * p->pixel_max;
 
 
 	return;
 }
-
-static BOOL n_win_scrollbar_parameter_add_page = TRUE;
 
 void
 n_win_scrollbar_parameter( n_win_scrollbar *p, n_type_real step, n_type_real page, n_type_real max, n_type_real pos, BOOL redraw )
 {
 
 	// [!] : the first mode
-
-	if ( n_win_scrollbar_parameter_add_page ) { max += page; }
 
 	p->unit_step = step;
 	p->unit_page = page;
@@ -855,8 +692,6 @@ n_win_scrollbar_parameter( n_win_scrollbar *p, n_type_real step, n_type_real pag
 		p->enabled_dr = FALSE;
 	}
 
-	p->unit_max_original = p->unit_max;
-
 
 	if ( redraw )
 	{
@@ -867,9 +702,13 @@ n_win_scrollbar_parameter( n_win_scrollbar *p, n_type_real step, n_type_real pag
 	return;
 }
 
+
+
+
 BOOL
 n_win_scrollbar_scroll_pixel( n_win_scrollbar *p, n_type_real pixel_delta, int option, int reason )
 {
+//return FALSE;
 
 	//if ( pixel_delta != 0 )
 	{
@@ -880,10 +719,7 @@ n_win_scrollbar_scroll_pixel( n_win_scrollbar *p, n_type_real pixel_delta, int o
 		n_type_real pixel_min = 0;
 		n_type_real pixel_max = n_win_scrollbar_position_last_pixel( p );
 
-		n_type_real d = 0;
-		if ( p->option & N_WIN_SCROLLBAR_OPTION_RECALC_UNIT_MAX ) { d = p->pixel_patch; }
-
-		p->pixel_pos = n_posix_minmax_n_type_real( pixel_min, pixel_max - d, p->pixel_pos );
+		p->pixel_pos = n_posix_minmax_n_type_real( pixel_min, pixel_max, p->pixel_pos );
 
 
 		p->prev_pos = p->unit_pos;
@@ -895,9 +731,7 @@ n_win_scrollbar_scroll_pixel( n_win_scrollbar *p, n_type_real pixel_delta, int o
 		p->unit_pos = n_win_scrollbar_position_pixel2unit( p );
 
 
-		// [Needed] : unit_max+1
-
-		p->unit_pos = n_posix_minmax_n_type_real( unit_min, unit_max+1, p->unit_pos );
+		p->unit_pos = n_posix_minmax_n_type_real( unit_min, unit_max, p->unit_pos );
 //NSLog( @"%f %f %f", unit_min, unit_max, p->unit_pos );
 
 	}
@@ -925,6 +759,7 @@ n_win_scrollbar_scroll_pixel( n_win_scrollbar *p, n_type_real pixel_delta, int o
 BOOL
 n_win_scrollbar_scroll_unit( n_win_scrollbar *p, n_type_real unit_delta, int option, int reason )
 {
+//return FALSE;
 //n_win_scrollbar_debug_count( p );
 
 
@@ -946,11 +781,8 @@ n_win_scrollbar_scroll_unit( n_win_scrollbar *p, n_type_real unit_delta, int opt
 		n_type_real pixel_min = 0;
 		n_type_real pixel_max = n_win_scrollbar_position_last_pixel( p );
 
-		n_type_real d = 0;
-		if ( p->option & N_WIN_SCROLLBAR_OPTION_RECALC_UNIT_MAX ) { d = p->pixel_patch; }
-
 		p->pixel_pos = n_win_scrollbar_position_unit2pixel( p );
-		p->pixel_pos = n_posix_minmax_n_type_real( pixel_min, pixel_max - d, p->pixel_pos );
+		p->pixel_pos = n_posix_minmax_n_type_real( pixel_min, pixel_max, p->pixel_pos );
 
 	}
 
@@ -991,7 +823,7 @@ n_win_scrollbar_draw( n_win_scrollbar *p )
 
 	n_win_scrollbar_arrowbutton_onoff( p, 0, n_win_scrollbar_position_last_pixel( p ), p->pixel_pos );
 
-	n_bmp canvas; n_bmp_zero( &canvas ); n_bmp_new_fast( &canvas, p->sx, p->sy );
+	n_bmp canvas; n_bmp_zero( &canvas ); n_bmp_new_fast( &canvas, p->csx, p->csy );
 
 	n_bmp_fade_engine( &p->fade_th, TRUE );
 	n_bmp_fade_engine( &p->fade_ul, TRUE );
@@ -1004,8 +836,8 @@ n_win_scrollbar_draw( n_win_scrollbar *p )
 
 	n_type_gfx rx  = 0;//p->redraw_x;
 	n_type_gfx ry  = 0;//p->redraw_y;
-	n_type_gfx rsx = p->sx;//p->redraw_sx;
-	n_type_gfx rsy = p->sy;//p->redraw_sy;
+	n_type_gfx rsx = p->csx;//p->redraw_sx;
+	n_type_gfx rsy = p->csy;//p->redraw_sy;
 
 
 	// Shaft
@@ -1034,12 +866,6 @@ n_win_scrollbar_draw( n_win_scrollbar *p )
 
 		//if ( redraw_ul )
 		{
-			//u32 color = n_bmp_rgb_mac( 0,255,0 );
-
-			//n_bmp_new_fast( &p->bmp_ul, ctl, ctl );
-			//n_bmp_flush   ( &p->bmp_ul, color );
-			//n_bmp_fastcopy( &p->bmp_ul, &canvas, 0,0,ctl,ctl, 0,0 );
-
 			n_win_scrollbar_rect_set( &p->rect_arrow_ul, 0,0,ctl,ctl );
 		}
 
@@ -1047,13 +873,7 @@ n_win_scrollbar_draw( n_win_scrollbar *p )
 
 		//if ( redraw_dr )
 		{
-			n_type_gfx ox = p->sx - ctl;
-
-			//u32 color = n_bmp_rgb_mac( 0,200,255 );
-
-			//n_bmp_new_fast( &p->bmp_dr, ctl, ctl );
-			//n_bmp_flush   ( &p->bmp_dr, color );
-			//n_bmp_fastcopy( &p->bmp_dr, &canvas, 0,0,ctl,ctl, ox,0 );
+			n_type_gfx ox = p->csx - ctl;
 
 			n_win_scrollbar_rect_set( &p->rect_arrow_dr, ox,0,ctl,ctl );
 		}
@@ -1079,7 +899,6 @@ n_win_scrollbar_draw( n_win_scrollbar *p )
 		n_type_gfx sy = N_BMP_SY( &p->bmp_th );
 //NSLog( @"%d %d %d %d", x,y,sx,sy );
 
-		//n_bmp_rasterizer( &p->bmp_th, &canvas, x,y, color, FALSE );
 		n_bmp_transcopy( &p->bmp_th, &canvas, 0,0,sx,sy, x,y );
 
 		n_win_scrollbar_rect_set( &p->rect_thumb, x,y,sx,sy );
@@ -1111,12 +930,7 @@ n_win_scrollbar_draw( n_win_scrollbar *p )
 	p->rect_thumb   .y = oy;
 	p->rect_shaft   .y = oy;
 
-	if ( p->gray_onoff )
-	{
-		n_mac_image_bmp_gray( &canvas );
-	}
-
-	NSRect rect = NSMakeRect( 0,oy,p->sx,p->sy );
+	NSRect rect = NSMakeRect( 0,oy,p->csx,p->csy );
 	n_mac_image_nbmp_direct_draw( &canvas, &rect, FALSE );
 
 
@@ -1299,95 +1113,88 @@ n_win_scrollbar_on_drag( n_win_scrollbar *p, int reason )
 	} else {
 		pixel_delta = p->cur_cursor_y - p->prv_cursor_y;
 	}
-//n_win_scrollbar_hwndprintf_literal( p, " %f ", pixel_delta );
-
-//n_win_scrollbar_hwndprintf_literal( p, " %g %g ", p->pixel_pos, p->pixel_max - p->pixel_page );
 
 
-//n_win_scrollbar_hwndprintf_literal( p, " %d %d ", p->cur_cursor_y, (int) p->pixel_arrow_sy );
+	// [!] : clamper
 
-	BOOL draw_always_onoff = FALSE;
+	n_type_real pixel_min = 0;
+	n_type_real pixel_max = n_win_scrollbar_position_last_pixel( p ) + p->pixel_thumb;
 
-	if ( ( p->drag_clamp )&&( pixel_delta != 0.0 ) )
+	if ( p->layout == N_WIN_SCROLLBAR_LAYOUT_HORIZONTAL )
 	{
+		n_type_real cursor = p->cur_cursor_x - p->pixel_arrow_sx;
 
-		n_type_gfx arrow;
-		if ( p->layout == N_WIN_SCROLLBAR_LAYOUT_HORIZONTAL )
-		{
-			arrow = (n_type_gfx) p->pixel_arrow_sx;
-		} else {
-			arrow = (n_type_gfx) p->pixel_arrow_sy;
-		}
+		if ( cursor < pixel_min ) { pixel_delta = 0; }
+		if ( cursor > pixel_max ) { pixel_delta = 0; }
+	} else
+	if ( p->layout == N_WIN_SCROLLBAR_LAYOUT_VERTICAL )
+	{
+		n_type_real cursor = p->cur_cursor_y - p->pixel_arrow_sy;
 
-		n_type_gfx cursor;
-		if ( p->layout == N_WIN_SCROLLBAR_LAYOUT_HORIZONTAL )
-		{
-			cursor = p->cur_cursor_x - arrow;
-		} else {
-			cursor = p->cur_cursor_y - arrow;
-		}
-
-		n_type_gfx minim = 0;
-		n_type_gfx maxim = (n_type_gfx) p->pixel_shaft;
-
-		minim += (n_type_gfx) (                  p->pixel_offset_prv );
-		maxim -= (n_type_gfx) ( p->pixel_thumb - p->pixel_offset_prv );
-
-		if ( cursor <= minim )
-		{
-//n_win_scrollbar_hwndprintf_literal( p, " minim " );
-//n_win_scrollbar_debug_count();
-
-			// [Needed] : set -1 for "pixel_delta"
-			//
-			//	when released at outside of thumb
-
-			p->pixel_offset = p->pixel_offset_prv;
-			p->pixel_pos    = 0;
-			   pixel_delta  = -1;
-
-			draw_always_onoff = TRUE;
-
-		} else
-		if ( cursor >= maxim )
-		{
-//n_win_scrollbar_hwndprintf_literal( p, " maxim " );
-//n_win_scrollbar_hwndprintf_literal( p, " %d %d ", p->cur_cursor_y, p->pixel_arrow_sy );
-
-//if ( p->layout == N_WIN_SCROLLBAR_LAYOUT_VERTICAL )
-//{
-//	n_win_scrollbar_hwndprintf_literal( p, " %d %d ", (int) p->pixel_shaft, (int) p->sy );
-//}
-
-			p->pixel_offset = p->pixel_offset_prv;
-			p->pixel_pos    = 0;
-			   pixel_delta  = p->pixel_shaft;
-
-			draw_always_onoff = TRUE;
-
-		} else {
-//n_win_scrollbar_hwndprintf_literal( p, " else " );
-		}
-
-//n_win_scrollbar_hwndprintf_literal( p, " %d %d : %d : %d ", minim, maxim, (n_type_gfx) p->pixel_offset, cursor );
+		if ( cursor < pixel_min ) { pixel_delta = 0; }
+		if ( cursor > pixel_max ) { pixel_delta = 0; }
 	}
 
 
-//n_win_scrollbar_hwndprintf_literal( p, " %f %f ", p->pixel_pos, p->pixel_step );
-
-	if ( draw_always_onoff )
-	{
-		n_win_scrollbar_scroll_pixel( p, pixel_delta, N_WIN_SCROLLBAR_SCROLL_AUTO, reason );
-
-		n_win_scrollbar_refresh( p );
-	} else {
-		BOOL ret = n_win_scrollbar_scroll_pixel( p, pixel_delta, N_WIN_SCROLLBAR_SCROLL_AUTO, reason );
-		if ( ret ) { [p->view display]; }
-	}
+	BOOL ret = n_win_scrollbar_scroll_pixel( p, pixel_delta, N_WIN_SCROLLBAR_SCROLL_AUTO, reason );
+	if ( ret ) { [p->view display]; }
 
 
 	p->prv_cursor_x = p->cur_cursor_x;
 	p->prv_cursor_y = p->cur_cursor_y;
+
+
+	return;
+}
+
+
+
+
+void
+n_win_scrollbar_init( n_win_scrollbar *p, NonnonScrollbar *view )
+{
+
+	n_win_scrollbar_zero( p );
+
+
+	p->view   = view;
+	p->layout = N_WIN_SCROLLBAR_LAYOUT_HORIZONTAL;
+	p->option = N_WIN_SCROLLBAR_OPTION_NONE;
+
+	p->round_param = 5;
+
+
+	// [x] : memory leak
+
+	n_win_scrollbar_on_settingchange( p, 0, FALSE );
+
+
+	p->drag_clamp = TRUE;
+
+
+	n_bmp_fade_init( &p->fade_th, n_bmp_black );
+	n_bmp_fade_init( &p->fade_ul, n_bmp_black );
+	n_bmp_fade_init( &p->fade_dr, n_bmp_black );
+
+
+	p->enabled_global = TRUE;
+
+
+	return;
+}
+
+void
+n_win_scrollbar_exit( n_win_scrollbar *p )
+{
+
+	n_bmp_free_fast( &p->bmp_sh );
+	n_bmp_free_fast( &p->bmp_ul );
+	n_bmp_free_fast( &p->bmp_dr );
+	n_bmp_free_fast( &p->bmp_th );
+	n_bmp_free_fast( &p->bmp_gr );
+
+
+	n_win_scrollbar_zero( p );
 
 
 	return;
@@ -1485,25 +1292,11 @@ n_win_scrollbar_on_drag( n_win_scrollbar *p, int reason )
 - (void) applicationWillBecomeActive:(NSNotification *)notification
 {
 //NSLog( @"applicationWillBecomeActive" );
-
-	n_win_scrollbar *p = &scr;
-
-	p->gray_onoff = FALSE;
-
-	[self display];
-
 }
 
 - (void) applicationWillResignActive:(NSNotification *)notification
 {
 //NSLog( @"applicationWillResignActive" );
-
-	n_win_scrollbar *p = &scr;
-
-	p->gray_onoff = TRUE;
-
-	[self display];
-
 }
 
 
@@ -1639,7 +1432,7 @@ n_win_scrollbar_on_drag( n_win_scrollbar *p, int reason )
 {
 //return;
 
-	int options = ( NSTrackingMouseMoved | NSTrackingActiveAlways );
+	int options = ( NSTrackingMouseMoved | NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways );
 	NSTrackingArea *trackingArea = [
 		[NSTrackingArea alloc]
 			initWithRect:[self bounds]
@@ -1666,7 +1459,13 @@ n_win_scrollbar_on_drag( n_win_scrollbar *p, int reason )
 
 	// [Needed] : NSTrackingMouseEnteredAndExited 
 
-	// [x] : this works with window, not control area
+	n_win_scrollbar *p = &scr;
+
+	n_bmp_fade_go( &p->fade_th, n_bmp_black );
+	n_bmp_fade_go( &p->fade_ul, n_bmp_black );
+	n_bmp_fade_go( &p->fade_dr, n_bmp_black );
+
+	[p->view display];
 
 }
 
@@ -1818,6 +1617,11 @@ n_win_scrollbar_on_drag( n_win_scrollbar *p, int reason )
 
 
 	n_win_scrollbar_on_input( p );
+
+
+	if ( p->hovered_thumb    == FALSE ) { n_bmp_fade_go( &p->fade_th, n_bmp_black ); }
+	if ( p->hovered_arrow_ul == FALSE ) { n_bmp_fade_go( &p->fade_ul, n_bmp_black ); }
+	if ( p->hovered_arrow_dr == FALSE ) { n_bmp_fade_go( &p->fade_dr, n_bmp_black ); }
 
 
 	if ( p->drag_onoff )

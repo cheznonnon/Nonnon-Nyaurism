@@ -24,58 +24,81 @@
 #include "../neutral/bmp/all.c"
 #include "../neutral/bmp/fade.c"
 
+#include "../bridge/gdi.c"
+
 #include "image.c"
 
 
 
 
 void
-n_bmp_specialcopy( n_bmp *bmp_f, n_bmp *bmp_t, n_type_gfx fx, n_type_gfx fy, n_type_gfx fsx, n_type_gfx fsy, n_type_gfx tx, n_type_gfx ty, u32 fg, u32 bg )
+n_mac_image_bmp_halo( n_bmp *bmp )
 {
 
-	if ( n_bmp_error_clipping( bmp_f,bmp_t, &fx,&fy,&fsx,&fsy, &tx,&ty ) ) { return; }
+	if ( n_bmp_error( bmp ) ) { return; }
 
 
-	n_type_gfx xx = 0;
-	n_type_gfx yy = 0;
-	n_posix_loop
+	n_gdi gdi; n_gdi_zero( &gdi );
+
+	n_type_gfx size = N_BMP_SX( bmp );
+//NSLog( @"%d", size );
+
+	//gdi.sx                  = size;
+	//gdi.sy                  = size;
+
+	gdi.base_color_bg       = n_bmp_black_invisible;
+
+	gdi.icon_in             = bmp;
+	gdi.icon_style          = N_GDI_ICON_CONTOUR_FOG;
+	gdi.icon_fxsize1        = 3;
+	gdi.icon_fxsize2        = gdi.icon_fxsize1;
+	gdi.icon_sx             = size;
+	gdi.icon_sy             = size;
+
+	if ( n_mac_is_darkmode() )
 	{
-
-		u32 color_f; n_bmp_ptr_get_fast( bmp_f, fx + xx, fy + yy, &color_f );
-		u32 color_t; n_bmp_ptr_get_fast( bmp_t, tx + xx, ty + yy, &color_t );
-
-		int a = n_bmp_a( color_f );
-
-		u32 color;
-		if ( 0 == a )
-		{
-			color = color_t;
-		} else {
-			if ( 255 == a )
-			{
-				color = color_f;
-			} else {
-				color = n_bmp_blend_pixel( fg, bg, n_bmp_blend_alpha2ratio( a ) );
-			}
-		}
-
-		n_bmp_ptr_set_fast( bmp_t, tx + xx, ty + yy, color );
-
-
-		xx++;
-		if ( xx >= fsx )
-		{
-
-			xx = 0;
-
-			yy++;
-			if ( yy >= fsy ) { break; }
-		}
+		gdi.icon_color_contour  = n_bmp_rgb( 111,111,111 );
+	} else {
+		gdi.icon_color_contour  = n_bmp_rgb( 222,222,222 );
 	}
+
+	n_gdi_bmp( &gdi, bmp );
 
 
 	return;
+/*
+
+	n_bmp_flush_antialias( bmp, 1.0 );
+	n_bmp_flush_antialias( bmp, 1.0 );
+
+	n_type_gfx x = 0;
+	n_type_gfx y = 0;
+	n_posix_loop
+	{
+
+		u32 color; n_bmp_ptr_get_fast( bmp, x,y, &color );
+		if ( 0 == n_bmp_a( color ) )
+		{
+			n_bmp_ptr_set_fast( bmp, x,y, n_bmp_black );
+		} else {
+			n_bmp_ptr_set_fast( bmp, x,y, n_bmp_white );
+		}
+
+		x++;
+		if ( x >= N_BMP_SX( bmp ) )
+		{
+			x = 0;
+			y++;
+			if ( y >= N_BMP_SY( bmp ) ) { break; }
+		}
+	}
+
+	n_bmp_flush_antialias( bmp, 1.0 );
+*/
+
+	return;
 }
+
 
 
 
@@ -93,29 +116,38 @@ typedef struct {
 	double       scale;
 
 	n_bmp_fade   fade;
-	int          fade_type;
 
-	BOOL        active_onoff;
+	u32          color_bg_normal;
+	u32          color_bg_hot;
+	u32          color_bg_pressed;
+	u32          color_bg_disabled;
+
+	// [!] : hidden : use "button.hidden" property
+
+	// [!] : enable_onoff : you need to handle manually : NSView hasn't ".enable" property
+
+	BOOL       enable_onoff;
 	BOOL         sink_onoff;
 	BOOL          hot_onoff;
-	BOOL         hide_onoff;
 	BOOL        press_onoff;
 	BOOL         prev_onoff;
-	BOOL         gray_onoff;
 	BOOL         fake_onoff;
 	BOOL        right_onoff;
+	BOOL       no_hot_onoff;
+
+	n_bmp         icon_main;
+	n_bmp         icon_gray;
+	n_bmp         icon_halo;
 
 
 	// [!] : option : you can set these directly
 
 	NSWindow     *nswindow;
 
-	n_bmp         icon;
-
 	BOOL          show_border;
 	BOOL          direct_click_onoff;
-
 	BOOL          menu_click_as_normal_click;
+	BOOL          auto_halo_onoff;
 
 } n_mac_button;
 
@@ -165,23 +197,41 @@ n_mac_button_box( n_bmp *bmp, NSRect rect, NSColor *color )
 	return;
 }
 
+
+
+
+void
+n_mac_button_color_scheme( n_mac_button *p )
+{
+
+	if ( n_mac_is_darkmode() )
+	{
+		p->color_bg_normal   = n_mac_nscolor2argb( [NSColor clearColor] );
+		p->color_bg_hot      = n_bmp_blend_pixel( p->color_bg_normal, n_bmp_white, 0.25 );
+		p->color_bg_pressed  = n_bmp_blend_pixel( p->color_bg_normal, n_bmp_white, 0.50 );
+		p->color_bg_disabled = n_bmp_blend_pixel( p->color_bg_normal, n_bmp_white, 0.10 );
+	} else {
+		p->color_bg_normal   = n_mac_nscolor2argb( [NSColor clearColor] );
+		p->color_bg_hot      = n_bmp_blend_pixel( p->color_bg_normal, n_bmp_white, 0.80 );
+		p->color_bg_pressed  = n_bmp_blend_pixel( p->color_bg_normal, n_bmp_black, 0.25 );
+		p->color_bg_disabled = n_bmp_blend_pixel( p->color_bg_normal, n_bmp_black, 0.10 );
+	}
+
+
+	return;
+}
+
 BOOL
 n_mac_button_is_enabled( n_mac_button *p )
 {
-	return p->active_onoff;
+	return p->enable_onoff;
 }
 
 void
-n_mac_button_fade_go( n_mac_button *p )
+n_mac_button_fade_go( n_mac_button *p, u32 color )
 {
 
-	u32 color;
-	if ( p->fade.color_fg == n_bmp_white )
-	{
-		color = n_bmp_black;
-	} else {
-		color = n_bmp_white;
-	}
+	if ( p->fade.color_to == color ) { return; }
 
 	p->fade.stop = TRUE;
 
@@ -199,109 +249,11 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 //NSLog( @"Canvas Size %d", sx );
 
 
+	n_mac_button_color_scheme( p );
+
+
 	n_bmp bmp_canvas; n_bmp_zero( &bmp_canvas ); n_bmp_new_fast( &bmp_canvas, sx,sy );
-	n_bmp_flush( &bmp_canvas, n_mac_nscolor2argb( [NSColor clearColor] ) );
-
-
-	u32 color_f;
-	u32 color_t;
-	u32 color_c;
-
-	// [x] : clearColor : not beautiful in text edge
-
-	if ( n_mac_is_darkmode() )
-	{
-		color_f = n_bmp_black;
-		color_t = n_bmp_white;
-		color_c = n_mac_nscolor2argb( [NSColor clearColor] );
-	} else {
-		color_f = n_bmp_white;
-		color_t = n_bmp_black;
-		color_c = n_mac_nscolor2argb( [NSColor clearColor] );
-
-		// [x] : many colors are possible?
-		//
-		//	client area color will change slightly by window positon
-		//	but windowBackgroundColor has a fixed value
-
-//NSLog( @"%d %d %d", n_bmp_r( color_c ), n_bmp_g( color_c ), n_bmp_b( color_c ) );
-	}
-
-	n_type_real r_norml;
-	n_type_real r_press;
-	n_type_real r_disbl;
-
-	if ( n_mac_is_darkmode() )
-	{
-		r_norml = 0.33;
-		r_press = 0.25;
-		r_disbl = 0.20;
-	} else {
-		r_norml = 0.00;
-		r_press = 0.25;
-		r_disbl = 0.10;
-	}
-
-	u32 color_bg = 0;
-
-	if ( FALSE == n_mac_button_is_enabled( p ) )
-	{
-		color_bg = n_bmp_blend_pixel( color_f, color_t, r_disbl );
-	} else
-	if ( p->press_onoff )
-	{
-		color_bg = n_bmp_blend_pixel( color_f, color_t, r_press );
-	} else
-	if ( p->fake_onoff )
-	{
-		color_bg = n_bmp_blend_pixel( color_f, color_t, r_press );
-	} else
-	if ( p->fade.stop == FALSE )
-	{
-		u32 f = 0;
-		u32 t = 0;
-
-		if ( p->fade_type == N_MAC_BUTTON_FADE_TYPE_HOT )
-		{
-			if ( p->hot_onoff )
-			{
-//NSLog( @"normal to hot" );
-				f = color_c;
-				t = n_bmp_blend_pixel( color_f, color_t, r_norml );
-			} else {
-//NSLog( @"hot to normal" );
-				f = n_bmp_blend_pixel( color_f, color_t, r_norml );
-				t = color_c;
-			}
-		} else
-		if ( p->fade_type == N_MAC_BUTTON_FADE_TYPE_PRESS )
-		{
-			if ( p->press_onoff )
-			{
-				f = n_bmp_blend_pixel( color_f, color_t, r_press );
-				t = n_bmp_blend_pixel( color_f, color_t, r_norml );
-			} else {
-				f = n_bmp_blend_pixel( color_f, color_t, r_press );
-				t = n_bmp_blend_pixel( color_f, color_t, r_norml );
-			}
-		} else
-		//if ( p->fade_type == N_MAC_BUTTON_FADE_TYPE_NORMAL )
-		{
-			f = color_c;
-			t = color_c;
-		}
-
-		color_bg = n_bmp_blend_pixel( f, t, (double) p->fade.percent * 0.01 );
-	} else {
-		if ( p->hot_onoff )
-		{
-			color_bg = n_bmp_blend_pixel( color_f, color_t, r_norml );
-		} else {
-			color_bg = color_c;
-		}
-	}
-
-//NSLog( @"%d %d %d", n_bmp_r( color_bg ), n_bmp_g( color_bg ), n_bmp_b( color_bg ) );
+	n_bmp_flush( &bmp_canvas, p->color_bg_normal );
 
 
 	u32 color_border;
@@ -316,6 +268,9 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 	} else {
 		color_border = n_mac_nscolor2argb( [NSColor clearColor] );
 	}
+
+
+	u32 color_bg = p->fade.color_md;
 
 	n_type_gfx  ox = 2;
 	n_type_gfx  oy = 2;
@@ -342,56 +297,69 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 
 
 	{
-		n_type_gfx ico_sx = N_BMP_SX( &p->icon );
-		n_type_gfx ico_sy = N_BMP_SY( &p->icon );
+		n_type_gfx ico_sx = N_BMP_SX( &p->icon_main );
+		n_type_gfx ico_sy = N_BMP_SY( &p->icon_main );
 
 
 		n_type_gfx tx = ( sx - ico_sx ) / 2;
 		n_type_gfx ty = ( sy - ico_sy ) / 2;
 
-		//n_bmp bmp_icon; n_bmp_zero( &bmp_icon );
-		//n_mac_image_rc_load_bmp( @"neko", &bmp_icon );
-
-		if (
-			( n_mac_button_is_enabled( p ) )
-			&&
-			( p->gray_onoff == FALSE )
-		)
+		if ( p->sink_onoff )
 		{
-//NSLog( @"1" );
-			if ( p->sink_onoff )
-			{
-				n_type_gfx o = offset_sink;
+			n_type_gfx o = offset_sink;
 
-				tx += o;
-				ty += o;
-			}
-
-			n_bmp_specialcopy( &p->icon, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty, color_t, color_bg );
-		} else
-		if ( p->fade.percent != 100 )
-		{
-//NSLog( @"2" );
-			if ( p->sink_onoff )
-			{
-				n_type_gfx o = offset_sink;
-
-				tx += o;
-				ty += o;
-			}
-
-			n_bmp_specialcopy( &p->icon, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty, color_t, color_bg );
-		} else {
-			n_bmp grayed; n_bmp_carboncopy( &p->icon, &grayed );
-
-			n_mac_image_bmp_gray( &grayed );
-
-			n_bmp_blendcopy( &grayed, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty, 0.2 );
-
-			n_bmp_free_fast( &grayed );
+			tx += o;
+			ty += o;
 		}
 
-		//n_bmp_free_fast( &bmp_icon );
+		if (
+			( p->fade.stop == FALSE )
+			&&
+			(
+				( p->fade.color_fr == p->color_bg_disabled )
+				||
+				( p->fade.color_to == p->color_bg_disabled )
+			)
+		)
+		{
+			n_type_real pc = p->fade.percent * 0.01;
+
+			if ( p->auto_halo_onoff )
+			{
+				if ( p->fade.color_to == p->color_bg_disabled )
+				{
+					n_bmp_blendcopy( &p->icon_halo, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty,       pc );
+				} else {
+					n_bmp_blendcopy( &p->icon_halo, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty, 0.2 * pc );
+				}
+			}
+
+			if ( p->fade.color_to == p->color_bg_disabled )
+			{
+				n_bmp_blendcopy( &p->icon_gray, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty, 0.2 * (1.0-pc) );
+				n_bmp_blendcopy( &p->icon_main, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty,            pc  );
+			} else {
+				n_bmp_blendcopy( &p->icon_main, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty,       (1.0-pc) );
+				n_bmp_blendcopy( &p->icon_gray, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty, 0.2 *      pc  );
+			}
+		} else
+		if ( n_mac_button_is_enabled( p ) )
+		{
+			if ( p->auto_halo_onoff )
+			{
+				//n_bmp_rasterizer( &p->icon_halo, &bmp_canvas, tx,ty, n_bmp_rgb_mac( 255,255,255 ), FALSE );
+				n_bmp_transcopy( &p->icon_halo, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty );
+			}
+
+			n_bmp_transcopy( &p->icon_main, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty );
+		} else {
+			if ( p->auto_halo_onoff )
+			{
+				//n_bmp_rasterizer( &p->icon_halo, &bmp_canvas, tx,ty, p->color_bg_disabled, FALSE );
+				//n_bmp_blendcopy( &p->icon_halo, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty, 0.2 );
+			}
+			n_bmp_blendcopy( &p->icon_gray, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty, 0.2 );
+		}
 
 	}
 
@@ -441,9 +409,15 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 
 		n_mac_button_zero( &button );
 
-		n_bmp_fade_init( &button.fade, n_bmp_black );
 
-		n_mac_timer_init( self, @selector( n_timer_method_fade        ),  33 );
+		n_mac_button_color_scheme( &button );
+
+		button.auto_halo_onoff = TRUE;
+
+		n_bmp_fade_init( &button.fade, button.color_bg_normal );
+
+		n_mac_timer_init( self, @selector( n_timer_method_fade ),  33 );
+
 
 		NSTrackingArea* trackingArea = [[NSTrackingArea alloc]
 			initWithRect:[self bounds]
@@ -538,7 +512,7 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 
 	n_mac_button *p = &button;
 
-
+//p->fade.msec = 1000;
 	n_bmp_fade_engine( &p->fade, TRUE );
 
 	[self display];
@@ -547,69 +521,6 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 	if ( p->fade.percent >= 100 )
 	{
 		n_fade_queue = FALSE;
-	}
-
-}
-
-- (void) n_timer_method_press_n_run
-{
-//return;
-
-	// [!] : prevent pressNrun
-
-	if ( n_mac_window_is_hovered( self ) ) { return; }
-
-
-	n_mac_button *p = &button;
-
-
-	BOOL redraw = FALSE;
-
-
-	if ( p->hide_onoff ) { return; }
-
-	if ( p->gray_onoff ) { return; }
-
-	if ( FALSE == n_mac_button_is_enabled( p ) )
-	{
-		redraw = TRUE;
-
-		p->hot_onoff = FALSE;
-	} else
-	if ( p->hot_onoff )
-	{
-		redraw = TRUE;
-
-		p->hot_onoff = FALSE;
-
-		p->fade_type = N_MAC_BUTTON_FADE_TYPE_HOT;
-		n_mac_button_fade_go( p );
-
-		[self n_fade_go];
-	} else
-	if ( p->press_onoff )
-	{
-		redraw = TRUE;
-
-		p->press_onoff = p->prev_onoff;
-
-		p->fade_type = N_MAC_BUTTON_FADE_TYPE_NORMAL;
-		n_mac_button_fade_go( p );
-
-		[self n_fade_go];
-	}
-
-	if ( p->sink_onoff )
-	{
-		redraw = TRUE;
-
-		p->sink_onoff = FALSE;
-	}
-
-
-	if ( redraw )
-	{
-		[self display];
 	}
 
 }
@@ -626,21 +537,103 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 
 }
 
-- (void) n_icon_set:(n_bmp*) icon;
-{
-
-	n_mac_button *p = &button;
-
-	p->icon = (*icon);
-
-}
-
 - (void) n_icon_free
 {
 
 	n_mac_button *p = &button;
 
-	n_bmp_free( &p->icon );
+	n_bmp_free( &p->icon_main );
+	n_bmp_free( &p->icon_gray );
+	n_bmp_free( &p->icon_halo );
+
+}
+
+- (void) n_icon_make:(n_bmp*) icon mode:(int)mode;
+{
+
+	n_type_gfx sx = self.bounds.size.width;
+	n_type_gfx sy = self.bounds.size.height;
+
+	n_bmp_resizer( icon, sx,sy, n_bmp_black_invisible, N_BMP_RESIZER_CENTER );
+
+	if ( mode == 0 )
+	{
+		//
+	} else
+	if ( mode == 1 )
+	{
+		n_mac_image_bmp_gray( icon );
+	} else
+	if ( mode == 2 )
+	{
+		n_mac_image_bmp_halo( icon );
+	}
+
+}
+
+- (void) n_icon_set:(n_bmp*) icon;
+{
+
+	n_mac_button *p = &button;
+
+
+	[self n_icon_free];
+
+	n_bmp_carboncopy( icon, &p->icon_main );
+	n_bmp_carboncopy( icon, &p->icon_gray );
+	n_bmp_carboncopy( icon, &p->icon_halo );
+
+
+	[self n_icon_make:&p->icon_main mode:0];
+	[self n_icon_make:&p->icon_gray mode:1];
+	[self n_icon_make:&p->icon_halo mode:2];
+
+}
+
+- (void) n_icon_set_fast:(n_bmp*)icon_main gray:(n_bmp*)icon_gray halo:(n_bmp*)icon_halo;
+{
+
+	n_mac_button *p = &button;
+
+	n_bmp_alias( icon_main, &p->icon_main );
+	n_bmp_alias( icon_gray, &p->icon_gray );
+	n_bmp_alias( icon_halo, &p->icon_halo );
+
+
+}
+
+- (void) n_reset
+{
+
+	n_mac_button *p = &button;
+
+	p->hot_onoff   = FALSE;
+	p->press_onoff = FALSE;
+
+	n_mac_button_fade_go( p, p->color_bg_normal );
+	[self n_fade_go];
+
+	[self display];
+
+}
+
+- (void) n_no_hot
+{
+
+	n_mac_button *p = &button;
+
+	p->no_hot_onoff = TRUE;;
+
+	[self n_reset];
+
+}
+
+- (void) n_auto_halo:(BOOL)onoff
+{
+
+	n_mac_button *p = &button;
+
+	p->auto_halo_onoff = onoff;
 
 }
 
@@ -649,8 +642,7 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 
 	n_mac_button *p = &button;
 
-	return p->active_onoff;
-
+	return p->enable_onoff;
 }
 
 - (void) n_enable:(BOOL)onoff
@@ -658,24 +650,25 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 
 	n_mac_button *p = &button;
 
-	p->active_onoff = onoff;
+	p->enable_onoff = onoff;
 
-}
+	if ( onoff )
+	{
+		n_mac_button_fade_go( p, p->color_bg_normal );
+	} else {
+		static BOOL is_init = TRUE;
+		if ( is_init )
+		{
+			is_init = FALSE;
+			n_bmp_fade_init( &p->fade, button.color_bg_disabled );
+		} else {
+			n_mac_button_fade_go( p, p->color_bg_disabled );
+		}
+	}
 
-- (BOOL) n_is_grayed
-{
+	[self n_fade_go];
 
-	n_mac_button *p = &button;
-
-	return p->gray_onoff;
-}
-
-- (void) n_gray:(BOOL)onoff
-{
-
-	n_mac_button *p = &button;
-
-	p->gray_onoff = onoff;
+	[self display];
 
 }
 
@@ -712,6 +705,24 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 	n_mac_button *p = &button;
 
 	p->fake_onoff = onoff;
+
+	if ( onoff )
+	{
+		n_mac_button_fade_go( p, p->color_bg_pressed );
+	} else {
+		if ( n_mac_window_is_hovered( self ) )
+		{
+			p->hot_onoff = TRUE;
+			n_mac_button_fade_go( p, p->color_bg_hot );
+		} else {
+			p->hot_onoff = FALSE;
+			n_mac_button_fade_go( p, p->color_bg_normal );
+		}
+	}
+
+	[self n_fade_go];
+
+	[self display];
 
 }
 
@@ -765,9 +776,6 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 	n_mac_button *p = &button;
 
 
-	if ( p->hide_onoff ) { return; }
-
-
 	// [x] : Sonoma Xcode 15 : rect has window size at the first run
 
 	n_mac_button_draw( p, [super bounds] );
@@ -785,8 +793,6 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 	n_mac_button *p = &button;
 
 
-	if ( p->hide_onoff ) { return; }
-
 	if ( FALSE == n_mac_button_is_enabled( p ) ) { return; }
 
 
@@ -795,11 +801,9 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 	p-> sink_onoff = TRUE;
 	p->press_onoff = TRUE;
 
-	p->fade_type = 	N_MAC_BUTTON_FADE_TYPE_PRESS;
-	n_mac_button_fade_go( p );
+	n_mac_button_fade_go( p, p->color_bg_pressed );
 
 	[self n_fade_go];
-
 
 	[self display];
 
@@ -819,8 +823,6 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 	n_mac_button *p = &button;
 
 
-	if ( p->hide_onoff ) { return; }
-
 	if ( FALSE == n_mac_button_is_enabled( p ) ) { return; }
 
 
@@ -828,20 +830,33 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 	{
 //NSLog(@"mouseUp : press_onoff" );
 
-		p-> hot_onoff = TRUE;
 		p->sink_onoff = FALSE;
-
-		p->fade_type = 	N_MAC_BUTTON_FADE_TYPE_PRESS;
-		n_mac_button_fade_go( p );
-
-		[self n_fade_go];
-
-		[self display];
 
 		if ( n_mac_window_is_hovered( self ) )
 		{
 //NSLog(@"mouseUp : press_onoff : n_mac_window_is_hovered() : %x", self );
 			if ( delegate ) { [delegate mouseUp:theEvent]; }
+		}
+
+		if ( p->no_hot_onoff )
+		{
+			p->no_hot_onoff = FALSE;
+		} else
+		if ( p->fake_onoff )
+		{
+			[self display];
+		} else
+		if ( p->enable_onoff )
+		{
+			p->hot_onoff = TRUE;
+			n_mac_button_fade_go( p, p->color_bg_hot );
+			[self n_fade_go];
+			[self display];
+		} else {
+			p->hot_onoff = FALSE;
+			n_mac_button_fade_go( p, p->color_bg_normal );
+			[self n_fade_go];
+			[self display];
 		}
 
 		p->press_onoff = p->prev_onoff;
@@ -891,23 +906,80 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 
 
 
+- (void) n_timer_method_press_n_run
+{
+//return;
+
+	// [!] : prevent pressNrun
+
+	if ( n_mac_window_is_hovered( self ) ) { return; }
+
+
+	n_mac_button *p = &button;
+
+
+	BOOL redraw = FALSE;
+
+
+	if ( p->fake_onoff ) { return; }
+
+	if ( FALSE == n_mac_button_is_enabled( p ) )
+	{
+		redraw = TRUE;
+
+		p->hot_onoff = FALSE;
+	} else
+	if ( p->hot_onoff )
+	{
+		redraw = TRUE;
+
+		p->hot_onoff = FALSE;
+		n_mac_button_fade_go( p, p->color_bg_normal );
+		[self n_fade_go];
+	} else
+	if ( p->press_onoff )
+	{
+		redraw = TRUE;
+
+		p->press_onoff = p->prev_onoff;
+		n_mac_button_fade_go( p, p->color_bg_normal );
+		[self n_fade_go];
+	}
+
+	if ( p->sink_onoff )
+	{
+		redraw = TRUE;
+
+		p->sink_onoff = FALSE;
+	}
+
+
+	if ( redraw )
+	{
+		[self display];
+	}
+
+}
+
 -(void)mouseEntered:(NSEvent *)theEvent {
 //NSLog(@"mouseEntered");
 
 	n_mac_button *p = &button;
 
-	if ( p->hide_onoff ) { return; }
-
-	if ( p->gray_onoff ) { return; }
-
-	if ( FALSE == n_mac_button_is_enabled( p ) )
+	if ( p->fake_onoff )
 	{
-		p->hot_onoff = FALSE;
-		[self display];
+		//
 	} else
 	if ( p->hot_onoff )
 	{
 		//
+	} else
+	if ( FALSE == n_mac_button_is_enabled( p ) )
+	{
+		//p->hot_onoff = FALSE;
+		//n_mac_button_fade_go( p, p->color_bg_normal );
+		//[self n_fade_go];
+		//[self display];
 	} else
 	if (
 		( p->nswindow == NULL )
@@ -916,11 +988,9 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 	)
 	{
 		p->hot_onoff = TRUE;
-
-		p->fade_type = 	N_MAC_BUTTON_FADE_TYPE_HOT;
-		n_mac_button_fade_go( p );
-
+		n_mac_button_fade_go( p, p->color_bg_hot );
 		[self n_fade_go];
+		[self display];
 	}
 
 }
@@ -944,33 +1014,11 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 - (void) applicationWillBecomeActive:(NSNotification *)notification
 {
 //NSLog( @"applicationWillBecomeActive" );
-
-	[self n_gray:NO];
-	[self display];
-
 }
 
 - (void) applicationWillResignActive:(NSNotification *)notification
 {
 //NSLog( @"applicationWillResignActive" );
-
-	n_mac_button *p = &button;
-
-
-	[self n_gray:YES];
-
-	if ( p->hot_onoff )
-	{
-		p->hot_onoff = FALSE;
-
-		p->fade_type = 	N_MAC_BUTTON_FADE_TYPE_HOT;
-		n_mac_button_fade_go( p );
-
-		[self n_fade_go];
-	}
-
-	[self display];
-
 }
 
 

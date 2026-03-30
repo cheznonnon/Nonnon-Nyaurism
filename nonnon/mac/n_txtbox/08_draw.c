@@ -15,7 +15,7 @@
 
 
 void
-n_mac_image_alpha_grow( n_bmp *bmp, u32 color_replace, n_type_real d )
+n_mac_image_alpha_grow( n_bmp *bmp, u32 color_replace, CGFloat d )
 {
 
 	if ( n_bmp_error( bmp ) ) { return; }
@@ -28,7 +28,7 @@ n_mac_image_alpha_grow( n_bmp *bmp, u32 color_replace, n_type_real d )
 
 		u32 color; n_bmp_ptr_get_fast( bmp, x, y, &color );
 
-		int a = n_posix_min( 255, trunc( (n_type_real) n_bmp_a( color ) * d ) );
+		int a = n_posix_min( 255, trunc( (CGFloat) n_bmp_a( color ) * d ) );
 		int r = n_bmp_r( color_replace );
 		int g = n_bmp_g( color_replace );
 		int b = n_bmp_b( color_replace );
@@ -205,40 +205,96 @@ n_mac_txtbox_path_ellipsis( n_posix_char *path, NSFont *font, CGFloat width_limi
 - (void) NonnonTxtboxDrawScrollClamp
 {
 
-	// [!] : this code is same as drawRect
-
-	n_type_gfx scroll_csy = (n_type_gfx) self.frame.size.height - ( txtbox->offset_y * 2 );
-
-	const n_type_gfx scroll_pixel_sx = 12;
-
-	if ( txtbox->corner_size == -1 ) { txtbox->corner_size = scroll_pixel_sx; }
-//NSLog( @"%f", txtbox->corner_size );
-
-	CGFloat shaft_sy         = scroll_csy - txtbox->corner_size;
-	CGFloat items_per_canvas = shaft_sy / txtbox->font_size.height;
-	//CGFloat max_count        = (CGFloat) txtbox->txt_data->sy;
-	CGFloat rest             = txtbox->font_size.height - fmod( shaft_sy, txtbox->font_size.height );
-
-
-	CGFloat txt_sy = txtbox->txt_data->sy;
-
-	if ( txt_sy <= 1 )
+	if ( txtbox->scrollbar_used )
 	{
-		txtbox->scroll = 0;
-	} else
-	if ( items_per_canvas < txt_sy )
-	{
-		if ( rest ) { items_per_canvas -= 1.0; }
+//NSLog( @"%f", txtbox->scroll );
 
-		CGFloat max_sy = txt_sy - items_per_canvas;
+//NSLog( @"%f %f", txtbox->scr.pixel_pos, txtbox->scr.pixel_max - txtbox->scr.pixel_thumb );
+		if ( txtbox->scr.pixel_pos > txtbox->scr.pixel_max )
+		{
+			txtbox->scr.pixel_pos = txtbox->scr.pixel_max;
+			txtbox->scr. unit_pos = ( txtbox->scr.pixel_pos  / txtbox->scr.pixel_max ) * txtbox->scr.unit_max;
+		}
 
-		if ( txtbox->scroll <       0 ) { txtbox->scroll =      0; } else
-		if ( txtbox->scroll >= max_sy ) { txtbox->scroll = max_sy; }
+		if ( txtbox->scr.unit_pos < 0 )
+		{
+			txtbox->scr.unit_pos = txtbox->scr.pixel_pos = 0;
+		}
+
 	} else {
-		txtbox->scroll = 0;
+
+		txtbox->scr.unit_pos = txtbox->scr.pixel_pos = 0;
+
 	}
 
-//NSLog( @"%lld : %lld %lld", txtbox->focus, caret_fr.cch.y, caret_to.cch.y );
+
+}
+
+-(void) NonnonTxtboxScrollMetrics
+{
+
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE ) { return; }
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX ) { return; }
+
+
+	const CGFloat scroll_unit_max = (CGFloat) txtbox->txt_data->sy;
+
+	const CGFloat scroll_pixel_sx = 12;
+	const CGFloat scroll_pixel_sy = (CGFloat) self.frame.size.height - ( txtbox->offset_y * 2 );
+
+	const CGFloat corner_size     = scroll_pixel_sx;
+
+	txtbox->scr.pixel_shaft = scroll_pixel_sy - corner_size;
+	txtbox->scr.pixel_minim = scroll_pixel_sx;
+
+
+	// [!] : the first mode
+
+	txtbox->scr.unit_step = 1.0;
+	txtbox->scr.unit_page = (CGFloat) txtbox->scr.pixel_shaft / txtbox->font_size.height;
+	txtbox->scr.unit_max  = scroll_unit_max;
+
+//NSLog( @"%f %f", txtbox->scr.unit_page, txtbox->scr.unit_max ); return;
+
+	if ( ceil( txtbox->scr.unit_page ) < txtbox->scr.unit_max )
+	{
+		txtbox->scrollbar_used = TRUE;
+	} else {
+		txtbox->scrollbar_used = FALSE;
+
+		[self NonnonTxtboxDrawScrollClamp];
+
+		return;
+	}
+
+	// [!] : the second mode
+
+	txtbox->scr.pixel_max  = txtbox->scr.pixel_shaft;
+	txtbox->scr.pixel_step = ( txtbox->scr.unit_step / txtbox->scr.unit_max ) * txtbox->scr.pixel_max;
+	txtbox->scr.pixel_page = ( txtbox->scr.unit_page / txtbox->scr.unit_max ) * txtbox->scr.pixel_max;
+	txtbox->scr.pixel_pos  = ( txtbox->scr.unit_pos  / txtbox->scr.unit_max ) * txtbox->scr.pixel_max;
+
+	txtbox->scr.pixel_thumb = txtbox->scr.pixel_page;
+
+//NSLog( @"%f %f %f", txtbox->scr.pixel_max, txtbox->scr.pixel_step, txtbox->scr.pixel_page ); return;
+
+	// [!] : the third mode
+
+	txtbox->scr.pixel_thumb = n_posix_max_n_type_real( txtbox->scr.pixel_thumb, txtbox->scr.pixel_minim );
+	txtbox->scr.unit_max    = scroll_unit_max - txtbox->scr.unit_page;
+
+	// [Patch] : you can avoid almost troubles
+	if ( txtbox->scrollbar_patch ) { txtbox->scr.unit_max++; }
+
+	txtbox->scr.pixel_max  = txtbox->scr.pixel_shaft - txtbox->scr.pixel_thumb;
+	txtbox->scr.pixel_step = ( txtbox->scr.unit_step / txtbox->scr.unit_max ) * txtbox->scr.pixel_max;
+	txtbox->scr.pixel_page = ( txtbox->scr.unit_page / txtbox->scr.unit_max ) * txtbox->scr.pixel_max;
+	txtbox->scr.pixel_pos  = ( txtbox->scr.unit_pos  / txtbox->scr.unit_max ) * txtbox->scr.pixel_max;
+
+//NSLog( @"%0.2f %0.2f", txtbox->scr.pixel_thumb, txtbox->scr.pixel_max );
+
+
+	[self NonnonTxtboxDrawScrollClamp];
 
 }
 
@@ -384,7 +440,7 @@ n_mac_txtbox_path_ellipsis( n_posix_char *path, NSFont *font, CGFloat width_limi
 //return;
 
 	NSColor *nscolor;
-	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 	{
 		nscolor = txtbox->nscolor_back;
 	} else
@@ -397,7 +453,7 @@ n_mac_txtbox_path_ellipsis( n_posix_char *path, NSFont *font, CGFloat width_limi
 
 	nscolor = n_txtbox_thin_highlight( txtbox->txt_data, txtbox->txt_deco, i, nscolor, txtbox->nscolor_accent );
 
-	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 	{
 		n_mac_draw_box( nscolor, self.frame );
 	} else {
@@ -488,7 +544,7 @@ n_mac_txtbox_path_ellipsis( n_posix_char *path, NSFont *font, CGFloat width_limi
 		// [!] : Fake Caret : IME version
 
 		{
-			n_type_gfx oy = (n_type_gfx) txtbox->scroll * txtbox->font_size.height;
+			n_type_gfx oy = (n_type_gfx) txtbox->scr.unit_pos * txtbox->font_size.height;
 			n_type_gfx  x = (n_type_gfx) txtbox->padding + (n_type_gfx) ime_sx;
 			n_type_gfx  y = (n_type_gfx) txtbox->offset_y + txtbox->ime_caret_fr.pxl.y - oy - txtbox->caret_centered_offset;
 			n_type_gfx sx = (n_type_gfx) N_MAC_TXTBOX_CARET_SIZE;
@@ -518,7 +574,7 @@ n_mac_txtbox_path_ellipsis( n_posix_char *path, NSFont *font, CGFloat width_limi
 		n_type_int cch = n_posix_strlen( line );
 		if ( ( cch >= txtbox->path_ellipsis_offset )&&( line[ txtbox->path_ellipsis_offset ] == '/' ) )
 		{
-			line_ellipsis = n_mac_txtbox_path_ellipsis( &line[ txtbox->path_ellipsis_offset ], txtbox->font, (n_type_real) csx * 0.8 );
+			line_ellipsis = n_mac_txtbox_path_ellipsis( &line[ txtbox->path_ellipsis_offset ], txtbox->font, (CGFloat) csx * 0.8 );
 //NSLog( @"%s", line_ellipsis );
 			if ( txtbox->path_ellipsis_offset != 0 )
 			{
@@ -928,7 +984,7 @@ n_mac_txtbox_path_ellipsis( n_posix_char *path, NSFont *font, CGFloat width_limi
 	if ( txtbox->option_linenumber == N_MAC_TXTBOX_DRAW_LINENUMBER_NONE ) { return; }
 
 
-	n_type_int offset = txtbox->scroll;
+	n_type_int offset = txtbox->scr.unit_pos;
 
 	n_type_int focus_f = (n_type_int) MIN( txtbox->caret_fr.cch.y, txtbox->caret_to.cch.y );
 	n_type_int focus_t = (n_type_int) MAX( txtbox->caret_fr.cch.y, txtbox->caret_to.cch.y );
@@ -944,7 +1000,7 @@ n_mac_txtbox_path_ellipsis( n_posix_char *path, NSFont *font, CGFloat width_limi
 	}
 
 
-	NSColor *nscolor_main = n_txtbox_thin_highlight( txtbox->txt_data, txtbox->txt_deco, index + txtbox->scroll, txtbox->nscolor_back, txtbox->nscolor_accent );
+	NSColor *nscolor_main = n_txtbox_thin_highlight( txtbox->txt_data, txtbox->txt_deco, index + txtbox->scr.unit_pos, txtbox->nscolor_back, txtbox->nscolor_accent );
 	NSColor *nscolor_stripe;
 	if ( ( index + offset ) & 1 )
 	{
@@ -1011,9 +1067,18 @@ n_mac_txtbox_path_ellipsis( n_posix_char *path, NSFont *font, CGFloat width_limi
 		}
 
 
+		NSMutableParagraphStyle *align = [[NSMutableParagraphStyle alloc] init];
+		align.alignment = NSTextAlignmentRight;
+
 		NSMutableDictionary *attr = [NSMutableDictionary dictionary];
 		[attr setObject:txtbox->linenumber_font forKey:NSFontAttributeName           ];
 		[attr setObject:nscolor_txt             forKey:NSForegroundColorAttributeName];
+		[attr setObject:align                   forKey:NSParagraphStyleAttributeName ];
+
+		rect.size.width -= txtbox->margin * 2;
+
+		rect.origin.x -= txtbox->linenumber_single.width   / 2;
+		rect.origin.y -= txtbox->linenumber_font.descender / 2;
 
 		[nsstr drawInRect:rect withAttributes:attr];
 
@@ -1106,7 +1171,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 	// [!] : Metrics
 
-	[self NonnonTxtboxDrawScrollClamp];
+	[self NonnonTxtboxScrollMetrics];
 
 	n_type_gfx csx = (n_type_gfx) self.frame.size.width;
 	n_type_gfx csy = (n_type_gfx) self.frame.size.height;
@@ -1133,7 +1198,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 	CGFloat findbox_border_blend = 0.0;
 
 
-	n_type_int i = txtbox->scroll;
+	n_type_int i = txtbox->scr.unit_pos;
 
 	NSRect _rect_main = NSMakeRect( txtbox->padding, txtbox->offset_y - txtbox->caret_centered_offset, csx - ( txtbox->offset_x * 2 ), txtbox->font_size.height );
 	if ( is_partial_redraw )
@@ -1145,7 +1210,8 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 	// [!] : max_sy : plus one line
 
 	const NSRect  rect_main = _rect_main;
-	const CGFloat max_sy    = csy - ( txtbox->offset_y * 2 ) + txtbox->font_size.height;
+	const CGFloat max_base  = csy - ( txtbox->offset_y * 2 );
+	const CGFloat max_sy    = max_base + txtbox->font_size.height;
 
 
 	// [!] : Metrics 2 : Colors
@@ -1209,7 +1275,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 		BOOL blend_onoff = FALSE;
 
-		n_type_real d = 1.0;
+		CGFloat d = 1.0;
 		if ( txtbox->find_icon_fade.stop == FALSE )
 		{
 			blend_onoff = TRUE;
@@ -1348,7 +1414,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 				if ( i >= txtbox->redraw_ty ) { break; }
 			}
 		} else {
-			i = txtbox->scroll;
+			i = txtbox->scr.unit_pos;
 			n_posix_loop
 			{//break;
 
@@ -1368,7 +1434,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 		NSRect rect_local = rect_main;
 
-		i = txtbox->scroll; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
+		i = txtbox->scr.unit_pos; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
 //NSLog( @"%f %lld", scroll, n_mac_listbox_txt.sy );
 		n_posix_loop
 		{//break;
@@ -1402,12 +1468,14 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 	{
 		//
 	} else
-	if ( [self NonnonTxtboxCaretIsOnScreen] )
+	//if ( [self NonnonTxtboxCaretIsOnScreen] )
 	{
 		if ( ( delete_circle_onoff )&&( txtbox->caret_pt.x > ( csx - csy + txtbox->offset_x ) ) )
 		{
 			//
 		} else {
+			[self NonnonTxtboxCaretCalculate];
+
 			NSRect rect_local = NSMakeRect( txtbox->caret_pt.x, txtbox->caret_pt.y - txtbox->caret_centered_offset, N_MAC_TXTBOX_CARET_SIZE, txtbox->font_size.height );
 			[self NonnonTxtboxCaretDraw:nil rect:rect_local focus:txtbox->focus];
 		}
@@ -1421,7 +1489,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 		{
 
-			i = txtbox->scroll; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
+			i = txtbox->scr.unit_pos; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
 //NSLog( @"%f %lld", scroll, n_mac_listbox_txt.sy );
 			n_posix_loop
 			{//break;
@@ -1465,14 +1533,13 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 				rect_local.origin.y += txtbox->font_size.height;
 				if ( rect_local.origin.y > max_sy ) { break; }
 
-
 				i++;
 				if ( i >= txtbox->redraw_ty ) { break; }
 			}
 
 		} else {
 
-			i = txtbox->scroll; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
+			i = txtbox->scr.unit_pos; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
 //NSLog( @"%f %lld", scroll, n_mac_listbox_txt.sy );
 			n_posix_loop
 			{//break;
@@ -1508,7 +1575,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 		NSRect rect_local = rect_main;
 
-		i = txtbox->scroll; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
+		i = txtbox->scr.unit_pos; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
 //NSLog( @"%f %lld", scroll, n_mac_listbox_txt.sy );
 		n_posix_loop
 		{//break;
@@ -1557,9 +1624,9 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 				( ( ( x + xx ) >= txtbox->underline_fx )&&( ( x + xx ) <= txtbox->underline_tx ) )
 			)
 			{
-				n_mac_draw_circle( txtbox->nscolor_ime , rct );
+				n_mac_draw_circle( txtbox->nscolor_ime_main, rct );
 			} else {
-				n_mac_draw_circle( txtbox->nscolor_crlf, rct );
+				n_mac_draw_circle( txtbox->nscolor_ime_rest, rct );
 			}
 
 			xx += step;
@@ -1593,7 +1660,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 			{
 				semi_indicator = TRUE;
 
-				n_posix_char *deco = n_txt_get( txtbox->txt_deco, txtbox->scroll + i );
+				n_posix_char *deco = n_txt_get( txtbox->txt_deco, txtbox->scr.unit_pos + i );
 
 				if ( ( self.txtbox->listbox_edit_onoff )&&( i == txtbox->focus ) )
 				{
@@ -1672,7 +1739,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 			NSColor *t = n_mac_nscolor_argb( 255, 255, 0, 128 );
 
-			if ( txtbox->delete_circle_fade_hovered.color_fg == n_bmp_white )
+			if ( txtbox->delete_circle_fade_hovered.color_to == n_bmp_white )
 			{
 				color_bg = n_mac_nscolor_blend( f, t, txtbox->delete_circle_fade_hovered.percent * 0.01 );
 			} else {
@@ -1764,54 +1831,30 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 		//
 	} else {
 
-		// [!] : Fake Scroller
+		// [!] : Fake Scroller : also see NonnonTxtboxScrollMetrics
 
-//NSLog( @"%f %f", page, txt_sy );
-
-
-		// [!] : this code needs to be the same as NonnonTxtboxDrawScrollClamp
-
-		n_type_gfx scroll_csy = (n_type_gfx) self.frame.size.height - ( txtbox->offset_y * 2 );
-
-		const n_type_gfx scroll_pixel_sx = 12;
-
-		if ( txtbox->corner_size == -1 ) { txtbox->corner_size = scroll_pixel_sx; }
-//NSLog( @"%f", txtbox->corner_size );
-
-		CGFloat shaft_sy         = scroll_csy - txtbox->corner_size;
-		CGFloat items_per_canvas = shaft_sy / txtbox->font_size.height;
-		CGFloat max_count        = (CGFloat) txtbox->txt_data->sy;
-		CGFloat rest             = txtbox->font_size.height - fmod( shaft_sy, txtbox->font_size.height );
-
-
-		BOOL onoff = FALSE;
-
-//NSLog( @"%f %f", items_per_canvas, max_count );
-		if ( trunc( items_per_canvas ) < max_count )
+//NSLog( @"%f %lld", txtbox->scr.unit_page, txtbox->txt_data->sy );
+		if ( txtbox->scrollbar_used )
 		{
-			onoff = TRUE;
-
-			if ( rest ) { items_per_canvas -= 1.0; }
-//NSLog( @"Rest %f", rest );
-
-			n_type_gfx scrsx = scroll_pixel_sx;
-			n_type_gfx scr_x = csx - txtbox->offset_x - scrsx;
-
-
-			CGFloat step = txtbox->font_size.height * ( shaft_sy / ( max_count * txtbox->font_size.height ) );
-			CGFloat page = max_count / items_per_canvas;
-
-			n_type_gfx scr_y = txtbox->offset_y + ( txtbox->scroll * step );
-			n_type_gfx scrsy = MAX( 12, scroll_csy / page );
-
-			txtbox->scroll_step = shaft_sy / ( max_count * txtbox->font_size.height );
-			txtbox->scroll_page = items_per_canvas;
-
 
 			// [!] : for hit test
-//scroller_rect = NSMakeRect( 0, 0, 0, 0 );
-			txtbox->scrollbar_shaft_rect = NSMakeRect( scr_x, txtbox->offset_y, scrsx, shaft_sy );
-			txtbox->scrollbar_thumb_rect = NSMakeRect( scr_x,            scr_y, scrsx,    scrsy );
+
+			const CGFloat pos   = txtbox->scr.pixel_pos;
+
+			const CGFloat scrsx = 12;
+
+			const CGFloat off_x = txtbox->offset_x;
+			const CGFloat off_y = txtbox->offset_y;
+
+			const CGFloat scr_x = csx - off_x - scrsx;
+			const CGFloat scr_y = off_y + pos;
+
+			txtbox->scrollbar_shaft_rect = NSMakeRect( scr_x, off_y, scrsx, txtbox->scr.pixel_shaft );
+			txtbox->scrollbar_thumb_rect = NSMakeRect( scr_x, scr_y, scrsx, txtbox->scr.pixel_thumb );
+
+
+			const CGFloat thickness = 1;
+			const CGFloat indicator = txtbox->offset_y + ( txtbox->focus / ( (CGFloat) txtbox->txt_data->sy - 1 ) * txtbox->scr.pixel_shaft );
 
 
 			u32 color = n_mac_nscolor2argb( txtbox->nscolor_text );
@@ -1819,11 +1862,11 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 			n_bmp_flip_onoff = TRUE;
 
 			u32 color_shaft = n_bmp_alpha_replace_pixel( color, 16 );
+//color_shaft = n_bmp_rgb(255,0,128);
 
 			{
 				NSColor *clr = n_mac_argb2nscolor( color_shaft );
-				NSRect   rct = NSMakeRect( scr_x, txtbox->offset_y, scrsx, shaft_sy );
-				n_mac_draw_roundrect( clr, rct, scrsx / 2 );
+				n_mac_draw_roundrect( clr, txtbox->scrollbar_shaft_rect, scrsx / 2 );
 			}
 
 			if ( txtbox->search_marker != NULL )
@@ -1837,7 +1880,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 					{
 						if ( txtbox->search_marker[ i ] )
 						{
-							NSRect rect_local = NSMakeRect( scr_x, i * step, scrsx, 1 );
+							NSRect rect_local = NSMakeRect( scr_x, i * txtbox->scr.pixel_step, scrsx, 1 );
 							n_mac_draw_box( N_TXTBOX_INDICATOR_SEARCH, rect_local );
 						}
 
@@ -1862,7 +1905,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 				if ( txtbox->scrollbar_thumb_is_captured )
 				{
 //NSLog( @"thumb_is_captured" );
-					color_thumb = n_bmp_blend_pixel( t, f, (n_type_real) txtbox->scrollbar_fade.percent * 0.01 );
+					color_thumb = n_bmp_blend_pixel( t, f, (CGFloat) txtbox->scrollbar_fade.percent * 0.01 );
 				} else {
 //NSLog( @"else" );
 					if ( txtbox->scrollbar_thumb_is_hovered )
@@ -1871,7 +1914,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 					} else {
 						t = n_bmp_alpha_replace_pixel( color, normal );
 					}
-					color_thumb = n_bmp_blend_pixel( f, t, (n_type_real) txtbox->scrollbar_fade.percent * 0.01 );
+					color_thumb = n_bmp_blend_pixel( f, t, (CGFloat) txtbox->scrollbar_fade.percent * 0.01 );
 				}
 //NSLog( @"%d", scrollbar_fade.percent );
 			} else
@@ -1887,9 +1930,9 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 				} else
 				if ( txtbox->scrollbar_thumb_is_hovered )
 				{
-					color_thumb = n_bmp_blend_pixel( t, f, (n_type_real) txtbox->scrollbar_fade.percent * 0.01 );
+					color_thumb = n_bmp_blend_pixel( t, f, (CGFloat) txtbox->scrollbar_fade.percent * 0.01 );
 				} else {
-					color_thumb = n_bmp_blend_pixel( f, t, (n_type_real) txtbox->scrollbar_fade.percent * 0.01 );
+					color_thumb = n_bmp_blend_pixel( f, t, (CGFloat) txtbox->scrollbar_fade.percent * 0.01 );
 				}
 			} else {
 //NSLog( @"else" );
@@ -1908,15 +1951,17 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 			{
 				NSColor *clr = n_mac_argb2nscolor( color_thumb );
-				NSRect   rct = NSMakeRect( scr_x,scr_y, scrsx,scrsy );
-				n_mac_draw_roundrect( clr, rct, scrsx / 2 );
+				n_mac_draw_roundrect( clr, txtbox->scrollbar_thumb_rect, scrsx / 2 );
 			}
 
 
 			// [!] : caret indicator on a shaft
 
-			NSRect rect_local = NSMakeRect( scr_x, txtbox->offset_y + ( step * txtbox->focus ), scrsx, 1 );
-			n_mac_draw_box( N_TXTBOX_INDICATOR_CARET, rect_local );
+			if ( txtbox->focus >= 0 )
+			{
+				NSRect rect_local = NSMakeRect( scr_x, indicator, scrsx, thickness );
+				n_mac_draw_box( N_TXTBOX_INDICATOR_CARET, rect_local );
+			}
 
 
 			n_bmp_flip_onoff = FALSE;

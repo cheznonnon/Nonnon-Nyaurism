@@ -7,42 +7,8 @@
 
 
 
-/*
-CGFloat
-n_mac_txtbox_focus_calculate( NSPoint local_point )
-{
-	return trunc( scroll ) + trunc( ( local_point.y - offset_y ) / font_size.height );
-}
-*/
-
-
 
 @implementation NonnonTxtbox (NonnonTxtboxMouse)
-
-
-
-
-- (void) NonnonTxtboxMouseClamp
-{
-
-//NSLog( @"NonnonTxtboxMouseClamp : %f %f", scroll, scroll_step );
-//NSLog( @"NonnonTxtboxMouseClamp : %f %lld", scroll + scroll_page, txtbox->txt_data->sy );
-//NSLog( @"NonnonTxtboxMouseClamp : %f %lld", scroll + scroll_page + scroll_step, txtbox->txt_data->sy );
-
-	CGFloat line_sy = txtbox->txt_data->sy;
-
-	if ( txtbox->scroll < 1.0 )
-	{
-		txtbox->scroll = 0;
-	} else
-	if ( ( txtbox->scroll + txtbox->scroll_page + txtbox->scroll_step ) > line_sy )
-	{
-//NSLog( @"overshoot" );
-		txtbox->scroll = line_sy - txtbox->scroll_page;
-	}
-
-	return;
-}
 
 
 
@@ -101,6 +67,8 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 			self.txtbox->listbox_edit_onoff = FALSE;
 
 			txtbox->caret_fr = txtbox->caret_to = [self NonnonTxtboxMouseCursorDetect];
+
+			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 
 			[self NonnonTxtboxRedraw];
 		}
@@ -166,6 +134,8 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 		txtbox->caret_blink_force_onoff = TRUE;
 
+
+		[self NonnonTxtboxCaretOutOfCanvasUpDown];
 
 		[self NonnonTxtboxRedraw];
 
@@ -252,10 +222,6 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 {
 //NSLog( @"mouseUp" );
 
-
-	[self NonnonTxtboxMouseClamp];
-
-
 	BOOL is_dragged = txtbox->drag_timer_queue;
 
 	txtbox->drag_timer_queue = FALSE;
@@ -267,6 +233,16 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 		txtbox->scrollbar_fade_captured_onoff = TRUE;
 		n_bmp_fade_always_on( &txtbox->scrollbar_fade, n_bmp_black, n_bmp_white );
+/*
+		// [!] : snapping feature : not working accurately
+		if ( txtbox->scr.pixel_thumb > 32 )
+		{
+			[self NonnonTxtboxScrollMetrics];
+			txtbox->scr.pixel_pos = trunc( txtbox->scr.pixel_pos / txtbox->scr.pixel_step ) * txtbox->scr.pixel_step;
+			txtbox->scr. unit_pos = ( txtbox->scr.pixel_pos  / txtbox->scr.pixel_max ) * txtbox->scr.unit_max;
+		}
+*/
+		[self NonnonTxtboxRedraw];
 	}
 
 
@@ -330,13 +306,12 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 {
 //NSLog(@"mouseDown");
 
-	txtbox->pt                         = [NSEvent mouseLocation];
+	txtbox->pt_cur                     = [NSEvent mouseLocation];
 	txtbox->scrollbar_thumb_is_hovered = n_mac_window_is_hovered_offset_by_rect( self, txtbox->scrollbar_thumb_rect );
 	txtbox->scrollbar_shaft_is_hovered = n_mac_window_is_hovered_offset_by_rect( self, txtbox->scrollbar_shaft_rect );
 //if ( thumb_is_hovered ) { NSLog( @"!" ); }
 
-	NSPoint pt_cur                 = n_mac_cursor_position_get( self );
-	txtbox->scrollbar_thumb_offset = txtbox->scrollbar_thumb_rect.origin.y - pt_cur.y;
+	txtbox->scrollbar_thumb_offset = txtbox->scrollbar_thumb_rect.origin.y - txtbox->pt_cur.y;
 //NSLog( @"%f : %f %f", thumb_offset, scroller_rect_thumb.origin.y, pt_cur.y );
 
 	if ( txtbox->scrollbar_thumb_is_hovered )
@@ -354,21 +329,14 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 	if ( txtbox->scrollbar_shaft_is_hovered )
 	{
 
-		CGFloat sy               = [self frame].size.height;
-		CGFloat csy              = sy - ( txtbox->offset_y * 2 );
-		CGFloat items_per_canvas = csy / txtbox->font_size.height;
-
-		if ( pt_cur.y < txtbox->scrollbar_thumb_rect.origin.y )
+		if ( txtbox->pt_cur.y < txtbox->scrollbar_thumb_rect.origin.y )
 		{
 //NSLog( @"upper" );
-			txtbox->scroll -= items_per_canvas;
+			txtbox->scr.unit_pos -= txtbox->scr.unit_page;
 		} else {
 //NSLog( @"lower" );
-			txtbox->scroll += items_per_canvas;
+			txtbox->scr.unit_pos += txtbox->scr.unit_page;
 		}
-
-//NSLog( @"%f / %f", txtbox->scroll, scroll_step );
-		txtbox->scroll = trunc( txtbox->scroll );
 
 		[self NonnonTxtboxRedraw];
 
@@ -386,27 +354,20 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 //NSLog( @"mouseDragged" );
 //return;
 
-	CGPoint pt_cur = [NSEvent mouseLocation];
-
-	CGFloat dy = txtbox->pt.y - pt_cur.y;
-//NSLog( @"%f %f", dy, [theEvent deltaY] );
-
-	txtbox->pt = pt_cur;
-
-//scroll -= dy / font_size.height;
+	txtbox->pt_prv = txtbox->pt_cur;
+	txtbox->pt_cur = [NSEvent mouseLocation];
 
 	if ( txtbox->scrollbar_thumb_is_captured )
 	{
-//NSLog( @"%f", scroll );
+//NSLog( @"scrollbar_thumb_is_captured" );
 
-		n_type_gfx scroll_csy = (n_type_gfx) self.frame.size.height - ( txtbox->offset_y * 2 );
+		CGFloat dy = txtbox->pt_prv.y - txtbox->pt_cur.y;
+//NSLog( @"%f %f", dy, [theEvent deltaY] );
 
+//scroll -= dy / font_size.height;
 
-		CGFloat max_c = (CGFloat) txtbox->txt_data->sy;
-		CGFloat step  = scroll_csy / ( max_c * txtbox->font_size.height );
-
-
-		txtbox->scroll += dy / ( txtbox->font_size.height * step );
+		txtbox->scr.unit_pos += dy / txtbox->scr.pixel_step;
+//NSLog( @"%f", txtbox->scr.unit_pos );
 
 		[self NonnonTxtboxRedraw];
 
@@ -500,16 +461,19 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 		if ( txtbox->smooth_wheel_delta < 0 )
 		{
-			txtbox->scroll += step;
+			txtbox->scr.unit_pos += step;
 		} else {
-			txtbox->scroll -= step;
+			txtbox->scr.unit_pos -= step;
 		}
+
+		[self NonnonTxtboxDrawScrollClamp];
 
 		[self NonnonTxtboxRedraw];
 
 	} else
 	if ( txtbox->smooth_wheel_is_mos )
 	{
+//NSLog( @"Mos" );
 
 		CGFloat step;
 
@@ -518,10 +482,12 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 		if ( txtbox->smooth_wheel_delta < 0 )
 		{
-			txtbox->scroll += step;
+			txtbox->scr.unit_pos += step;
 		} else {
-			txtbox->scroll -= step;
+			txtbox->scr.unit_pos -= step;
 		}
+
+		[self NonnonTxtboxDrawScrollClamp];
 
 		[self NonnonTxtboxRedraw];
 
@@ -534,6 +500,10 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 			txtbox->smooth_wheel_onoff = TRUE;
 			txtbox->smooth_wheel_mutex = TRUE;
 		}
+
+		[self NonnonTxtboxDrawScrollClamp];
+
+		[self NonnonTxtboxRedraw];
 
 	}
 
@@ -584,7 +554,7 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 {
 //NSLog( @"rightMouseDown : %ld", [theEvent clickCount] );
 
-	txtbox->pt = [NSEvent mouseLocation];
+	txtbox->pt_cur = [NSEvent mouseLocation];
 
 	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 	{
@@ -633,7 +603,7 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 		txtbox->grab_n_drag_onoff = TRUE;
 
-		txtbox->pt             = [NSEvent mouseLocation];
+		txtbox->pt_cur         = [NSEvent mouseLocation];
 		txtbox->pt_grab_n_drag = [theEvent locationInWindow];
 
 		[[NSCursor closedHandCursor] set];
@@ -651,15 +621,13 @@ n_mac_txtbox_focus_calculate( NSPoint local_point )
 
 		// [!] : middle button
 
-		CGPoint pt_cur = [NSEvent mouseLocation];
+		txtbox->pt_prv = txtbox->pt_cur;
+		txtbox->pt_cur = [NSEvent mouseLocation];
 
-		CGFloat dy = txtbox->pt.y - pt_cur.y;
+		CGFloat dy = txtbox->pt_cur.y - txtbox->pt_prv.y;
 //NSLog( @"%f %f", dy, [theEvent deltaY] );
 
-		txtbox->pt = pt_cur;
-
-
-		txtbox->scroll -= dy / txtbox->font_size.height;
+		txtbox->scr.unit_pos -= dy / txtbox->font_size.height;
 
 
 		[self NonnonTxtboxRedraw];

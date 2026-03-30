@@ -100,6 +100,19 @@
 
 typedef struct {
 
+	n_type_real unit_pos , pixel_pos;
+	n_type_real unit_max , pixel_max;
+	n_type_real unit_page, pixel_page;
+	n_type_real unit_step, pixel_step;
+	n_type_real pixel_thumb;
+	n_type_real pixel_minim;
+	n_type_real pixel_shaft;
+
+} n_txtbox_scroll;
+
+
+typedef struct {
+
 	// Public
 
 	n_type_int  focus;
@@ -117,8 +130,8 @@ typedef struct {
 
 	BOOL        is_enter_pressed;
 
-	CGFloat     corner_size;
 	BOOL        border_separator_only;
+	BOOL        scrollbar_patch;
 
 	BOOL        listbox_no_selection_onoff;
 	BOOL        listbox_edit_onoff;
@@ -140,11 +153,7 @@ typedef struct {
 	NSFont     *font;
 	CGSize      font_size;
 
-	CGFloat     scroll;
-	CGFloat     scroll_step;
-	CGFloat     scroll_page;
-
-	CGPoint     pt;
+	CGPoint     pt_cur, pt_prv;
 	CGPoint     pt_grab_n_drag;
 
 	n_type_int  redraw_fy;
@@ -162,18 +171,21 @@ typedef struct {
 
 	BOOL        drag_timer_queue;
 
-	n_bmp_fade  scrollbar_fade;
-	BOOL        scrollbar_fade_hovered_onoff;
-	BOOL        scrollbar_fade_captured_onoff;
-	NSRect      scrollbar_thumb_rect;
-	BOOL        scrollbar_thumb_is_captured;
-	BOOL        scrollbar_thumb_is_hovered;
-	CGFloat     scrollbar_thumb_offset;
-	NSRect      scrollbar_shaft_rect;
-	BOOL        scrollbar_shaft_is_hovered;
+	n_txtbox_scroll scr;
+	BOOL            scrollbar_used;
+	n_bmp_fade      scrollbar_fade;
+	BOOL            scrollbar_fade_hovered_onoff;
+	BOOL            scrollbar_fade_captured_onoff;
+	NSRect          scrollbar_thumb_rect;
+	BOOL            scrollbar_thumb_is_captured;
+	BOOL            scrollbar_thumb_is_hovered;
+	CGFloat         scrollbar_thumb_offset;
+	NSRect          scrollbar_shaft_rect;
+	BOOL            scrollbar_shaft_is_hovered;
 
 	NSFont     *linenumber_font;
 	CGSize      linenumber_size;
+	CGSize      linenumber_single;
 	u32         linenumber_color_back;
 	u32         linenumber_color_text;
 
@@ -221,7 +233,8 @@ typedef struct {
 	NSColor    *nscolor_crlf;
 	NSColor    *nscolor_accent;
 	NSColor    *nscolor_nofocus;
-	NSColor    *nscolor_ime;
+	NSColor    *nscolor_ime_main;
+	NSColor    *nscolor_ime_rest;
 	NSColor    *nscolor_stripe;
 	NSColor    *nscolor_frame;
 	NSColor    *nscolor_text_normal;
@@ -256,6 +269,11 @@ typedef struct {
 #endif
 
 } n_txtbox;
+
+
+
+
+#define n_txtbox_round( r ) trunc( r )
 
 
 
@@ -346,7 +364,7 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 			NSString     *desktop = [paths objectAtIndex:0];
 			n_posix_char  tmpname[ 100 ]; n_string_path_tmpname( tmpname );
 
-	    		txtbox->path = [NSString stringWithFormat:@"%@/%s.txt", desktop, tmpname];
+			txtbox->path = [NSString stringWithFormat:@"%@/%s.txt", desktop, tmpname];
 //NSLog( @"%@", path );
 		}
 
@@ -480,6 +498,12 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 	}
 
 	txtbox->nscolor_back = [NSColor textBackgroundColor];
+
+	if ( txtbox->is_darkmode )
+	{
+		txtbox->nscolor_back = n_mac_nscolor_blend( txtbox->nscolor_back, txtbox->nscolor_text, 0.20 );
+	}
+
 	if ( txtbox->is_grayed )
 	{
 		txtbox->nscolor_text = n_mac_nscolor_blend( txtbox->nscolor_back, txtbox->nscolor_text, 0.55 );
@@ -495,6 +519,8 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 		txtbox->nscolor_text_highlight = txtbox->nscolor_back;
 	}
 
+	txtbox->nscolor_accent = [NSColor controlAccentColor];
+
 	if ( txtbox->is_darkmode )
 	{
 		txtbox->nscolor_nofocus = n_mac_nscolor_argb( 255,100,100,100 );
@@ -502,12 +528,19 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 		txtbox->nscolor_nofocus = n_mac_nscolor_argb( 255,200,200,200 );
 	}
 
-	txtbox->nscolor_accent = [NSColor controlAccentColor];
+	txtbox->nscolor_nofocus = n_mac_nscolor_blend( txtbox->nscolor_nofocus, txtbox->nscolor_accent, 0.25 );
 
 
 #ifdef N_TXTBOX_IME_ENABLE
 
-	txtbox->nscolor_ime = txtbox->nscolor_accent;
+	txtbox->nscolor_ime_main = txtbox->nscolor_accent;
+
+	if ( txtbox->is_darkmode )
+	{
+		txtbox->nscolor_ime_rest = [NSColor whiteColor];
+	} else {
+		txtbox->nscolor_ime_rest = n_mac_nscolor_argb( 255,200,200,200 );
+	}
 
 #endif
 
@@ -578,6 +611,20 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 
 
 
+- (void) NonnonTxtboxDataInit
+{
+
+	txtbox->txt_data = n_memory_new( sizeof( n_txt ) );
+
+	n_txt_zero( txtbox->txt_data );
+
+	n_txt_utf8_new( txtbox->txt_data );
+
+}
+
+
+
+
 - (void) NonnonTxtboxSearchMarkerReset:(BOOL)redraw
 {
 //NSLog( @"%x", (int) txtbox->search_marker );
@@ -600,7 +647,16 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 - (void) NonnonTxtboxCaretReset
 {
 
-	txtbox->focus = -1;
+	if (
+		( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
+		&&
+		( txtbox->listbox_no_selection_onoff )
+	)
+	{
+		txtbox->focus = -1;
+	} else {
+		txtbox->focus = 0;
+	}
 
 	txtbox->caret_fr = NonnonMakeCaret( 0,0,0,0 );
 	txtbox->caret_to = NonnonMakeCaret( 0,0,0,0 );
@@ -652,7 +708,7 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 	}
 
 	txtbox->caret_pt.x = txtbox->padding + pt.pxl.x - 1;
-	txtbox->caret_pt.y = txtbox->offset_y + ( ( pt.cch.y - trunc( txtbox->scroll ) ) * txtbox->font_size.height );
+	txtbox->caret_pt.y = txtbox->offset_y + ( ( pt.cch.y - n_txtbox_round( txtbox->scr.unit_pos ) ) * txtbox->font_size.height );
 
 
 #ifdef N_TXTBOX_IME_ENABLE
@@ -666,46 +722,6 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 
 
 	return;
-}
-
-- (BOOL) NonnonTxtboxCaretIsOnScreen
-{
-#ifdef N_TXTBOX_IME_ENABLE
-
-	if ( txtbox->ime_onoff )
-	{
-		return FALSE;
-	}
-
-#endif
-
-
-	[self NonnonTxtboxCaretCalculate];
-
-
-	if ( txtbox->focus < ( txtbox->scroll - 1 ) ) { return FALSE; }
-
-
-	BOOL ret = FALSE;
-
-	if ( txtbox->caret_fr.cch.y == txtbox->caret_to.cch.y )
-	{
-		if ( txtbox->caret_fr.cch.y == txtbox->focus ) { ret = TRUE; }
-	} else
-	if ( txtbox->caret_fr.cch.y < txtbox->caret_to.cch.y )
-	{
-		if ( txtbox->caret_to.cch.y == txtbox->focus ) { ret = TRUE; }
-	} else
-	if ( txtbox->caret_fr.cch.y > txtbox->caret_to.cch.y )
-	{
-		if ( txtbox->caret_to.cch.y == txtbox->focus ) { ret = TRUE; }
-	}
-
-
-//NSLog( @"%lld : %d", txtbox->focus, ret );
-
-
-	return ret;
 }
 
 
@@ -734,8 +750,9 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 
 	txtbox->font_size = n_mac_image_text_pixelsize( @" ", txtbox->font );
 
-	txtbox->linenumber_font = txtbox->font;//[NSFont userFixedPitchFontOfSize:14];
-	txtbox->linenumber_size = n_mac_image_text_pixelsize( @"000000", txtbox->font );
+	txtbox->linenumber_font   = [NSFont userFixedPitchFontOfSize:txtbox->font.pointSize];
+	txtbox->linenumber_size   = n_mac_image_text_pixelsize( @"000000", txtbox->linenumber_font );
+	txtbox->linenumber_single = n_mac_image_text_pixelsize( @"0"     , txtbox->linenumber_font );
 
 }
 
@@ -788,7 +805,7 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 	}
 
 
-	txtbox->scroll = 0;
+	txtbox->scr.unit_pos = 0;
 
 	if ( txtbox->listbox_no_selection_onoff )
 	{
@@ -874,7 +891,7 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 
 - (CGFloat) NonnonTxtboxFocusCalculate:(NSPoint) local_point
 {
-	return trunc( txtbox->scroll ) + trunc( ( local_point.y - txtbox->offset_y ) / txtbox->font_size.height );
+	return n_txtbox_round( txtbox->scr.unit_pos ) + n_txtbox_round( ( local_point.y - txtbox->offset_y ) / txtbox->font_size.height );
 }
 
 - (n_caret) NonnonTxtboxMouseCursorDetect
@@ -977,16 +994,16 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 	{
 		n_txt_copy( &txtbox->undo.txt, txtbox->txt_data );
 
-		txtbox->scroll   = txtbox->undo.scroll;
-		txtbox->focus    = txtbox->undo.focus;
-		txtbox->caret_fr = txtbox->undo.caret_fr;
-		txtbox->caret_to = txtbox->undo.caret_to;
+		txtbox->scr.unit_pos = txtbox->undo.scroll;
+		txtbox->focus        = txtbox->undo.focus;
+		txtbox->caret_fr     = txtbox->undo.caret_fr;
+		txtbox->caret_to     = txtbox->undo.caret_to;
 	} else
 	if ( action == N_TXTBOX_UNDO_REGISTER )
 	{
 		n_txt_copy( txtbox->txt_data, &txtbox->undo.txt );
 
-		txtbox->undo.scroll   = txtbox->scroll;
+		txtbox->undo.scroll   = txtbox->scr.unit_pos;
 		txtbox->undo.focus    = txtbox->focus;
 		txtbox->undo.caret_fr = txtbox->caret_fr;
 		txtbox->undo.caret_to = txtbox->caret_to;
@@ -1046,11 +1063,6 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 //NSLog( @"is_key_input" );
 		[self NonnonTxtboxRedraw];
 	} else
-	if ( [self NonnonTxtboxCaretIsOnScreen] )
-	{
-//NSLog( @"caret" );
-		[self NonnonTxtboxRedrawPartial];
-	} else
 	if ( txtbox->ime_onoff )
 	{
 //NSLog( @"IME" );
@@ -1059,6 +1071,7 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 	//
 	{
 //NSLog( @"N/A" );
+		[self NonnonTxtboxRedraw];
 	}
 
 }
@@ -1125,12 +1138,12 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 		if ( pt.y <= 0 )
 		{
 			CGFloat boost = 1 + ( fabs( pt.y ) / 100 );
-			txtbox->scroll -= boost;
+			txtbox->scr.unit_pos -= boost;
 		} else
 		if ( pt.y >= [self frame].size.height )
 		{
 			CGFloat boost = 1 + ( fabs( pt.y - [self frame].size.height ) / 100 );
-			txtbox->scroll += boost;
+			txtbox->scr.unit_pos += boost;
 		}
 
 		txtbox->caret_to = [self NonnonTxtboxMouseCursorDetect];
@@ -1179,9 +1192,9 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 		{
 			if ( txtbox->smooth_wheel_delta < 0 )
 			{
-				txtbox->scroll += 1;
+				txtbox->scr.unit_pos += 1;
 			} else {
-				txtbox->scroll -= 1;
+				txtbox->scr.unit_pos -= 1;
 			}
 
 			[self NonnonTxtboxRedraw];
@@ -1254,7 +1267,6 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 
 	if ( is_tab == FALSE )
 	{
-		[self NonnonTxtboxCaretOutOfCanvasUpDown];
 		[self NonnonTxtboxRedraw];
 
 		return;
@@ -1308,7 +1320,6 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 	[self NonnonTxtboxEditedNotify:TRUE];
 
 
-	[self NonnonTxtboxCaretOutOfCanvasUpDown];
 	[self NonnonTxtboxRedraw];
 
 }
@@ -1672,111 +1683,81 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 
 
 
--(void) NonnonTxtboxCaretOutOfCanvasUpDown
-{
-//NSLog( @"NonnonTxtboxCaretOutOfCanvasUpDown" );
-
-	CGFloat csy              = self.frame.size.height - ( txtbox->offset_y * 2 );
-	CGFloat items_per_canvas = trunc( csy / txtbox->font_size.height );
-
-
-	CGFloat minim = MIN( txtbox->caret_fr.cch.y, txtbox->caret_to.cch.y );
-	CGFloat maxim = MAX( txtbox->caret_fr.cch.y, txtbox->caret_to.cch.y );
-//NSLog( @"%f %f %f %f", minim, maxim, scroll, items_per_canvas );
-
-	// [!] : out of bound : centering
-
-	if ( minim < ( trunc( txtbox->scroll ) - 1 ) )
-	{
-//NSLog( @"minim" );
-		txtbox->scroll = minim - ( items_per_canvas / 2 );
-		return;
-	} else
-	if ( maxim >= ( trunc( txtbox->scroll ) + items_per_canvas + 1 ) )
-	{
-//NSLog( @"maxim" );
-		txtbox->scroll = maxim - ( items_per_canvas / 2 );
-		return;
-	} else {
-//NSLog( @"others" );
-	}
-
-	// [!] : scroll per one line
-
-	if ( minim < trunc( txtbox->scroll ) )
-	{
-		txtbox->scroll--;
-	} else
-	if ( maxim >= ( trunc( txtbox->scroll ) + items_per_canvas ) )
-	{
-		txtbox->scroll++;
-	}
-
-}
-
--(void) NonnonTxtboxCaretOutOfCanvasUpDownListbox
-{
-//NSLog( @"NonnonTxtboxCaretOutOfCanvasUpDownListbox" );
-
-	CGFloat csy              = self.frame.size.height - ( txtbox->offset_y * 2 );
-	CGFloat items_per_canvas = trunc( csy / txtbox->font_size.height );
-
-
-	CGFloat minim = txtbox->focus;//MIN( caret_fr.cch.y, caret_to.cch.y );
-	CGFloat maxim = txtbox->focus;//MAX( caret_fr.cch.y, caret_to.cch.y );
-//NSLog( @"%f %f %f %f", minim, maxim, scroll, items_per_canvas );
-
-	// [!] : out of bound : centering
-
-	if ( minim < ( trunc( txtbox->scroll ) - 1 ) )
-	{
-//NSLog( @"minim" );
-		txtbox->scroll = minim - ( items_per_canvas / 2 );
-		return;
-	} else
-	if ( maxim >= ( trunc( txtbox->scroll ) + items_per_canvas + 1 ) )
-	{
-//NSLog( @"maxim" );
-		txtbox->scroll = maxim - ( items_per_canvas / 2 );
-		return;
-	} else {
-//NSLog( @"others" );
-	}
-
-	// [!] : scroll per one line
-
-	if ( minim < trunc( txtbox->scroll ) )
-	{
-		txtbox->scroll--;
-	} else
-	if ( maxim >= ( trunc( txtbox->scroll ) + items_per_canvas ) )
-	{
-		txtbox->scroll++;
-	}
-
-}
-
 -(void) NonnonTxtboxCaretOutOfCanvasUpDownSearch
 {
 //NSLog( @"NonnonTxtboxCaretOutOfCanvasUpDown" );
-
-	CGFloat csy              = self.frame.size.height - ( txtbox->offset_y * 2 );
-	CGFloat items_per_canvas = csy / txtbox->font_size.height;
-
 
 	CGFloat minim = MIN( txtbox->caret_fr.cch.y, txtbox->caret_to.cch.y );
 	CGFloat maxim = MAX( txtbox->caret_fr.cch.y, txtbox->caret_to.cch.y );
 //NSLog( @"%f %f %f", minim, maxim, scroll );
 
-	if ( minim < txtbox->scroll )
+	if ( minim < txtbox->scr.unit_pos )
 	{
 //NSLog( @"up" );
-		txtbox->scroll = minim - ( items_per_canvas / 2 );
+		txtbox->scr.unit_pos = minim - ( txtbox->scr.unit_page / 2 );
 	} else
-	if ( maxim >= ( txtbox->scroll + items_per_canvas - 1 ) )
+	if ( maxim >= ( txtbox->scr.unit_pos + txtbox->scr.unit_page - 1 ) )
 	{
 //NSLog( @"down : %f %f", maxim, ( scroll + items_per_canvas - 1 ) );
-		txtbox->scroll = maxim - ( items_per_canvas / 2 );
+		txtbox->scr.unit_pos = maxim - ( txtbox->scr.unit_page / 2 );
+	}
+
+}
+
+-(void) NonnonTxtboxCaretOutOfCanvasUpDown
+{
+
+	// [!] : Line Scroller
+
+	if ( txtbox->focus < txtbox->scr.unit_pos )
+	{
+		CGFloat d = fabs( txtbox->focus - txtbox->scr.unit_pos );
+
+		if ( d <= 1.0 )
+		{
+			txtbox->scr.unit_pos -= txtbox->scr.unit_step;
+		} else {
+			[self NonnonTxtboxCaretOutOfCanvasUpDownSearch];
+		}
+	}
+
+	const CGFloat csy   = self.frame.size.height;
+	const CGFloat base  = csy - ( txtbox->offset_y * 2 );
+	const CGFloat focus = ( txtbox->focus - txtbox->scr.unit_pos + 1 ) * txtbox->font_size.height;
+//NSLog( @"%f %f", base - focus, txtbox->font_size.height );
+
+	if ( ( base - focus ) < 0 )
+	{
+		if ( fabs( base - focus ) < txtbox->font_size.height )
+		{
+			txtbox->scr.unit_pos += txtbox->scr.unit_step;
+		} else
+		if ( fabs( base - focus ) < ( txtbox->font_size.height * 2 ) )
+		{
+			txtbox->scr.unit_pos += txtbox->scr.unit_step * 2;
+		} else {
+			[self NonnonTxtboxCaretOutOfCanvasUpDownSearch];
+		}
+	}
+
+}
+
+-(void) NonnonTxtboxCaretOutOfCanvasUpDownSwap
+{
+
+	// [!] : Line Scroller
+
+	s64 focus = txtbox->focus + 1;
+
+	if ( focus < txtbox->scr.unit_pos )
+	{
+		txtbox->scr.unit_pos -= txtbox->scr.unit_step;
+	}
+
+//NSLog( @"%lld %f", txtbox->focus, txtbox->scr.unit_pos + txtbox->scr.unit_page );
+	if ( focus >= ( txtbox->scr.unit_pos + txtbox->scr.unit_page ) )
+	{
+		txtbox->scr.unit_pos += txtbox->scr.unit_step;
 	}
 
 }
@@ -1848,6 +1829,9 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 	n_string_free( line_f );
 	n_string_free( line_m );
 	n_string_free( line_t );
+
+
+	[self NonnonTxtboxCaretOutOfCanvasUpDown];
 
 
 	txtbox->caret_fr = txtbox->caret_to = n_txtbox_caret_detect_cch2pixel
@@ -1981,7 +1965,6 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 		if ( prv_onoff == FALSE ) { txtbox->ime_caret_fr = txtbox->caret_fr; }
 		txtbox->ime_caret_to = txtbox->caret_fr;
 
-		[self NonnonTxtboxCaretOutOfCanvasUpDown];
 		[self NonnonTxtboxRedraw];
 	}
 
@@ -2068,7 +2051,7 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 //NSLog( @"%f", fmod( scroll, 1 ) );
 
 	CGFloat ox = caret.pxl.x + txtbox->padding;
-	CGFloat oy = caret.pxl.y - ( trunc( txtbox->scroll ) * txtbox->font_size.height );
+	CGFloat oy = caret.pxl.y - ( n_txtbox_round( txtbox->scr.unit_pos ) * txtbox->font_size.height );
 	//CGFloat yy = NSHeight( [ [self.window screen] visibleFrame ] );
 //NSLog( @" %0.2f %0.2f : %0.2f : %0.2f ", ox, oy, yy, scroll );
 
