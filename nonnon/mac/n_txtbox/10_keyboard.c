@@ -355,10 +355,7 @@
 			break;
 		}
 
-		CGFloat csy              = self.frame.size.height - ( txtbox->offset_y * 2 );
-		CGFloat items_per_canvas = csy / txtbox->font_size.height;
-
-		txtbox->scr.unit_pos -= items_per_canvas;
+		txtbox->scr.unit_pos -= trunc( txtbox->scr.unit_page );
 
 		[self NonnonTxtboxRedraw];
 
@@ -377,10 +374,7 @@
 			break;
 		}
 
-		CGFloat csy              = self.frame.size.height - ( txtbox->offset_y * 2 );
-		CGFloat items_per_canvas = csy / txtbox->font_size.height;
-
-		txtbox->scr.unit_pos += items_per_canvas;
+		txtbox->scr.unit_pos += trunc( txtbox->scr.unit_page );
 
 		[self NonnonTxtboxRedraw];
 
@@ -1125,8 +1119,6 @@ n_posix_loop
 				}
 
 
-				n_type_int p_focus = txtbox->caret_fr.cch.y;
-
 				txtbox->focus = txtbox->focus + i;
 
 				txtbox->caret_fr = txtbox->caret_to = n_txtbox_caret_detect_cch2pixel
@@ -1138,25 +1130,7 @@ n_posix_loop
 					n_posix_strlen( n_txt_get( &t, i ) )
 				);
 
-
-				CGFloat csy              = self.frame.size.height - ( txtbox->offset_y * 2 );
-				CGFloat items_per_canvas = csy / txtbox->font_size.height;
-				CGFloat edge             = trunc( txtbox->scr.unit_pos + items_per_canvas );
-//NSLog( @"Focus %lld : Edge %0.2f : Scroll %0.2f", txtbox->focus, edge, scroll );
-
-				if ( p_focus < txtbox->scr.unit_pos )
-				{
-					txtbox->scr.unit_pos = p_focus;
-					[self NonnonTxtboxDrawScrollClamp];
-					edge = trunc( txtbox->scr.unit_pos + items_per_canvas );
-				}
-
-				if ( txtbox->focus >= edge )
-				{
-					txtbox->scr.unit_pos = txtbox->scr.unit_pos + ( txtbox->focus - edge );
-					txtbox->scr.unit_pos = ceil( txtbox->scr.unit_pos ) + 1;
-				}
-
+				[self NonnonTxtboxCaretOutOfCanvasUpDown];
 
 				n_string_free( line_f );
 				n_string_free( line_t );

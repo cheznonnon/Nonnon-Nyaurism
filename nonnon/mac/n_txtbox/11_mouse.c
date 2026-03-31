@@ -13,6 +13,19 @@
 
 
 
+- (NSPoint) NonnonTxtboxCursorGet
+{
+
+	NSPoint pt = n_mac_cursor_position_get( self );
+
+	pt.y = self.frame.size.height - 1 - pt.y;
+
+	return pt;
+}
+
+
+
+
 - (void) NonnonTxtboxClickEvent:(NSEvent*)theEvent detailed:(BOOL)onoff
 {
 
@@ -306,7 +319,7 @@
 {
 //NSLog(@"mouseDown");
 
-	txtbox->pt_cur                     = [NSEvent mouseLocation];
+	txtbox->pt_cur                     = [self NonnonTxtboxCursorGet];
 	txtbox->scrollbar_thumb_is_hovered = n_mac_window_is_hovered_offset_by_rect( self, txtbox->scrollbar_thumb_rect );
 	txtbox->scrollbar_shaft_is_hovered = n_mac_window_is_hovered_offset_by_rect( self, txtbox->scrollbar_shaft_rect );
 //if ( thumb_is_hovered ) { NSLog( @"!" ); }
@@ -329,12 +342,15 @@
 	if ( txtbox->scrollbar_shaft_is_hovered )
 	{
 
-		if ( txtbox->pt_cur.y < txtbox->scrollbar_thumb_rect.origin.y )
+		NSPoint pt = n_mac_cursor_position_get( self );
+//NSLog( @"%f %f", pt.y, txtbox->scrollbar_thumb_rect.origin.y );
+
+		if ( pt.y < txtbox->scrollbar_thumb_rect.origin.y )
 		{
-//NSLog( @"upper" );
+//NSLog( @"upper %f %f", txtbox->pt_cur.y, txtbox->scrollbar_thumb_rect.origin.y );
 			txtbox->scr.unit_pos -= txtbox->scr.unit_page;
 		} else {
-//NSLog( @"lower" );
+//NSLog( @"lower %f %f", txtbox->pt_cur.y, txtbox->scrollbar_thumb_rect.origin.y );
 			txtbox->scr.unit_pos += txtbox->scr.unit_page;
 		}
 
@@ -355,7 +371,7 @@
 //return;
 
 	txtbox->pt_prv = txtbox->pt_cur;
-	txtbox->pt_cur = [NSEvent mouseLocation];
+	txtbox->pt_cur = [self NonnonTxtboxCursorGet];;
 
 	if ( txtbox->scrollbar_thumb_is_captured )
 	{
@@ -554,7 +570,7 @@
 {
 //NSLog( @"rightMouseDown : %ld", [theEvent clickCount] );
 
-	txtbox->pt_cur = [NSEvent mouseLocation];
+	txtbox->pt_cur = [self NonnonTxtboxCursorGet];;
 
 	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 	{
@@ -603,7 +619,7 @@
 
 		txtbox->grab_n_drag_onoff = TRUE;
 
-		txtbox->pt_cur         = [NSEvent mouseLocation];
+		txtbox->pt_cur         = [self NonnonTxtboxCursorGet];;
 		txtbox->pt_grab_n_drag = [theEvent locationInWindow];
 
 		[[NSCursor closedHandCursor] set];
@@ -622,7 +638,7 @@
 		// [!] : middle button
 
 		txtbox->pt_prv = txtbox->pt_cur;
-		txtbox->pt_cur = [NSEvent mouseLocation];
+		txtbox->pt_cur = [self NonnonTxtboxCursorGet];
 
 		CGFloat dy = txtbox->pt_cur.y - txtbox->pt_prv.y;
 //NSLog( @"%f %f", dy, [theEvent deltaY] );

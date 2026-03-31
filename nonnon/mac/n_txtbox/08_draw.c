@@ -977,14 +977,12 @@ n_mac_txtbox_path_ellipsis( n_posix_char *path, NSFont *font, CGFloat width_limi
 
 }
 
--(void) NonnonTxtboxDrawLineNumber:(n_type_int)index rect:(NSRect)rect semi_indicator:(BOOL)semi_indicator
+-(void) NonnonTxtboxDrawLineNumber:(n_type_int)index offset:(n_type_int)offset rect:(NSRect)rect semi_indicator:(BOOL)semi_indicator
 {
 //return;
 
 	if ( txtbox->option_linenumber == N_MAC_TXTBOX_DRAW_LINENUMBER_NONE ) { return; }
 
-
-	n_type_int offset = txtbox->scr.unit_pos;
 
 	n_type_int focus_f = (n_type_int) MIN( txtbox->caret_fr.cch.y, txtbox->caret_to.cch.y );
 	n_type_int focus_t = (n_type_int) MAX( txtbox->caret_fr.cch.y, txtbox->caret_to.cch.y );
@@ -1000,7 +998,7 @@ n_mac_txtbox_path_ellipsis( n_posix_char *path, NSFont *font, CGFloat width_limi
 	}
 
 
-	NSColor *nscolor_main = n_txtbox_thin_highlight( txtbox->txt_data, txtbox->txt_deco, index + txtbox->scr.unit_pos, txtbox->nscolor_back, txtbox->nscolor_accent );
+	NSColor *nscolor_main = n_txtbox_thin_highlight( txtbox->txt_data, txtbox->txt_deco, index, txtbox->nscolor_back, txtbox->nscolor_accent );
 	NSColor *nscolor_stripe;
 	if ( ( index + offset ) & 1 )
 	{
@@ -1198,7 +1196,10 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 	CGFloat findbox_border_blend = 0.0;
 
 
-	n_type_int i = txtbox->scr.unit_pos;
+	n_type_int scroll = txtbox->scr.unit_pos;
+
+
+	n_type_int i = scroll;
 
 	NSRect _rect_main = NSMakeRect( txtbox->padding, txtbox->offset_y - txtbox->caret_centered_offset, csx - ( txtbox->offset_x * 2 ), txtbox->font_size.height );
 	if ( is_partial_redraw )
@@ -1414,7 +1415,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 				if ( i >= txtbox->redraw_ty ) { break; }
 			}
 		} else {
-			i = txtbox->scr.unit_pos;
+			i = scroll;
 			n_posix_loop
 			{//break;
 
@@ -1434,7 +1435,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 		NSRect rect_local = rect_main;
 
-		i = txtbox->scr.unit_pos; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
+		i = scroll; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
 //NSLog( @"%f %lld", scroll, n_mac_listbox_txt.sy );
 		n_posix_loop
 		{//break;
@@ -1489,7 +1490,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 		{
 
-			i = txtbox->scr.unit_pos; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
+			i = scroll; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
 //NSLog( @"%f %lld", scroll, n_mac_listbox_txt.sy );
 			n_posix_loop
 			{//break;
@@ -1539,7 +1540,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 		} else {
 
-			i = txtbox->scr.unit_pos; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
+			i = scroll; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
 //NSLog( @"%f %lld", scroll, n_mac_listbox_txt.sy );
 			n_posix_loop
 			{//break;
@@ -1575,7 +1576,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 		NSRect rect_local = rect_main;
 
-		i = txtbox->scr.unit_pos; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
+		i = scroll; if ( is_partial_redraw ) { i = txtbox->redraw_fy; }
 //NSLog( @"%f %lld", scroll, n_mac_listbox_txt.sy );
 		n_posix_loop
 		{//break;
@@ -1660,7 +1661,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 			{
 				semi_indicator = TRUE;
 
-				n_posix_char *deco = n_txt_get( txtbox->txt_deco, txtbox->scr.unit_pos + i );
+				n_posix_char *deco = n_txt_get( txtbox->txt_deco, scroll + i );
 
 				if ( ( self.txtbox->listbox_edit_onoff )&&( i == txtbox->focus ) )
 				{
@@ -1685,6 +1686,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 			}
 
 			[self NonnonTxtboxDrawLineNumber:i
+				offset:scroll
 				rect:NSMakeRect(
 					txtbox->offset_x,
 					txtbox->offset_y + pxl_y,

@@ -1698,7 +1698,6 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 	} else
 	if ( maxim >= ( txtbox->scr.unit_pos + txtbox->scr.unit_page - 1 ) )
 	{
-//NSLog( @"down : %f %f", maxim, ( scroll + items_per_canvas - 1 ) );
 		txtbox->scr.unit_pos = maxim - ( txtbox->scr.unit_page / 2 );
 	}
 
@@ -1711,12 +1710,16 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 
 	if ( txtbox->focus < txtbox->scr.unit_pos )
 	{
-		CGFloat d = fabs( txtbox->focus - txtbox->scr.unit_pos );
+		CGFloat d = fabs( txtbox->focus - trunc( txtbox->scr.unit_pos ) );
+//n_win64_hwndprintf_literal( GetParent( txtbox->hwnd ), "%lld %f", txtbox->focus, txtbox->scr.unit_pos );
+//n_win64_hwndprintf_literal( GetParent( txtbox->hwnd ), "%f", d );
 
-		if ( d <= 1.0 )
+		if ( d == 1.0 )
 		{
 			txtbox->scr.unit_pos -= txtbox->scr.unit_step;
-		} else {
+		} else
+		if ( d > 1.0 )
+		{
 			[self NonnonTxtboxCaretOutOfCanvasUpDownSearch];
 		}
 	}
