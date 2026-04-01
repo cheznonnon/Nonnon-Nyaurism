@@ -1765,6 +1765,32 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 
 }
 
+-(void) NonnonTxtboxPageUpDown:(int)updown
+{
+
+	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX ) { return; }
+	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE ) { return; }
+
+
+	if ( updown == 0 ) { return; }
+
+
+	txtbox->scr.pixel_pos = trunc( txtbox->scr.pixel_pos / txtbox->scr.pixel_step ) * txtbox->scr.pixel_step;
+	txtbox->scr. unit_pos = ( txtbox->scr.pixel_pos  / txtbox->scr.pixel_max ) * txtbox->scr.unit_max;
+
+	if ( updown <= -1 )
+	{
+		txtbox->scr.unit_pos -= trunc( txtbox->scr.unit_page );
+	} else
+	if ( updown >=  1 )
+	{
+		txtbox->scr.unit_pos += trunc( txtbox->scr.unit_page );
+	}
+
+	[self NonnonTxtboxRedraw];
+
+}
+
 
 
 

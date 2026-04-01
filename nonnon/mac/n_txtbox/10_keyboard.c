@@ -344,41 +344,15 @@
 	break;
 
 	case N_MAC_KEYCODE_PAGE_UP :
-	{
 
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
-		{
-			break;
-		} else
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE )
-		{
-			break;
-		}
+		[self NonnonTxtboxPageUpDown:-1];
 
-		txtbox->scr.unit_pos -= trunc( txtbox->scr.unit_page );
-
-		[self NonnonTxtboxRedraw];
-
-	}
 	break;
 
 	case N_MAC_KEYCODE_PAGE_DOWN :
-	{
 
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
-		{
-			break;
-		} else
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE )
-		{
-			break;
-		}
+		[self NonnonTxtboxPageUpDown:1];
 
-		txtbox->scr.unit_pos += trunc( txtbox->scr.unit_page );
-
-		[self NonnonTxtboxRedraw];
-
-	}
 	break;
 
 	case N_MAC_KEYCODE_ARROW_UP :
@@ -572,7 +546,7 @@
 		if ( txtbox->txt_data->readonly ) { break; }
 
 
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
+		if ( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 		{
 
 			self.txtbox->is_enter_pressed = TRUE;
@@ -580,7 +554,7 @@
 			self.txtbox->is_enter_pressed = FALSE;
 
 		} else
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE )
+		if ( txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE )
 		{
 			//
 		} else
@@ -609,6 +583,8 @@
 				);
 			}
 
+			[self NonnonTxtboxCaretOutOfCanvasUpDown];
+
 		} else
 		if ( n_mac_txtbox_del( txtbox->txt_data, &txtbox->focus, &txtbox->caret_fr, &txtbox->caret_to ) )
 		{
@@ -621,6 +597,8 @@
 				txtbox->font_size,
 				txtbox->caret_fr.cch.x
 			);
+
+			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 
 //n_caret_debug_cch( caret_fr ,caret_to );
 
@@ -641,11 +619,6 @@
 
 			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 
-
-			self.txtbox->is_enter_pressed = TRUE;
-			[self NonnonTxtboxEditedNotify:TRUE];
-			self.txtbox->is_enter_pressed = FALSE;
-
 		}
 
 		[self NonnonTxtboxRedraw];
@@ -661,6 +634,8 @@
 
 		if ( [self NonnonTxtboxKeyboardIsFullStop] )
 		{
+			[self NonnonTxtboxCaretOutOfCanvasUpDown];
+
 			break;
 		}
 
@@ -676,12 +651,19 @@
 		{
 			if ( self.txtbox->listbox_edit_onoff )
 			{
-				n_posix_char *line = n_txt_get( txtbox->txt_data, txtbox->focus );
-				n_type_int     cch = n_mac_txtbox_caret_move( line, txtbox->caret_fr.cch.x, NO, N_MAC_TXTBOX_CARET_MOVE_L );
+				n_type_int cch;
 
-				n_posix_snprintf_literal( &line[ cch ], n_posix_strlen( line ) - cch + 1, "%s", &line[ txtbox->caret_fr.cch.x ] );
+				if ( n_mac_txtbox_del( txtbox->txt_data, &txtbox->focus, &txtbox->caret_fr, &txtbox->caret_to ) )
+				{
+					cch = txtbox->caret_fr.cch.x;
+				} else {
+					n_posix_char *line = n_txt_get( txtbox->txt_data, txtbox->focus );
+					               cch = n_mac_txtbox_caret_move( line, txtbox->caret_fr.cch.x, NO, N_MAC_TXTBOX_CARET_MOVE_L );
 
-				if ( grow ) { txtbox->focus = txtbox->caret_fr.cch.y; }
+					n_posix_snprintf_literal( &line[ cch ], n_posix_strlen( line ) - cch + 1, "%s", &line[ txtbox->caret_fr.cch.x ] );
+
+					if ( grow ) { txtbox->focus = txtbox->caret_fr.cch.y; }
+				}
 
 				txtbox->caret_fr = txtbox->caret_to = n_txtbox_caret_detect_cch2pixel
 				(
@@ -691,6 +673,8 @@
 					txtbox->font_size,
 					cch
 				);
+
+				[self NonnonTxtboxCaretOutOfCanvasUpDown];
 
 				[self NonnonTxtboxRedraw];
 			}
@@ -710,6 +694,8 @@
 				txtbox->font_size,
 				txtbox->caret_fr.cch.x
 			);
+
+			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 
 			[self NonnonTxtboxEditedNotify:TRUE];
 
@@ -760,8 +746,6 @@
 
 			n_string_free( s );
 
-			[self NonnonTxtboxCaretOutOfCanvasUpDown];
-
 		} else {
 //NSLog( @"Backspace : normal" );
 
@@ -782,6 +766,8 @@
 			);
 
 		}
+
+		[self NonnonTxtboxCaretOutOfCanvasUpDown];
 
 		[self NonnonTxtboxEditedNotify:TRUE];
 
@@ -812,6 +798,7 @@
 
 			if ( selected == FALSE )
 			{
+				[self NonnonTxtboxCaretOutOfCanvasUpDown];
 				[self NonnonTxtboxKeyboardInputMethod:[event characters]];
 				break;
 			}
@@ -857,15 +844,12 @@
 				txtbox->caret_fr.pxl.x = txtbox->font_size.width * txtbox->caret_fr.cch.x;
 
 			}
-
-			[self NonnonTxtboxEditedNotify:TRUE];
-
-			[self NonnonTxtboxRedraw];
 		} else {
 			// [!] : multi-line tab adder
 
 			if ( selected == FALSE )
 			{
+				[self NonnonTxtboxCaretOutOfCanvasUpDown];
 				[self NonnonTxtboxKeyboardInputMethod:[event characters]];
 				break;
 			}
@@ -912,11 +896,13 @@
 
 			}
 
-			[self NonnonTxtboxEditedNotify:TRUE];
-
-			[self NonnonTxtboxRedraw];
 		}
 
+		[self NonnonTxtboxCaretOutOfCanvasUpDown];
+
+		[self NonnonTxtboxEditedNotify:TRUE];
+
+		[self NonnonTxtboxRedraw];
 	}
 	break;
 
@@ -948,6 +934,8 @@
 				txtbox->font_size,
 				txtbox->caret_fr.cch.x
 			);
+
+			[self NonnonTxtboxCaretOutOfCanvasUpDown];
 
 			[self NonnonTxtboxRedraw];
 

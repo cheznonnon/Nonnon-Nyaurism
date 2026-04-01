@@ -348,10 +348,10 @@
 		if ( pt.y < txtbox->scrollbar_thumb_rect.origin.y )
 		{
 //NSLog( @"upper %f %f", txtbox->pt_cur.y, txtbox->scrollbar_thumb_rect.origin.y );
-			txtbox->scr.unit_pos -= txtbox->scr.unit_page;
+			[self NonnonTxtboxPageUpDown:-1];
 		} else {
 //NSLog( @"lower %f %f", txtbox->pt_cur.y, txtbox->scrollbar_thumb_rect.origin.y );
-			txtbox->scr.unit_pos += txtbox->scr.unit_page;
+			[self NonnonTxtboxPageUpDown:1];
 		}
 
 		[self NonnonTxtboxRedraw];

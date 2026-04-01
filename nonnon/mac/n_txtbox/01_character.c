@@ -345,6 +345,9 @@ n_mac_txtbox_character
 	if ( ret_size == NULL ) { n_string_truncate( character ); }
 
 
+	BOOL is_ascii = FALSE;
+
+
 	n_type_int _index = 0;
 	n_type_int _tab   = 0;
 	n_type_int _width = 1;
@@ -383,13 +386,13 @@ n_mac_txtbox_character
 		} else
 		if ( str[ index ] >= 0xe0 )
 		{
-			byte = 3; //_width = 2; // [!] : see below
+			byte = 3;
 		} else
 		if ( str[ index ] >= 0xc0 )
 		{
 			byte = 2;
 		} else {
-			byte = 1;
+			byte = 1; is_ascii = TRUE;
 		}
 
 		if ( ret_size != NULL )
@@ -466,15 +469,29 @@ n_mac_txtbox_character
 
 			(*ret_size) = NSMakeSize( MAX( kaku, tabs ), nsfont_size.height );
 		} else
-/*
 		if ( nsfont.fixedPitch )
 		{
-			CGFloat kaku = nsfont_size.width * _width;
-			CGFloat tabs = nsfont_size.width * _tab  ;
+			if ( _width == 2 )
+			{
+				CGFloat kaku = nsfont_size.width * _width;
+				CGFloat tabs = nsfont_size.width * _tab  ;
 
-			(*ret_size) = NSMakeSize( MAX( kaku, tabs ), nsfont_size.height );
+				(*ret_size) = NSMakeSize( MAX( kaku, tabs ), nsfont_size.height );
+			} else
+			if ( is_ascii )
+			{
+				CGFloat kaku = nsfont_size.width * _width;
+				CGFloat tabs = nsfont_size.width * _tab  ;
+
+				(*ret_size) = NSMakeSize( MAX( kaku, tabs ), nsfont_size.height );
+			} else
+			//
+			{
+				NSString *nsstr = n_mac_str2nsstring( character );
+				(*ret_size) = n_mac_image_text_pixelsize( nsstr, nsfont );
+			}
 		} else
-*/
+		//
 		{
 			NSString *nsstr = n_mac_str2nsstring( character );
 			(*ret_size) = n_mac_image_text_pixelsize( nsstr, nsfont );
