@@ -998,7 +998,7 @@ n_mac_txtbox_path_ellipsis( n_posix_char *path, NSFont *font, CGFloat width_limi
 	}
 
 
-	NSColor *nscolor_main = n_txtbox_thin_highlight( txtbox->txt_data, txtbox->txt_deco, index, txtbox->nscolor_back, txtbox->nscolor_accent );
+	NSColor *nscolor_main = n_txtbox_thin_highlight( txtbox->txt_data, txtbox->txt_deco, index + offset, txtbox->nscolor_back, txtbox->nscolor_accent );
 	NSColor *nscolor_stripe;
 	if ( ( index + offset ) & 1 )
 	{
