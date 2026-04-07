@@ -567,6 +567,11 @@
 			{
 //NSLog( @"2" );
 				txtbox->listbox_edit_onoff = FALSE;
+
+				if ( delegate_option & N_MAC_TXTBOX_DELEGATE_LISTBOX_EDITED )
+				{
+					[self.delegate NonnonTxtbox_delegate_listbox_edited:txtbox->focus];
+				}
 			} else {
 //NSLog( @"3" );
 				txtbox->listbox_edit_onoff = TRUE;
