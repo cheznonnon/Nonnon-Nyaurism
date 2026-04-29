@@ -626,6 +626,8 @@
 
 		}
 
+		[self NonnonTxtboxEditedNotify:TRUE];
+
 		[self NonnonTxtboxRedraw];
 
 	}

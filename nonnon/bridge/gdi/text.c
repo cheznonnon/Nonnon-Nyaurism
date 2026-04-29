@@ -132,18 +132,6 @@ n_gdi_text_precalc
 	if ( cch == 0 ) { cch = n_posix_strlen( str ); }
 
 
-	if ( gdi->pmr_onoff )
-	{
-
-		n_type_gfx sx,sy;
-		n_bmp_ui_pmr_calc( gdi->text_font, str, gdi->text_size, &sx, &sy, &gdi->text_cache_ratio, N_GAME_PMR_DRAW_L2R );
-
-		size.cx = sx;
-		size.cy = sy;
-
-//n_posix_debug_literal( " %d %d ", sx, sy );
-
-	} else
 	if ( gdi->text_style & N_GDI_TEXT_MONOSPACE )
 	{
 
@@ -213,6 +201,14 @@ n_gdi_text_precalc
 		} else {
 			gdi->effect_margin += ( gdi->frame_size * 2 );
 		}
+	}
+
+	if ( gdi->scale >= 1 )
+	{
+		size.cx *= gdi->scale;
+		size.cx *= gdi->scale;
+
+		gdi->effect_margin *= gdi->scale;
 	}
 
 	size.cx = size.cx + gdi->effect_margin;
@@ -429,15 +425,7 @@ n_gdi_text_draw_line
 	// 	GetDIBits()          : different colors are returned when color depth is not 32bit
 
 
-	if ( gdi->pmr_onoff )
 	{
-
-		n_type_gfx x = gdi->effect_margin / 2;
-		n_type_gfx y = gdi->effect_margin / 2;
-
-		n_bmp_ui_pmr_draw( gdi->text_font, str, &text, x,y, gdi->text_cache_ratio, n_bmp_white, N_GAME_PMR_DRAW_L2R );
-
-	} else {
 		// [Needed] : multi-thread
 
 		HANDLE hmutex = n_thread_mutex_init_and_wait_literal( NULL, "n_gdi_text_draw_line()" );

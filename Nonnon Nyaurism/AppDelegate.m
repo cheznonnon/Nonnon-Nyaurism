@@ -362,6 +362,42 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 }
 
+- (void) NonnonIconGDI:(n_posix_char*)text button:(NonnonButton*)button
+{
+
+	n_bmp bmp; n_bmp_zero( &bmp );
+
+	n_gdi gdi; n_gdi_zero( &gdi );
+
+	gdi.sx                  = 40;
+	gdi.sy                  = 40;
+
+	gdi.text                = text;
+	gdi.text_font           = n_posix_literal( "Trebuchet MS" );
+	gdi.text_size           = 14;
+	gdi.text_style          = N_GDI_TEXT_CONTOUR;
+	gdi.text_color_main     = n_bmp_rgb( 255,255,255 );
+	gdi.text_color_contour  = n_mac_nscolor2argb( [NSColor controlAccentColor] );
+	gdi.text_fxsize1        = 1;
+	gdi.text_fxsize2        = 1;
+
+	if ( n_mac_is_darkmode() )
+	{
+		gdi.text_color_contour = n_bmp_blend_pixel( gdi.text_color_contour, n_bmp_black, 0.25 );
+	} else {
+		gdi.text_color_contour = n_bmp_blend_pixel( gdi.text_color_contour, n_bmp_black, 0.25 );
+	}
+
+	n_bmp_free( &bmp );
+	n_gdi_bmp( &gdi, &bmp );
+
+	[button n_icon_set:&bmp];
+	[button display];
+
+	n_bmp_free( &bmp );
+
+}
+
 
 
 
@@ -388,6 +424,9 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 
 - (void)awakeFromNib
 {
+
+	n_gdi_scale_factor = _window.backingScaleFactor;
+
 
 	n_mac_image_window = _window;
 	n_gdi_scale_factor = n_mac_image_window.backingScaleFactor;
@@ -465,7 +504,8 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 		[_n_button_mix n_nswindow_set:_window];
 		[_n_button_mix n_direct_click:TRUE];
 
-		[self NonnonIconSet:@"mix" button:_n_button_mix];
+		//[self NonnonIconSet:@"mix" button:_n_button_mix];
+		[self NonnonIconGDI:"Mix" button:_n_button_mix];
 
 		_n_button_mix.delegate = self;
 	}
@@ -548,6 +588,14 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 		addObserver: self
 		   selector: @selector( accentColorChanged: )
 		       name: @"AppleColorPreferencesChangedNotification"
+		     object: nil
+	];
+
+	// [!] : dark mode
+	[[NSDistributedNotificationCenter defaultCenter]
+		addObserver: self
+		   selector: @selector( darkModeChanged: )
+		       name: @"AppleInterfaceThemeChangedNotification"
 		     object: nil
 	];
 
@@ -672,12 +720,21 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 //NSLog( @"n_timer_method_color" );
 
 	[self NonnonIconSet:@"zero"    button:_n_button_zero   ];
-	[self NonnonIconSet:@"mix"     button:_n_button_mix    ];
+	//[self NonnonIconSet:@"mix"     button:_n_button_mix    ];
+	[self NonnonIconGDI:"Mix"      button:_n_button_mix    ];
 	[self NonnonIconSet:@"stop"    button:_n_button_stop   ];
 	[self NonnonIconSet:@"play"    button:_n_button_play   ];
 	[self NonnonIconSet:@"eq"      button:_n_button_eq     ];
 	[self NonnonIconSet:@"resizer" button:_n_button_resizer];
 	[self NonnonIconSet:@"save"    button:_n_button_save   ];
+
+}
+
+- (void) darkModeChanged:(NSNotification *)notification
+{
+//NSLog( @"darkModeChanged" );
+
+	[self n_timer_method_color];
 
 }
 
@@ -718,10 +775,13 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 {
 
 	[_n_button_zero    n_enable:onoff]; [_n_button_zero    display];
-	[_n_button_mix     n_enable:onoff]; [_n_button_mix     display];
+	[_n_button_mix     n_enable:onoff]; 
 	[_n_button_resizer n_enable:onoff]; [_n_button_resizer display];
 	[_n_button_save    n_enable:onoff]; [_n_button_save    display];
 	[_n_button_eq      n_enable:onoff]; [_n_button_eq      display];
+
+	[_n_button_mix n_fake:n_nyaurism->mix_onoff];
+	[_n_button_mix display];
 
 
 	CGFloat blend;
@@ -838,6 +898,7 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 //NSLog( @"_n_button_stop" );
 
 		[self NonnonNyaurismPlaybackReset:YES];
+
 	} else
 	if ( [_n_button_play n_is_pressed] )
 	{

@@ -884,6 +884,8 @@ static NonnonTxtbox *n_txtbox_first_responder = nil;
 		cch
 	);
 
+	[self NonnonTxtboxCaretOutOfCanvasUpDown];
+
 }
 
 

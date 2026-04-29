@@ -16,7 +16,7 @@ n_gdi_template( n_bmp *bmp )
 
 	gdi.sx                  = 0;
 	gdi.sy                  = 0;
-	gdi.scale               = N_GDI_SCALE_AUTO;
+	gdi.scale               = 0;
 	gdi.style               = N_GDI_DEFAULT;
 	gdi.layout              = N_GDI_LAYOUT_HORIZONTAL;
 	gdi.align               = N_GDI_ALIGN_CENTER;

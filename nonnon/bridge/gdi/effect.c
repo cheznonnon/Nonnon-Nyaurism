@@ -111,28 +111,7 @@ n_gdi_bmp_effect_text_go
 
 	n_gdi_effect_fogmaker( &fog, fx_size * fx_size, is_icon, smooth_onoff, fog_onoff );
 
-//n_bmp_save_literal( &fog, "fog.bmp" );
-
-
-	n_bmp clip; n_bmp_zero( &clip );
-
-	if (
-		( n_bmp_load   ( &clip, gdi->icon_clip ) )
-#ifdef _H_NONNON_NEUTRAL_PNG
-		&&
-		( n_png_png2bmp( gdi->icon_clip, &clip ) )
-#endif // #ifdef _H_NONNON_NEUTRAL_PNG
-	)
-	{
-		//
-	} else {
-		//
-	}
-
-	n_type_gfx cx = gdi->icon_clip_x;
-	n_type_gfx cy = gdi->icon_clip_y;
-
-	//clip.transparent_onoff = FALSE;
+//if ( gdi->debug_id == 1 ) { n_bmp_save_literal( &fog, "fog.bmp" ); }
 
 
 	n_type_real ratio_x = (n_type_real) matrix / fx_size;
@@ -148,13 +127,7 @@ n_gdi_bmp_effect_text_go
 
 		u32 clr = color[ c_x + ( matrix * c_y ) ];
 
-		n_bmp_rasterizer_clip
-		(
-			&fog,
-			 bmp,   x + fx_x - o,  y + fx_y - o,
-			NULL, clr,
-			&clip, cx + fx_x - o, cy + fx_y - o
-		);
+		n_bmp_rasterizer( &fog, bmp, x + fx_x - o, y + fx_y - o, clr );
 
 		fx_x++;
 		if ( fx_x > o )
@@ -166,9 +139,6 @@ n_gdi_bmp_effect_text_go
 			if ( fx_y > o ) { break; }
 		}
 	}
-
-
-	n_bmp_free_fast( &clip );
 
 
 	n_bmp_free_fast( &fog );

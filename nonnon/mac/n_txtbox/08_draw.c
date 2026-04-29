@@ -1169,6 +1169,8 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 	// [!] : Metrics
 
+	if ( txtbox->focus >= txtbox->txt_data->sy ) { txtbox->focus = txtbox->txt_data->sy - 1; }
+
 	[self NonnonTxtboxScrollMetrics];
 
 	n_type_gfx csx = (n_type_gfx) self.frame.size.width;
@@ -1857,7 +1859,7 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 
 			const CGFloat thickness = 1;
 			const CGFloat indicator = txtbox->offset_y + ( txtbox->focus / ( (CGFloat) txtbox->txt_data->sy - 1 ) * txtbox->scr.pixel_shaft );
-
+//NSLog( @"%lld %lld", txtbox->focus, txtbox->txt_data->sy );
 
 			u32 color = n_mac_nscolor2argb( txtbox->nscolor_text );
 

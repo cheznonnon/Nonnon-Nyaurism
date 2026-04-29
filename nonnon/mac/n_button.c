@@ -59,7 +59,7 @@ n_mac_image_bmp_halo( n_bmp *bmp )
 	{
 		gdi.icon_color_contour  = n_bmp_rgb( 111,111,111 );
 	} else {
-		gdi.icon_color_contour  = n_bmp_rgb( 222,222,222 );
+		gdi.icon_color_contour  = n_bmp_rgb( 192,192,192 );
 	}
 
 	n_gdi_bmp( &gdi, bmp );

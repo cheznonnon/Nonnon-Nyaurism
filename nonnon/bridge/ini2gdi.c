@@ -376,7 +376,6 @@ n_ini2gdi_load_single( const n_posix_char *abspath, const n_posix_char *section,
 	n_posix_char base[ N_INI2GDI_CCH ];
 	n_posix_char text[ N_INI2GDI_CCH ];
 	n_posix_char icon[ N_INI2GDI_CCH ];
-	n_posix_char clip[ N_INI2GDI_CCH ];
 	n_posix_char font[ N_INI2GDI_CCH ];
 
 	n_posix_char *lval   = NULL;
@@ -567,22 +566,6 @@ n_posix_debug_literal
 	gdi.icon_sx = n_ini2gdi_str2val( str, 0 );
 	gdi.icon_sy = n_ini2gdi_str2val( str, 1 );
 
-
-	lval   = n_posix_literal( "icon_clip" );
-	defval = n_posix_literal( "" );
-
-	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
-	n_string_replace( str, clip, N_STRING_DQUOTE, N_STRING_EMPTY );
-
-	gdi.icon_clip   = clip;
-	gdi.icon_clip_x = n_ini2gdi_str2val( str, 0 );
-	gdi.icon_clip_y = n_ini2gdi_str2val( str, 1 );
-/*
-if ( FALSE == n_string_is_empty( gdi.icon_clip ) )
-{
-	n_posix_debug_literal( "%d %d", gdi.icon_clip_x, gdi.icon_clip_y );
-}
-*/
 
 
 	// Text

@@ -20,6 +20,7 @@
 
 #include "../neutral/bmp/ui/pmr.c"
 #include "../neutral/bmp/ui/progressbar.c"
+#include "../neutral/bmp/ui/search_icon.c"
 
 #include "../win64/mutex.c"
 
@@ -28,6 +29,8 @@
 
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
 
+
+#include "../neutral/bmp/ui/progressbar.c"
 
 #include "../neutral/ini.c"
 
@@ -114,7 +117,7 @@ n_gdi_crop( n_bmp *bmp, n_bmp *bmp_Aj )
 
 
 	// [!] : Left
-	
+
 	x = y = 0;
 	n_posix_loop
 	{
@@ -133,7 +136,7 @@ n_gdi_crop( n_bmp *bmp, n_bmp *bmp_Aj )
 	}
 
 	// [!] : Top
-	
+
 	x = y = 0;
 	n_posix_loop
 	{
@@ -152,7 +155,7 @@ n_gdi_crop( n_bmp *bmp, n_bmp *bmp_Aj )
 	}
 
 	// [!] : Right
-	
+
 	x = bmpsx - 1;
 	y = 0;
 	n_posix_loop
@@ -172,7 +175,7 @@ n_gdi_crop( n_bmp *bmp, n_bmp *bmp_Aj )
 	}
 
 	// [!] : Bottom
-	
+
 	x = 0;
 	y = bmpsy - 1;
 	n_posix_loop
@@ -365,8 +368,8 @@ n_gdi_system_themed( n_bmp *bmp )
 #define N_GDI_ICON_FASTMODE      ( N_GDI_ICON_LAST << 3 )
 #define N_GDI_ICON_UI            ( N_GDI_ICON_LAST << 4 )
 #define N_GDI_ICON_RESOURCE      ( N_GDI_ICON_LAST << 5 )
-#define N_GDI_ICON_RC_RESOLVE    ( N_GDI_ICON_LAST << 6 )
-#define N_GDI_ICON_SYSTEM        ( N_GDI_ICON_LAST << 7 )
+#define N_GDI_ICON_SYSTEM        ( N_GDI_ICON_LAST << 6 )
+#define N_GDI_ICON_AUTOSTRETCH   ( N_GDI_ICON_LAST << 7 )
 
 
 
@@ -388,7 +391,7 @@ typedef struct {
 	// In
 
 	n_type_gfx    sx,sy;
-	n_type_gfx    scale;
+	n_type_real   scale;
 	int           style;
 	int           layout;
 	int           align;
@@ -419,9 +422,6 @@ typedef struct {
 	u32           icon_color_sink_br;
 	n_type_gfx    icon_fxsize1;
 	n_type_gfx    icon_fxsize2;
-	n_posix_char *icon_clip;
-	n_type_gfx    icon_clip_x;
-	n_type_gfx    icon_clip_y;
 
 	n_posix_char *text;
 	n_posix_char *text_font;
@@ -463,6 +463,8 @@ typedef struct {
 
 
 	// Internal
+
+	int           debug_id;
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
@@ -728,27 +730,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 	// Override
 
-	if ( gdi->scale == N_GDI_SCALE_AUTO )
-	{
-#ifdef N_POSIX_PLATFORM_WINDOWS
-
-		HANDLE hmutex = n_thread_mutex_init_and_wait_literal( NULL, "n_gdi_bmp()" );
-
-
-		HDC hdc = GetDC( NULL );
-
-		gdi->scale = GetDeviceCaps( hdc, LOGPIXELSX ) / 96;
-
-		ReleaseDC( NULL, hdc );
-
-
-		hmutex = n_thread_mutex_exit( hmutex );
-
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
-	} else {
-		gdi->scale = n_posix_max_n_type_gfx( 1, gdi->scale );
-	}
-
 	if ( gdi->style & N_GDI_SHADOW )
 	{
 		gdi->icon_style |= N_GDI_ICON_SHADOW;
@@ -926,24 +907,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 	}
 
 
-	// PMR Support
-
-#ifdef N_POSIX_PLATFORM_MINGW
-
-	if ( n_posix_stat_is_dir( gdi->text_font ) ) { gdi->pmr_onoff = TRUE; }
-
-	if ( gdi->pmr_onoff )
-	{
-		// [!] : not supported
-		if ( gdi->text_style & N_GDI_TEXT_SMOOTH )
-		{
-			gdi->text_style &= ~N_GDI_TEXT_SMOOTH;
-		}
-	}
-
-#endif // #ifdef N_POSIX_PLATFORM_MINGW
-
-
 
 
 	// Phase 2 : Size Calculation
@@ -963,10 +926,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		{
 			n_type_gfx icon_sx = 32;
 			n_type_gfx icon_sy = 32;
-		
-#ifdef N_POSIX_PLATFORM_MINGW
-			n_win_stdsize_icon_large( &icon_sx, &icon_sy );
-#endif // #ifdef N_POSIX_PLATFORM_MINGW
 
 			gdi->icon_rsrc = n_posix_max_n_type_gfx( icon_sx, icon_sy );
 
@@ -980,6 +939,15 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		}
 
 //n_posix_debug_literal( " %d ", gdi->icon_rsrc );
+
+
+		if ( gdi->icon_style & N_GDI_ICON_UI )
+		{
+			gdi->icon_sx *= trunc( gdi->scale );
+			gdi->icon_sy *= trunc( gdi->scale );
+//n_log( "%d %f %f", gdi->scale, gdi->icon_sx, gdi->icon_sy );
+		}
+
 
 		if ( gdi->layout == N_GDI_LAYOUT_HORIZONTAL )
 		{
@@ -1272,16 +1240,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		return;
 	}
 
-
-#ifdef N_POSIX_PLATFORM_MAC
-
-	//BOOL autosize_sx = ( gdi->sx == 0 );
-	//BOOL autosize_sy = ( gdi->sy == 0 );
-
-//NSLog( @"%d %d", autosize_sx, autosize_sy );
-
-#endif // #ifdef N_POSIX_PLATFORM_MAC
-
 	gdi->sx = sx + ( borders + margins );
 	gdi->sy = sy + ( borders + margins );
 
@@ -1420,7 +1378,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		} else
 		if ( gdi->base_style == N_GDI_BASE_PROGRESS_H )
 		{
-#ifdef N_POSIX_PLATFORM_MINGW
 
 			n_bmp_flush( &bmp_ret, bg );
 
@@ -1432,11 +1389,9 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 				n_gdi_frame_lineframe( gdi, &bmp_ret, 0,0,gdi->sx,gdi->sy, color_frame );
 			}
 
-#endif // #ifdef N_POSIX_PLATFORM_MINGW
 		} else
 		if ( gdi->base_style == N_GDI_BASE_PROGRESS_V )
 		{
-#ifdef N_POSIX_PLATFORM_MINGW
 
 			n_bmp_flush( &bmp_ret, bg );
 
@@ -1448,7 +1403,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 				n_gdi_frame_lineframe( gdi, &bmp_ret, 0,0,gdi->sx,gdi->sy, color_frame );
 			}
 
-#endif // #ifdef N_POSIX_PLATFORM_MINGW
 		} else
 		//
 		{
@@ -1572,25 +1526,38 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		{
 			n_gdi_system_themed( &icon );
 
-			n_posix_loop
-			{
-				if (
-					( gdi->icon_sx >= N_BMP_SX( &icon ) )
-					&&
-					( gdi->icon_sy >= N_BMP_SY( &icon ) )
-				)
-				{
-					break;
-				}
+			n_type_real ratio_x = (n_type_real) gdi->icon_sx / N_BMP_SX( &icon );
+			n_type_real ratio_y = (n_type_real) gdi->icon_sy / N_BMP_SY( &icon );
 
-				n_bmp_flush_antialias( &icon, 1.0 );
-				n_bmp_scaler_lil( &icon, 2 );
+			if (
+				( ratio_x >= 2 )
+				||
+				( ratio_y >= 2 )
+			)
+			{
+				n_bmp_scaler_big( &icon, n_posix_min_n_type_real( ratio_x, ratio_y ) );
+			} else {
+				n_posix_loop
+				{
+					if (
+						( gdi->icon_sx >= N_BMP_SX( &icon ) )
+						&&
+						( gdi->icon_sy >= N_BMP_SY( &icon ) )
+					)
+					{
+						break;
+					}
+
+					n_bmp_flush_antialias( &icon, 1.0 );
+					n_bmp_scaler_lil( &icon, 2 );
+				}
 			}
 		}
 
 		if ( ret == FALSE )
 		{
 			n_gdi_bmp_effect_icon( gdi, &bmp_ret, &icon );
+//if ( gdi->debug_id == 1 ) { n_bmp_save_literal( &bmp_ret, "ret.bmp" ); }
 		}
 
 		n_bmp_free_fast( &icon );
@@ -1656,6 +1623,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
 		n_gdi_text_draw( gdi, &bmp_ret, (void*) &txt, NULL,NULL );
+//if ( gdi->debug_id == 1 ) { n_bmp_save_literal( &bmp_ret, "ret.bmp" ); }
 
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
 
