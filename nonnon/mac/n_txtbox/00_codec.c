@@ -121,6 +121,13 @@ n_txt_load_utf8_internal( n_txt *txt, const n_posix_char *fname, void *stream, n
 
 	// Decoder
 
+	if ( byte == 0 )
+	{
+
+		txt->unicode = N_TXT_UNICODE_UTF8_NO_BOM;
+		txt->newline = N_TXT_NEWLINE_LF;
+
+	} else
 	if ( txt->unicode == N_TXT_UNICODE_UTF8_NO_BOM )
 	{
 //NSLog( @"N_TXT_UNICODE_UTF8_NO_BOM" );
@@ -134,6 +141,7 @@ n_txt_load_utf8_internal( n_txt *txt, const n_posix_char *fname, void *stream, n
 		BOOL binary = FALSE;
 		if ( error ) { binary = n_txt_load_utf8_is_binary( stream, byte ); }
 //NSLog( @"Error %d : Binary : %d", error, binary );
+//NSLog( @"%d : %x %x %lld", n_memory_is_same( ptr, stream, byte ), ptr[ 0 ], ((char*)stream)[ 0 ], byte );
 
 		n_memory_free( ptr );
 
@@ -152,10 +160,26 @@ n_txt_load_utf8_internal( n_txt *txt, const n_posix_char *fname, void *stream, n
 //NSLog( @"Byte %d", byte );
 //NSLog( @"%d", memcmp( stream, ptr, byte ) );
 
-			txt->readonly = TRUE;
-
-			txt->unicode = N_TXT_UNICODE_NIL;
 			txt->newline = n_txt_newline_check( stream, byte );
+//NSLog( @"%lld : %d", byte, txt->newline );
+
+			if ( ( byte == 1 )&&( txt->newline == N_TXT_NEWLINE_CR ) )
+			{
+				//
+			} else
+			if ( ( byte == 1 )&&( txt->newline == N_TXT_NEWLINE_LF ) )
+			{
+				//
+			} else
+			if ( ( byte == 2 )&&( txt->newline == N_TXT_NEWLINE_CRLF ) )
+			{
+				//
+			} else
+			//
+			{
+				txt->readonly = TRUE;
+				txt->unicode  = N_TXT_UNICODE_NIL;
+			}
 
 		} else {
 

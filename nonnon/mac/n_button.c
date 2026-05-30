@@ -43,58 +43,27 @@ n_mac_image_bmp_halo( n_bmp *bmp )
 	n_type_gfx size = N_BMP_SX( bmp );
 //NSLog( @"%d", size );
 
-	//gdi.sx                  = size;
-	//gdi.sy                  = size;
+	gdi.base_color_bg = n_bmp_black_invisible;
 
-	gdi.base_color_bg       = n_bmp_black_invisible;
+	gdi.icon_in       = bmp;
+	gdi.icon_sx       = size;
+	gdi.icon_sy       = size;
+	gdi.icon_style    = N_GDI_ICON_SMOOTH;
 
-	gdi.icon_in             = bmp;
-	gdi.icon_style          = N_GDI_ICON_CONTOUR_FOG;
-	gdi.icon_fxsize1        = 3;
-	gdi.icon_fxsize2        = gdi.icon_fxsize1;
-	gdi.icon_sx             = size;
-	gdi.icon_sy             = size;
-
+	u32 color_outline;
 	if ( n_mac_is_darkmode() )
 	{
-		gdi.icon_color_contour  = n_bmp_rgb( 111,111,111 );
+		color_outline = n_bmp_rgb( 111,111,111 );
 	} else {
-		gdi.icon_color_contour  = n_bmp_rgb( 192,192,192 );
+		color_outline = n_bmp_rgb( 192,192,192 );
 	}
+
+	gdi.icon_effect_style[ 0 ] = N_GDI_EFFECT_OUTLINE_FOG;
+	gdi.icon_effect_color[ 0 ] = color_outline;
+	gdi.icon_effect_param[ 0 ] = 3;
 
 	n_gdi_bmp( &gdi, bmp );
 
-
-	return;
-/*
-
-	n_bmp_flush_antialias( bmp, 1.0 );
-	n_bmp_flush_antialias( bmp, 1.0 );
-
-	n_type_gfx x = 0;
-	n_type_gfx y = 0;
-	n_posix_loop
-	{
-
-		u32 color; n_bmp_ptr_get_fast( bmp, x,y, &color );
-		if ( 0 == n_bmp_a( color ) )
-		{
-			n_bmp_ptr_set_fast( bmp, x,y, n_bmp_black );
-		} else {
-			n_bmp_ptr_set_fast( bmp, x,y, n_bmp_white );
-		}
-
-		x++;
-		if ( x >= N_BMP_SX( bmp ) )
-		{
-			x = 0;
-			y++;
-			if ( y >= N_BMP_SY( bmp ) ) { break; }
-		}
-	}
-
-	n_bmp_flush_antialias( bmp, 1.0 );
-*/
 
 	return;
 }

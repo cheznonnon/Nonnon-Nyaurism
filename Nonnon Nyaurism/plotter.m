@@ -41,7 +41,6 @@ n_nyaurism_tooltip_draw( n_bmp *bmp_canvas, n_posix_char *str )
 	gdi.text_size          = 14;
 	gdi.text_color_main    = n_bmp_rgb_mac( 0,0,0 );
 	gdi.text_style         = N_GDI_TEXT_MAC_NO_CROP;
-	gdi.text_fxsize2       = 0;
 
 
 	n_bmp bmp; n_bmp_zero( &bmp ); n_gdi_bmp( &gdi, &bmp );

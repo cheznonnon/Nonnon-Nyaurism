@@ -43,11 +43,6 @@ n_ini2gdi_option n_ini2gdi_option_style[] = {
 	{ n_posix_literal( "automargin"  ), N_GDI_AUTOMARGIN  },
 	{ n_posix_literal( "pressed"     ), N_GDI_PRESSED     },
 	{ n_posix_literal( "systemcolor" ), N_GDI_SYSTEMCOLOR },
-	{ n_posix_literal( "shadow"      ), N_GDI_SHADOW      },
-	{ n_posix_literal( "shadow_fog"  ), N_GDI_SHADOW_FOG  },
-	{ n_posix_literal( "contour"     ), N_GDI_CONTOUR     },
-	{ n_posix_literal( "contour_fog" ), N_GDI_CONTOUR_FOG },
-	{ n_posix_literal( "sink"        ), N_GDI_SINK        },
 	{ n_posix_literal( "smooth"      ), N_GDI_SMOOTH      },
 	{ n_posix_literal( ""            ), 0                 }
 
@@ -121,35 +116,37 @@ n_ini2gdi_option n_ini2gdi_option_frame[] = {
 
 n_ini2gdi_option n_ini2gdi_option_icon[] = {
 
-	{ n_posix_literal( "default"     ), N_GDI_ICON_DEFAULT     },
-	{ n_posix_literal( "shadow"      ), N_GDI_ICON_SHADOW      },
-	{ n_posix_literal( "shadow_fog"  ), N_GDI_ICON_SHADOW_FOG  },
-	{ n_posix_literal( "contour"     ), N_GDI_ICON_CONTOUR     },
-	{ n_posix_literal( "contour_fog" ), N_GDI_ICON_CONTOUR_FOG },
-	{ n_posix_literal( "sink"        ), N_GDI_ICON_SINK        },
-	{ n_posix_literal( "smooth"      ), N_GDI_ICON_SMOOTH      },
-	{ n_posix_literal( "ui"          ), N_GDI_ICON_UI          },
-	{ n_posix_literal( ""            ), 0                      }
+	{ n_posix_literal( "default"     ), N_GDI_ICON_DEFAULT },
+	{ n_posix_literal( "smooth"      ), N_GDI_ICON_SMOOTH  },
+	{ n_posix_literal( "ui"          ), N_GDI_ICON_UI      },
+	{ n_posix_literal( ""            ), 0                  }
 
 };
 
 
 n_ini2gdi_option n_ini2gdi_option_text[] = {
 
-	{ n_posix_literal( "default"     ), N_GDI_TEXT_DEFAULT     },
-	{ n_posix_literal( "bold"        ), N_GDI_TEXT_BOLD        },
-	{ n_posix_literal( "italic"      ), N_GDI_TEXT_ITALIC      },
-	{ n_posix_literal( "underline"   ), N_GDI_TEXT_UNDERLINE   },
-	{ n_posix_literal( "strikeout"   ), N_GDI_TEXT_STRIKEOUT   },
-	{ n_posix_literal( "monospace"   ), N_GDI_TEXT_MONOSPACE   },
-	{ n_posix_literal( "shadow"      ), N_GDI_TEXT_SHADOW      },
-	{ n_posix_literal( "shadow_fog"  ), N_GDI_TEXT_SHADOW_FOG  },
-	{ n_posix_literal( "contour"     ), N_GDI_TEXT_CONTOUR     },
-	{ n_posix_literal( "contour_fog" ), N_GDI_TEXT_CONTOUR_FOG },
-	{ n_posix_literal( "sink"        ), N_GDI_TEXT_SINK        },
-	{ n_posix_literal( "smooth"      ), N_GDI_TEXT_SMOOTH      },
-	{ n_posix_literal( "gradient"    ), N_GDI_TEXT_GRADIENT    },
-	{ n_posix_literal( ""            ), 0                      }
+	{ n_posix_literal( "default"     ), N_GDI_TEXT_DEFAULT   },
+	{ n_posix_literal( "bold"        ), N_GDI_TEXT_BOLD      },
+	{ n_posix_literal( "italic"      ), N_GDI_TEXT_ITALIC    },
+	{ n_posix_literal( "underline"   ), N_GDI_TEXT_UNDERLINE },
+	{ n_posix_literal( "strikeout"   ), N_GDI_TEXT_STRIKEOUT },
+	{ n_posix_literal( "monospace"   ), N_GDI_TEXT_MONOSPACE },
+	{ n_posix_literal( "smooth"      ), N_GDI_TEXT_SMOOTH    },
+	{ n_posix_literal( "gradient"    ), N_GDI_TEXT_GRADIENT  },
+	{ n_posix_literal( ""            ), 0                    }
+
+};
+
+
+n_ini2gdi_option n_ini2gdi_option_effect[] = {
+
+	{ n_posix_literal( "shadow"      ), N_GDI_EFFECT_SHADOW      },
+	{ n_posix_literal( "shadow_fog"  ), N_GDI_EFFECT_SHADOW_FOG  },
+	{ n_posix_literal( "outline"     ), N_GDI_EFFECT_OUTLINE     },
+	{ n_posix_literal( "outline_fog" ), N_GDI_EFFECT_OUTLINE_FOG },
+	{ n_posix_literal( "sink"        ), N_GDI_EFFECT_SINK        },
+	{ n_posix_literal( ""            ), 0                        }
 
 };
 
@@ -303,18 +300,20 @@ n_ini2gdi_str2rgb( const n_posix_char *str, u32 *ret1, u32 *ret2, u32 *ret3, u32
 }
 
 u32
-n_ini2gdi_str2option( const n_ini2gdi_option *o, const n_posix_char *str )
+n_ini2gdi_str2option( const n_ini2gdi_option *o, const n_posix_char *str, int *offset )
 {
 
 	if ( o == NULL ) { return 0; }
 
 	if ( n_string_is_empty( str ) ) { return 0; }
 
+	if ( offset == NULL ) { return 0; }
+
 
 	u32 ret = 0;
 
 
-	int i = 0;
+	int i = (*offset);
 	n_posix_loop
 	{
 
@@ -333,6 +332,8 @@ n_ini2gdi_str2option( const n_ini2gdi_option *o, const n_posix_char *str )
 					( str[ i + cch ] == N_STRING_CHAR_SPACE )
 				)
 				{
+
+					(*offset) = i;
 
 					ret |= o[ ii ].value;
 					i += cch;
@@ -381,6 +382,8 @@ n_ini2gdi_load_single( const n_posix_char *abspath, const n_posix_char *section,
 	n_posix_char *lval   = NULL;
 	n_posix_char *defval = NULL;
 
+	int offset = 0;
+
 
 	// Global
 
@@ -398,7 +401,8 @@ n_ini2gdi_load_single( const n_posix_char *abspath, const n_posix_char *section,
 
 	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
 
-	gdi.style = N_GDI_TEXTLOADER | n_ini2gdi_str2option( n_ini2gdi_option_style, str );
+	offset    = 0;
+	gdi.style = N_GDI_TEXTLOADER | n_ini2gdi_str2option( n_ini2gdi_option_style, str, &offset );
 
 
 	lval   = n_posix_literal( "layout" );
@@ -406,7 +410,8 @@ n_ini2gdi_load_single( const n_posix_char *abspath, const n_posix_char *section,
 
 	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
 
-	gdi.layout = n_ini2gdi_str2option( n_ini2gdi_option_layout, str );
+	offset     = 0;
+	gdi.layout = n_ini2gdi_str2option( n_ini2gdi_option_layout, str, &offset );
 
 
 	lval   = n_posix_literal( "align" );
@@ -414,7 +419,8 @@ n_ini2gdi_load_single( const n_posix_char *abspath, const n_posix_char *section,
 
 	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
 
-	gdi.align = n_ini2gdi_str2option( n_ini2gdi_option_align, str );
+	offset    = 0;
+	gdi.align = n_ini2gdi_str2option( n_ini2gdi_option_align, str, &offset );
 
 
 	lval   = n_posix_literal( "scale" );
@@ -450,7 +456,8 @@ n_ini2gdi_load_single( const n_posix_char *abspath, const n_posix_char *section,
 
 	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
 
-	gdi.base_style = n_ini2gdi_str2option( n_ini2gdi_option_base, str );
+	offset         = 0;
+	gdi.base_style = n_ini2gdi_str2option( n_ini2gdi_option_base, str, &offset );
 
 
 	lval   = n_posix_literal( "base_unit" );
@@ -477,7 +484,8 @@ n_ini2gdi_load_single( const n_posix_char *abspath, const n_posix_char *section,
 
 	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
 
-	gdi.frame_style = n_ini2gdi_str2option( n_ini2gdi_option_frame, str );
+	offset          = 0;
+	gdi.frame_style = n_ini2gdi_str2option( n_ini2gdi_option_frame, str, &offset );
 
 
 	lval   = n_posix_literal( "frame_fxsize" );
@@ -526,36 +534,13 @@ n_posix_debug_literal
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 
 
-	lval   = n_posix_literal( "icon_color_shadow" );
-	defval = n_posix_literal( "255 0 0 0" );
-
-	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
-
-	n_ini2gdi_str2rgb( str, &gdi.icon_color_shadow, NULL, NULL, NULL );
-
-
-	lval   = n_posix_literal( "icon_color_contour" );
-	defval = n_posix_literal( "255 0 0 0" );
-
-	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
-
-	n_ini2gdi_str2rgb( str, &gdi.icon_color_contour, NULL, NULL, NULL );
-
-
-	lval   = n_posix_literal( "icon_color_sink" );
-	defval = n_posix_literal( "255 0 0 0, 255 0 0 0" );
-
-	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
-
-	n_ini2gdi_str2rgb( str, &gdi.icon_color_sink_tl, &gdi.icon_color_sink_br, NULL, NULL );
-
-
 	lval   = n_posix_literal( "icon_style" );
 	defval = n_posix_literal( "" );
 
 	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
 
-	gdi.icon_style = N_GDI_ICON_IMAGELOADER | n_ini2gdi_str2option( n_ini2gdi_option_icon,  str );
+	offset         = 0;
+	gdi.icon_style = N_GDI_ICON_IMAGELOADER | n_ini2gdi_str2option( n_ini2gdi_option_icon, str, &offset );
 
 
 	lval   = n_posix_literal( "icon_size" );
@@ -596,56 +581,93 @@ n_posix_debug_literal
 	n_ini2gdi_str2rgb( str, &gdi.text_color_main, &gdi.text_color_gradient, NULL, NULL );
 
 
-	lval   = n_posix_literal( "text_color_shadow" );
-	defval = n_posix_literal( "255 0 0 0" );
-
-	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
-
-	n_ini2gdi_str2rgb( str, &gdi.text_color_shadow, NULL, NULL, NULL );
-
-
-	lval   = n_posix_literal( "text_color_contour" );
-	defval = n_posix_literal( "255 0 0 0" );
-
-	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
-
-	n_ini2gdi_str2rgb( str, &gdi.text_color_contour, NULL, NULL, NULL );
-
-
-	lval   = n_posix_literal( "text_color_sink" );
-	defval = n_posix_literal( "255 0 0 0, 255 0 0 0" );
-
-	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
-
-	n_ini2gdi_str2rgb( str, &gdi.text_color_sink_tl, &gdi.text_color_sink_br, NULL, NULL );
-
-
 	lval   = n_posix_literal( "text_style" );
 	defval = n_posix_literal( "" );
 
 	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
 
-	gdi.text_style = n_ini2gdi_str2option( n_ini2gdi_option_text,  str );
+	offset         = 0;
+	gdi.text_style = n_ini2gdi_str2option( n_ini2gdi_option_text, str, &offset);
 
 
 	// Effect
 
-	lval   = n_posix_literal( "icon_fxsize" );
-	defval = n_posix_literal( "1 1" );
+	lval   = n_posix_literal( "icon_effect_style" );
+	defval = n_posix_literal( "" );
 
 	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
 
-	gdi.icon_fxsize1 = n_ini2gdi_str2val( str, 0 );
-	gdi.icon_fxsize2 = n_ini2gdi_str2val( str, 1 );
+	offset                     = 0;
+	gdi.icon_effect_style[ 0 ] = n_ini2gdi_str2option( n_ini2gdi_option_effect, str, &offset );
+	gdi.icon_effect_style[ 1 ] = n_ini2gdi_str2option( n_ini2gdi_option_effect, str, &offset );
+	gdi.icon_effect_style[ 2 ] = n_ini2gdi_str2option( n_ini2gdi_option_effect, str, &offset );
+	gdi.icon_effect_style[ 3 ] = n_ini2gdi_str2option( n_ini2gdi_option_effect, str, &offset );
 
 
-	lval   = n_posix_literal( "text_fxsize" );
-	defval = n_posix_literal( "1 1" );
+	lval   = n_posix_literal( "icon_effect_color" );
+	defval = n_posix_literal( "255 0 0 0" );
 
 	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
 
-	gdi.text_fxsize1 = n_ini2gdi_str2val( str, 0 );
-	gdi.text_fxsize2 = n_ini2gdi_str2val( str, 1 );
+	n_ini2gdi_str2rgb
+	(
+		str,
+		&gdi.icon_effect_color[ 0 ],
+		&gdi.icon_effect_color[ 1 ],
+		&gdi.icon_effect_color[ 2 ],
+		&gdi.icon_effect_color[ 3 ]
+	);
+
+
+	lval   = n_posix_literal( "icon_effect_param" );
+	defval = n_posix_literal( "1" );
+
+	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
+
+	gdi.icon_effect_param[ 0 ] = n_ini2gdi_str2val( str, 0 );
+	gdi.icon_effect_param[ 1 ] = n_ini2gdi_str2val( str, 1 );
+	gdi.icon_effect_param[ 2 ] = n_ini2gdi_str2val( str, 2 );
+	gdi.icon_effect_param[ 3 ] = n_ini2gdi_str2val( str, 3 );
+
+
+	lval   = n_posix_literal( "text_effect_style" );
+	defval = n_posix_literal( "" );
+
+	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
+
+	offset                     = 0;
+	gdi.text_effect_style[ 0 ] = n_ini2gdi_str2option( n_ini2gdi_option_effect, str, &offset );
+	gdi.text_effect_style[ 1 ] = n_ini2gdi_str2option( n_ini2gdi_option_effect, str, &offset );
+	gdi.text_effect_style[ 2 ] = n_ini2gdi_str2option( n_ini2gdi_option_effect, str, &offset );
+	gdi.text_effect_style[ 3 ] = n_ini2gdi_str2option( n_ini2gdi_option_effect, str, &offset );
+//NSLog( @"Style %d %d", gdi.text_effect_style[ 0 ], gdi.text_effect_style[ 1 ] );
+
+	lval   = n_posix_literal( "text_effect_color" );
+	defval = n_posix_literal( "255 0 0 0" );
+
+	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
+
+	n_ini2gdi_str2rgb
+	(
+		str,
+		&gdi.text_effect_color[ 0 ],
+		&gdi.text_effect_color[ 1 ],
+		&gdi.text_effect_color[ 2 ],
+		&gdi.text_effect_color[ 3 ]
+	);
+//NSLog( @"Color %x %x", gdi.text_effect_color[ 0 ], gdi.text_effect_color[ 1 ] );
+
+
+	lval   = n_posix_literal( "text_effect_param" );
+	defval = n_posix_literal( "1" );
+
+	n_ini_value_str( &ini, section, lval, defval, str, N_INI2GDI_CCH );
+
+	gdi.text_effect_param[ 0 ] = n_ini2gdi_str2val( str, 0 );
+	gdi.text_effect_param[ 1 ] = n_ini2gdi_str2val( str, 1 );
+	gdi.text_effect_param[ 2 ] = n_ini2gdi_str2val( str, 2 );
+	gdi.text_effect_param[ 3 ] = n_ini2gdi_str2val( str, 3 );
+//NSLog( @"Param %x %x", gdi.text_effect_param[ 0 ], gdi.text_effect_param[ 1 ] );
 
 
 	// Cleanup
@@ -673,12 +695,10 @@ n_posix_debug_literal
 	"icon           %s \n"
 	"icon_index     %d \n"
 	"icon_style     %d \n"
-	"icon_fxsize    %d \n"
 
 	"text_font      %s \n"
 	"text_size      %d \n"
 	"text_style     %d \n"
-	"text_fxsize    %d \n"
 
 	"",
 
@@ -696,12 +716,10 @@ n_posix_debug_literal
 	      gdi.icon,
 	(int) gdi.icon_index,
 	(int) gdi.icon_style,
-	(int) gdi.icon_fxsize,
 
 	      gdi.text_font,
 	(int) gdi.text_size,
 	(int) gdi.text_style
-	(int) gdi.text_fxsize,
 
 );
 

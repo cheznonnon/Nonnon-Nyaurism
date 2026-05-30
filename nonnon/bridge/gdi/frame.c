@@ -302,9 +302,7 @@ n_gdi_frame_bmp_cornermask_aqua( n_bmp *bmp, n_type_gfx round_size, n_type_gfx f
 	n_bmp_roundrect( &b, tx,ty,tsx,tsy, n_bmp_black, round_size );
 //n_bmp_save_literal( &b, "b.bmp" );
 
-	BOOL p_trans = b.transparent_onoff; b.transparent_onoff = FALSE;
 	n_bmp_flush_antialias( &b, 1.0 );
-	b.transparent_onoff = p_trans;
 
 //n_bmp_save_literal( &b, "c.bmp" );
 

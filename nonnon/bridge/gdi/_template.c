@@ -31,33 +31,24 @@ n_gdi_template( n_bmp *bmp )
 	gdi.frame_style         = N_GDI_FRAME_NOFRAME;
 	gdi.frame_round         = 0;
 
-	gdi.icon                = n_posix_literal( "" );
-	gdi.icon_index          = 0;
-	gdi.icon_bpp            = 0;
-	gdi.icon_rsrc           = 0;
-	gdi.icon_style          = N_GDI_ICON_DEFAULT;
-	gdi.icon_color_shadow   = n_bmp_white_invisible;
-	gdi.icon_color_shadow   = n_bmp_rgb(  10, 10, 10 );
-	gdi.icon_color_contour  = n_bmp_rgb(  10, 10, 10 );
-	gdi.icon_color_sink_tl  = n_bmp_rgb(  10, 10, 10 );
-	gdi.icon_color_sink_br  = n_bmp_rgb(  10, 10, 10 );
-	gdi.icon_fxsize1        = 0;
-	gdi.icon_fxsize2        = 0;
-	gdi.icon_sx             = 0;
-	gdi.icon_sy             = 0;
+	gdi.icon                   = n_posix_literal( "" );
+	gdi.icon_index             = 0;
+	gdi.icon_bpp               = 0;
+	gdi.icon_rsrc              = 0;
+	gdi.icon_style             = N_GDI_ICON_DEFAULT;
+	gdi.icon_effect_style[ 0 ] = N_GDI_EFFECT_NONE;
+	gdi.icon_effect_color[ 0 ] = n_bmp_white_invisible;
+	gdi.icon_effect_param[ 0 ] = 0;
 
-	gdi.text                = n_posix_literal( "" );
-	gdi.text_font           = n_posix_literal( "" );
-	gdi.text_size           = 16;
-	gdi.text_style          = N_GDI_TEXT_DEFAULT;
-	gdi.text_color_main     = n_bmp_rgb( 255,255,255 );
-	gdi.text_color_gradient = n_bmp_rgb( 255,255,255 );
-	gdi.text_color_shadow   = n_bmp_rgb(  10, 10, 10 );
-	gdi.text_color_contour  = n_bmp_rgb(  10, 10, 10 );
-	gdi.text_color_sink_tl  = n_bmp_rgb(  10, 10, 10 );
-	gdi.text_color_sink_br  = n_bmp_rgb(  10, 10, 10 );
-	gdi.text_fxsize1        = 0;
-	gdi.text_fxsize2        = 0;
+	gdi.text                   = n_posix_literal( "" );
+	gdi.text_font              = n_posix_literal( "" );
+	gdi.text_size              = 16;
+	gdi.text_style             = N_GDI_TEXT_DEFAULT;
+	gdi.text_color_main        = n_bmp_rgb( 255,255,255 );
+	gdi.text_color_gradient    = n_bmp_rgb( 255,255,255 );
+	gdi.text_effect_style[ 0 ] = N_GDI_EFFECT_NONE;
+	gdi.text_effect_color[ 0 ] = n_bmp_white_invisible;
+	gdi.text_effect_param[ 0 ] = 0;
 
 
 	n_bmp_free( bmp );

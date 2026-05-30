@@ -375,18 +375,20 @@ n_nyaurism_wav_load( n_wav *wav, n_posix_char *path, BOOL *rename_needed )
 	gdi.text                = text;
 	gdi.text_font           = n_posix_literal( "Trebuchet MS" );
 	gdi.text_size           = 14;
-	gdi.text_style          = N_GDI_TEXT_CONTOUR;
+	gdi.text_style          = N_GDI_TEXT_SMOOTH;
 	gdi.text_color_main     = n_bmp_rgb( 255,255,255 );
-	gdi.text_color_contour  = n_mac_nscolor2argb( [NSColor controlAccentColor] );
-	gdi.text_fxsize1        = 1;
-	gdi.text_fxsize2        = 1;
 
+	u32 color_outline = n_mac_nscolor2argb( [NSColor controlAccentColor] );
 	if ( n_mac_is_darkmode() )
 	{
-		gdi.text_color_contour = n_bmp_blend_pixel( gdi.text_color_contour, n_bmp_black, 0.25 );
+		color_outline = n_bmp_blend_pixel( color_outline, n_bmp_black, 0.25 );
 	} else {
-		gdi.text_color_contour = n_bmp_blend_pixel( gdi.text_color_contour, n_bmp_black, 0.25 );
+		color_outline = n_bmp_blend_pixel( color_outline, n_bmp_black, 0.25 );
 	}
+
+	gdi.text_effect_style[ 0 ] = N_GDI_EFFECT_OUTLINE;
+	gdi.text_effect_color[ 0 ] = color_outline;
+	gdi.text_effect_param[ 0 ] = 1;
 
 	n_bmp_free( &bmp );
 	n_gdi_bmp( &gdi, &bmp );

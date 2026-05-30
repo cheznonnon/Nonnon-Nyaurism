@@ -65,7 +65,13 @@ n_bmp_clamp_channel( int v )
 }
 */
 
+
+
+
 #define n_bmp_simplify_channel( v, n ) ( 255 - ( ( 255 - ( v ) ) / n * n ) )
+
+
+
 
 u32
 n_bmp_grayscale_pixel( u32 color )
@@ -87,6 +93,9 @@ n_bmp_grayscale_pixel( u32 color )
 
 	return n_bmp_argb( a,r,g,b );
 }
+
+
+
 
 n_type_real
 n_bmp_blend_alpha2ratio( int alpha )
@@ -513,11 +522,46 @@ n_bmp_blend_pixel_force_move( u32 f, u32 t, n_type_real blend )
 	return p_color;
 }
 
+
+
+
 #define N_BMP_GRADIENT_RECTANGLE  0
 #define N_BMP_GRADIENT_CIRCLE     1
 
+void
+n_bmp_gradient_prepare_s32( n_type_gfx *x, n_type_gfx *y, n_type_gfx *r, n_type_real *p, int mode )
+{
+
+	// [Patch] : smaller circle will be drawn
+
+	(*r)++;
+
+
+	// [!] : "int" is 40% faster than "n_type_real"
+
+
+	// [!] : pow( n, 2 ) is too much heavy
+
+	(*x) *= (*x);
+	(*y) *= (*y);
+	(*r) *= (*r);
+
+
+	if ( mode == N_BMP_GRADIENT_CIRCLE )
+	{
+		(*p) = (*x) + (*y);
+	} else {
+		if ( (*x) > (*y) ) { (*p) = (*x); } else { (*p) = (*y); }
+	}
+
+	if ( (*p) > (*r) ) { (*p) = (*r); }
+
+
+	return;
+}
+
 n_posix_inline int
-n_bmp_gradient_channel_s32( int f, int t, n_type_gfx x, n_type_gfx y, n_type_gfx r, int mode )
+n_bmp_gradient_channel_s32( int f, int t, n_type_gfx x, n_type_gfx y, n_type_gfx r, n_type_real p )
 {
 
 	// [Mechanism]
@@ -538,36 +582,8 @@ n_bmp_gradient_channel_s32( int f, int t, n_type_gfx x, n_type_gfx y, n_type_gfx
 	if ( f == t ) { return t; }
 
 
-	// [Patch] : smaller circle will be drawn
-
-	r++;
-
-
-	// [!] : "int" is 40% faster than "n_type_real"
-
-
-	// [!] : pow( n, 2 ) is too much heavy
-
-	x *= x;
-	y *= y;
-	r *= r;
-
-
-	n_type_real p;
-
-	if ( mode == N_BMP_GRADIENT_CIRCLE )
-	{
-		p = x + y;
-	} else {
-		if ( x > y ) { p = x; } else { p = y; }
-	}
-
-	if ( p > r ) { p = r; }
-
-
 	// [!] : this is 2x slower than below code
 	//return n_bmp_blend_channel( f, t, (n_type_real) p / r );
-
 
 	n_type_real line_1 = f * ( r - p );
 	n_type_real line_2 = t * (     p );
@@ -576,8 +592,57 @@ n_bmp_gradient_channel_s32( int f, int t, n_type_gfx x, n_type_gfx y, n_type_gfx
 	return (int) ( ( line_1 + line_2 ) / r );
 }
 
+n_posix_inline u32
+n_bmp_gradient_pixel_s32( u32 f,u32 t, n_type_gfx x,n_type_gfx y,n_type_gfx r, int mode )
+{
+
+	n_type_real p = 0.0;
+
+	n_bmp_gradient_prepare_s32( &x, &y, &r, &p, mode );
+
+	return n_bmp_argb
+	(
+		n_bmp_gradient_channel_s32( n_bmp_a( f ), n_bmp_a( t ), x,y,r,p ),
+		n_bmp_gradient_channel_s32( n_bmp_r( f ), n_bmp_r( t ), x,y,r,p ),
+		n_bmp_gradient_channel_s32( n_bmp_g( f ), n_bmp_g( t ), x,y,r,p ),
+		n_bmp_gradient_channel_s32( n_bmp_b( f ), n_bmp_b( t ), x,y,r,p )
+	);
+}
+
+void
+n_bmp_gradient_prepare_real( n_type_real *x, n_type_real *y, n_type_real *r, n_type_real *p, int mode )
+{
+
+	// [Patch] : smaller circle will be drawn
+
+	(*r)++;
+
+
+	// [!] : "int" is 40% faster than "n_type_real"
+
+
+	// [!] : pow( n, 2 ) is too much heavy
+
+	(*x) *= (*x);
+	(*y) *= (*y);
+	(*r) *= (*r);
+
+
+	if ( mode == N_BMP_GRADIENT_CIRCLE )
+	{
+		(*p) = (*x) + (*y);
+	} else {
+		if ( (*x) > (*y) ) { (*p) = (*x); } else { (*p) = (*y); }
+	}
+
+	if ( (*p) > (*r) ) { (*p) = (*r); }
+
+
+	return;
+}
+
 n_posix_inline int
-n_bmp_gradient_channel_real( int f, int t, n_type_real x, n_type_real y, n_type_real r, int mode )
+n_bmp_gradient_channel_real( int f, int t, n_type_real x, n_type_real y, n_type_real r, n_type_real p )
 {
 
 	// [Mechanism]
@@ -598,36 +663,8 @@ n_bmp_gradient_channel_real( int f, int t, n_type_real x, n_type_real y, n_type_
 	if ( f == t ) { return t; }
 
 
-	// [Patch] : smaller circle will be drawn
-
-	r++;
-
-
-	// [!] : "int" is 40% faster than "n_type_real"
-
-
-	// [!] : pow( n, 2 ) is too much heavy
-
-	x *= x;
-	y *= y;
-	r *= r;
-
-
-	n_type_real p;
-
-	if ( mode == N_BMP_GRADIENT_CIRCLE )
-	{
-		p = x + y;
-	} else {
-		if ( x > y ) { p = x; } else { p = y; }
-	}
-
-	if ( p > r ) { p = r; }
-
-
 	// [!] : this is 2x slower than below code
 	//return n_bmp_blend_channel( f, t, (n_type_real) p / r );
-
 
 	n_type_real line_1 = f * ( r - p );
 	n_type_real line_2 = t * (     p );
@@ -637,30 +674,24 @@ n_bmp_gradient_channel_real( int f, int t, n_type_real x, n_type_real y, n_type_
 }
 
 n_posix_inline u32
-n_bmp_gradient_pixel_s32( u32 f,u32 t, n_type_gfx x,n_type_gfx y,n_type_gfx r, int mode )
-{
-
-	return n_bmp_argb
-	(
-		n_bmp_gradient_channel_s32( n_bmp_a( f ), n_bmp_a( t ), x,y,r, mode ),
-		n_bmp_gradient_channel_s32( n_bmp_r( f ), n_bmp_r( t ), x,y,r, mode ),
-		n_bmp_gradient_channel_s32( n_bmp_g( f ), n_bmp_g( t ), x,y,r, mode ),
-		n_bmp_gradient_channel_s32( n_bmp_b( f ), n_bmp_b( t ), x,y,r, mode )
-	);
-}
-
-n_posix_inline u32
 n_bmp_gradient_pixel_real( u32 f,u32 t, n_type_gfx x,n_type_gfx y,n_type_gfx r, int mode )
 {
 
+	n_type_real p = 0.0;
+
+	n_bmp_gradient_prepare_s32( &x, &y, &r, &p, mode );
+
 	return n_bmp_argb
 	(
-		n_bmp_gradient_channel_real( n_bmp_a( f ), n_bmp_a( t ), x,y,r, mode ),
-		n_bmp_gradient_channel_real( n_bmp_r( f ), n_bmp_r( t ), x,y,r, mode ),
-		n_bmp_gradient_channel_real( n_bmp_g( f ), n_bmp_g( t ), x,y,r, mode ),
-		n_bmp_gradient_channel_real( n_bmp_b( f ), n_bmp_b( t ), x,y,r, mode )
+		n_bmp_gradient_channel_real( n_bmp_a( f ), n_bmp_a( t ), x,y,r,p ),
+		n_bmp_gradient_channel_real( n_bmp_r( f ), n_bmp_r( t ), x,y,r,p ),
+		n_bmp_gradient_channel_real( n_bmp_g( f ), n_bmp_g( t ), x,y,r,p ),
+		n_bmp_gradient_channel_real( n_bmp_b( f ), n_bmp_b( t ), x,y,r,p )
 	);
 }
+
+
+
 /*
 int
 n_bmp_contrast_channel( int ch, int param )
@@ -709,6 +740,9 @@ n_bmp_contrast_pixel( u32 color, int param )
 	return n_bmp_argb( a,r,g,b );
 }
 
+
+
+
 #ifdef N_BMP_ALPHA_MODE_STANDARD
 
 #define n_bmp_alpha_visible_pixel(   color ) ( ( color ) | 0xff000000 )
@@ -735,6 +769,9 @@ n_bmp_alpha_replace_pixel( u32 color, int alpha )
 */
 	return ( 0x00ffffff & color ) | ( alpha << 24 );
 }
+
+
+
 
 u32
 n_bmp_div_pixel( int a, int r, int g, int b, int n )
@@ -777,11 +814,14 @@ n_bmp_div_pixel( int a, int r, int g, int b, int n )
 	return n_bmp_argb( a,r,g,b );
 }
 
+
+
+
 u32
 n_bmp_antialias_pixel( const n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_real blend )
 {
 
-	// [!] : n_bmp_blend_pixel() is heavy
+	// [!] : Thx : DeepSeek AI : Gaussian Blur
 
 
 	u32 center;
@@ -801,66 +841,66 @@ n_bmp_antialias_pixel( const n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_real
 	if ( blend <= 0.0 ) { return center; }
 
 
-	int avr = 1;
+	const int sum = 16;
 
-	int a = n_bmp_a( center );
-	int r = n_bmp_r( center );
-	int g = n_bmp_g( center );
-	int b = n_bmp_b( center );
+	const int kernel[] = {
 
+		1, 2, 1,
+		2, 4, 2,
+		1, 2, 1,
 
-	int i = 0;
+	};
+
+	int a = 0;
+	int r = 0;
+	int g = 0;
+	int b = 0;
+
+	n_type_gfx tx = -1;
+	n_type_gfx ty = -1;
 	n_posix_loop
 	{
 
-		n_type_gfx tx = x;
-		n_type_gfx ty = y;
-
-		if ( i == 0 ) { ty--; } else
-		if ( i == 1 ) { ty++; } else
-		if ( i == 2 ) { tx--; } else
-		if ( i == 3 ) { tx++; }
-
-
-		u32 color;
-
-		if (
-			( FALSE == n_bmp_ptr_get( bmp, tx,ty, &color ) )
-			&&
-			( FALSE == n_bmp_is_trans( bmp, color ) )
-		)
+		u32 c;
+		if ( n_bmp_ptr_get( bmp, x + tx, y + ty, &c ) )
 		{
-
-			avr++;
-
-			// [!] : Copilot Optimization
-
-			//a += n_bmp_a( color );
-			//r += n_bmp_r( color );
-			//g += n_bmp_g( color );
-			//b += n_bmp_b( color );
-
-			// cache components to avoid repeated bit shifts
-			int ca = n_bmp_a( color );
-			int cr = n_bmp_r( color );
-			int cg = n_bmp_g( color );
-			int cb = n_bmp_b( color );
-
-			a += ca;
-			r += cr;
-			g += cg;
-			b += cb;
-
+			c = center;
 		}
 
+		int pos = ( tx + 1 ) + ( ( ty + 1 ) * 3 );
 
-		i++;
-		if ( i >= 4 ) { break; }
+		a += n_bmp_a( c ) * kernel[ pos ];
+		r += n_bmp_r( c ) * kernel[ pos ];
+		g += n_bmp_g( c ) * kernel[ pos ];
+		b += n_bmp_b( c ) * kernel[ pos ];
+
+		tx++;
+		if ( tx > 1 )
+		{
+			tx = -1;
+
+			ty++;
+			if ( ty > 1 ) { break; }
+		}
 	}
 
 
-	return n_bmp_blend_pixel( center, n_bmp_div_pixel( a,r,g,b, avr ), blend );
+	a = a / sum;
+	r = r / sum;
+	g = g / sum;
+	b = b / sum;
+
+	a = n_bmp_clamp_channel( a );
+	r = n_bmp_clamp_channel( r );
+	g = n_bmp_clamp_channel( g );
+	b = n_bmp_clamp_channel( b );
+
+
+	return n_bmp_blend_pixel( center, n_bmp_argb( a,r,g,b ), blend );
 }
+
+
+
 
 u32
 n_bmp_blur_pixel( const n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx size, int weight, n_type_real blend )
@@ -953,6 +993,9 @@ n_bmp_blur_pixel( const n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_gfx size,
 
 	return n_bmp_blend_pixel( center, n_bmp_div_pixel( a,r,g,b, avr ), blend );
 }
+
+
+
 
 #ifdef _H_NONNON_NEUTRAL_BMP_TABLE_GAMMA
 
@@ -1047,229 +1090,120 @@ n_bmp_gamma_pixel( u32 color, n_type_real gamma )
 	return n_bmp_argb( a,r,g,b );
 }
 
-#define N_BMP_BILINEAR_PIXEL_NEAREST_NEIGHBOR 0
-#define N_BMP_BILINEAR_PIXEL_SMOOTH_SHRINK    1
-#define N_BMP_BILINEAR_PIXEL_ALWAYS_ENLARGE   2
 
-// internal
-n_posix_inline u32
-n_bmp_bilinear_pixel_x( n_bmp *bmp, n_type_gfx fx, n_type_gfx fy, n_type_real ratio_x, n_type_real coeff_x, int mode )
+
+
+BOOL
+n_bmp_color_similarity( u32 f, u32 t, int threshold )
 {
 
-	// [!] : comment-out for performance
+	// [!] : Thx : DeepSeek AI : Euclid Distance Method
 
-	//if ( FALSE == n_bmp_ptr_is_accessible( bmp, fx,fy ) ) { return color_trans; }
+	int da = n_bmp_a( f ) - n_bmp_a( t );
+	int dr = n_bmp_r( f ) - n_bmp_r( t );
+	int dg = n_bmp_g( f ) - n_bmp_g( t );
+	int db = n_bmp_b( f ) - n_bmp_b( t );
+
+	n_type_real distance = sqrt( da*da + dr*dr + dg*dg + db*db );
 
 
-	u32 ret = n_bmp_white_invisible;
+	return ( distance < threshold );
+}
 
 
-	if ( ratio_x == 1.0 )
+
+
+// internal
+n_type_real
+n_bmp_bicubic_weight( n_type_real x )
+{
+
+	// [!] : Thx : DeepSeek AI
+
+
+	const n_type_real a = -0.5;
+
+
+	x = fabs( x );
+
+	if ( x <= 1.0 )
 	{
-
-		n_bmp_ptr_get_fast( bmp, fx,fy, &ret );
-		if ( n_bmp_is_trans( bmp, ret ) ) { return ret; }
-
+		return ( a + 2.0 ) * x * x * x - ( a + 3.0 ) * x * x + 1.0;
 	} else
-	if ( ratio_x < 1.0 )
+	if ( x < 2.0 )
 	{
-
-		if ( mode == N_BMP_BILINEAR_PIXEL_NEAREST_NEIGHBOR )
-		{
-
-			n_bmp_ptr_get_fast( bmp, fx,fy, &ret );
-			if ( n_bmp_is_trans( bmp, ret ) ) { return ret; }
-
-		} else
-		if ( mode == N_BMP_BILINEAR_PIXEL_SMOOTH_SHRINK )
-		{
-
-			int m = (int) ceil( 1.0 / ratio_x );
-
-			int a = 0;
-			int r = 0;
-			int g = 0;
-			int b = 0;
-
-			int c = 0;
-			int i = 0;
-			n_posix_loop
-			{
-				u32 color;
-
-				BOOL ret = n_bmp_ptr_get( bmp, fx + i,fy, &color );
-
-				if ( ret == FALSE )
-				{
-					// [!] : Copilot Optimization
-
-					//a += n_bmp_a( color );
-					//r += n_bmp_r( color );
-					//g += n_bmp_g( color );
-					//b += n_bmp_b( color );
-
-					int ca = n_bmp_a( color );
-					int cr = n_bmp_r( color );
-					int cg = n_bmp_g( color );
-					int cb = n_bmp_b( color );
-					a += ca;
-					r += cr;
-					g += cg;
-					b += cb;
-
-					c++;
-				}
-
-				i++;
-				if ( i >= m ) { break; }
-			}
-
-			ret = n_bmp_div_pixel( a,r,g,b, c );
-
-		} else
-		if ( mode == N_BMP_BILINEAR_PIXEL_ALWAYS_ENLARGE )
-		{
-
-			n_bmp_ptr_get_fast( bmp, fx,fy, &ret );
-			if ( n_bmp_is_trans( bmp, ret ) ) { return ret; }
-
-			if ( ( fx + 1 ) < N_BMP_SX( bmp ) )
-			{
-				u32 clr; n_bmp_ptr_get_fast( bmp, fx + 1,fy, &clr );
-				if ( FALSE == n_bmp_is_trans( bmp, clr ) )
-				{
-					ret = n_bmp_blend_pixel( ret, clr, coeff_x );
-				}
-			}
-
-		}
-
-	} else {
-
-		// [!] : enlarge
-
-		n_bmp_ptr_get_fast( bmp, fx,fy, &ret );
-		if ( n_bmp_is_trans( bmp, ret ) ) { return ret; }
-
-		if ( ( fx + 1 ) < N_BMP_SX( bmp ) )
-		{
-			u32 clr; n_bmp_ptr_get_fast( bmp, fx + 1,fy, &clr );
-			if ( FALSE == n_bmp_is_trans( bmp, clr ) )
-			{
-				ret = n_bmp_blend_pixel( ret, clr, coeff_x );
-			}
-		}
-
+		return a * x * x * x - 5.0 * a * x * x + 8.0 * a * x - 4.0 * a;
 	}
 
 
-	return ret;
+	return 0.0;
 }
 
 u32
-n_bmp_bilinear_pixel
-(
-	n_bmp  *bmp,
-	n_type_gfx        fx, n_type_gfx       fy,
-	n_type_real  ratio_x, n_type_real ratio_y,
-	n_type_real  coeff_x, n_type_real coeff_y,
-	int     mode
-)
+n_bmp_bicubic_pixel( n_bmp *bmp, n_type_real x, n_type_real y )
 {
 
-	// [!] : comment-out for performance
+	// [!] : Thx : DeepSeek AI
 
-	//if ( FALSE == n_bmp_ptr_is_accessible( bmp, fx,fy ) ) { return color_trans; }
+	n_type_real ix = floor( x );
+	n_type_real iy = floor( y );
+	n_type_real fx = x - ix;
+	n_type_real fy = y - iy;
+
+	//n_type_gfx bmpsx = N_BMP_SX( bmp );
+	//n_type_gfx bmpsy = N_BMP_SY( bmp );
 
 
-	u32 ret = n_bmp_bilinear_pixel_x( bmp, fx,fy, ratio_x, coeff_x, mode );
-	if ( n_bmp_is_trans( bmp, ret ) ) { return ret; }
-
-
-	if ( ratio_y == 1.0 )
+	n_type_real wx[ 4 ], wy[ 4 ];
+	for ( int i = -1; i <= 2; i++ )
 	{
-
-		// [!] : do nothing
-
-	} else
-	if ( ratio_y < 1.0 )
-	{
-
-		if ( mode == N_BMP_BILINEAR_PIXEL_NEAREST_NEIGHBOR )
-		{
-
-			u32 color; n_bmp_ptr_get_fast( bmp, fx,fy, &color );
-
-			ret = n_bmp_blend_pixel( ret, color, 0.5 );
-
-		} else
-		if ( mode == N_BMP_BILINEAR_PIXEL_SMOOTH_SHRINK )
-		{
-
-			int m = (int) ceil( 1.0 / ratio_y );
-
-			int a = 0;
-			int r = 0;
-			int g = 0;
-			int b = 0;
-
-			int c = 0;
-			int i = 0;
-			n_posix_loop
-			{
-
-				u32 color = n_bmp_bilinear_pixel_x( bmp, fx,fy + i, ratio_x, coeff_x, mode );
-
-				if ( FALSE == n_bmp_is_trans( bmp, color ) )
-				{
-					a += n_bmp_a( color );
-					r += n_bmp_r( color );
-					g += n_bmp_g( color );
-					b += n_bmp_b( color );
-					c++;
-				}
-
-				i++;
-				if ( i >= m ) { break; }
-			}
-
-			u32 clr = n_bmp_div_pixel( a,r,g,b, c );
-
-			ret = n_bmp_blend_pixel( ret, clr, 0.5 );
-
-		} else
-		if ( mode == N_BMP_BILINEAR_PIXEL_ALWAYS_ENLARGE )
-		{
-
-			if ( ( fy + 1 ) < N_BMP_SY( bmp ) )
-			{
-				u32 clr = n_bmp_bilinear_pixel_x( bmp, fx,fy + 1, ratio_x, coeff_x, mode );
-				if ( FALSE == n_bmp_is_trans( bmp, clr ) )
-				{
-					ret = n_bmp_blend_pixel( ret, clr, coeff_y );
-				}
-			}
-
-		}
-
-	} else {
-
-		// [!] : enlarge
-
-		if ( ( fy + 1 ) < N_BMP_SY( bmp ) )
-		{
-			u32 clr = n_bmp_bilinear_pixel_x( bmp, fx,fy + 1, ratio_x, coeff_x, mode );
-			if ( FALSE == n_bmp_is_trans( bmp, clr ) )
-			{
-				ret = n_bmp_blend_pixel( ret, clr, coeff_y );
-			}
-		}
-
+		wx[ i + 1 ] = n_bmp_bicubic_weight( fx - i );
+		wy[ i + 1 ] = n_bmp_bicubic_weight( fy - i );
 	}
 
 
-	return ret;
+	n_type_real total_a = 0, total_r = 0, total_g = 0, total_b = 0;
+	n_type_real total_weight = 0;
+
+	for ( int dy = -1; dy <= 2; dy++ )
+	{
+		for ( int dx = -1; dx <= 2; dx++ )
+		{
+			u32 color;
+			if ( FALSE == n_bmp_ptr_get( bmp, ix + dx, iy + dy, &color ) )
+			{
+				n_type_real weight = wx[ dx + 1 ] * wy[ dy + 1 ];
+				total_weight += weight;
+
+				total_a += (n_type_real) n_bmp_a( color ) * weight;
+				total_r += (n_type_real) n_bmp_r( color ) * weight;
+				total_g += (n_type_real) n_bmp_g( color ) * weight;
+				total_b += (n_type_real) n_bmp_b( color ) * weight;
+			}
+		}
+	}
+
+
+	if ( total_weight > 0 )
+	{
+		total_a /= total_weight;
+		total_r /= total_weight;
+		total_g /= total_weight;
+		total_b /= total_weight;
+	}
+
+
+	total_a = (int) ( fmax( 0, fmin( 255, total_a + 0.5 ) ) );
+	total_r = (int) ( fmax( 0, fmin( 255, total_r + 0.5 ) ) );
+	total_g = (int) ( fmax( 0, fmin( 255, total_g + 0.5 ) ) );
+	total_b = (int) ( fmax( 0, fmin( 255, total_b + 0.5 ) ) );
+
+
+	return n_bmp_argb( total_a, total_r, total_g, total_b );
 }
+
+
+
 
 #define n_bmp_ahsl n_bmp_argb
 #define n_bmp_hsl  n_bmp_rgb
@@ -1520,6 +1454,9 @@ n_bmp_hsl_replace_pixel( u32 color, int hue, int saturation, int lightness )
 	return color;
 }
 
+
+
+
 u32
 n_bmp_sharpen_pixel( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_real blend )
 {
@@ -1630,6 +1567,9 @@ n_bmp_sharpen_pixel( n_bmp *bmp, n_type_gfx x, n_type_gfx y, n_type_real blend )
 
 	return n_bmp_blend_pixel( center, color_ret, blend );
 }
+
+
+
 
 n_posix_inline u32
 n_bmp_composite_pixel_postprocess
@@ -1833,6 +1773,109 @@ n_bmp_composite_pixel_ultrafast
 
 	return n_bmp_composite_pixel_postprocess( color_lower, color_upper, alpha_upper, perpixel, global, finalize, blend, write_needed );
 }
+
+
+
+
+typedef struct {
+
+	float L;
+	float a;
+	float b;
+
+	int   alpha;
+
+} n_bmp_oklab;
+
+float
+n_bmp_oklab_srgb_to_linear( float x )
+{
+	if ( x <= 0.04045f )
+	{
+		return x / 12.92f;
+	} else {
+		return powf( ( x + 0.055f ) / 1.055f, 2.4f );
+	}
+}
+
+n_bmp_oklab
+n_bmp_oklab_rgb2oklab( u32 color )
+{
+
+	float lr = n_bmp_oklab_srgb_to_linear( (float) n_bmp_r( color ) / 255.0f );
+	float lg = n_bmp_oklab_srgb_to_linear( (float) n_bmp_g( color ) / 255.0f );
+	float lb = n_bmp_oklab_srgb_to_linear( (float) n_bmp_b( color ) / 255.0f );
+//NSLog( @"%f %f %f", lr, lg, lb );
+
+	float l = 0.4122214708f * lr + 0.5363325363f * lg + 0.0514459929f * lb;
+	float m = 0.2119034982f * lr + 0.6806995451f * lg + 0.1073969566f * lb;
+	float s = 0.0883024619f * lr + 0.2817188376f * lg + 0.6299787005f * lb;
+//NSLog( @"%f %f %f", l, m, s );
+
+	float l_ = powf( l, 1.0f / 3.0f );
+	float m_ = powf( m, 1.0f / 3.0f );
+	float s_ = powf( s, 1.0f / 3.0f );
+//NSLog( @"%f %f %f", l_, m_, s_ );
+
+	n_bmp_oklab out;
+
+	out.L = 0.2104542553f * l_ + 0.7936177850f * m_ - 0.0040720468f * s_;
+	out.a = 1.9779984951f * l_ - 2.4285922050f * m_ + 0.4505937099f * s_;
+	out.b = 0.0259040371f * l_ + 0.7827717662f * m_ - 0.8086757660f * s_;
+
+	out.alpha = n_bmp_a( color );
+
+
+	return out;
+}
+
+float
+n_bmp_oklab_linear_to_srgb( float x )
+{
+	if ( x <= 0.0031308f )
+	{
+		return 12.92f * x;
+	} else {
+		return 1.055f * powf( x, 1.0f / 2.4f ) - 0.055f;
+	}
+}
+
+u32
+n_bmp_oklab_oklab2rgb( n_bmp_oklab ok )
+{
+
+	float l_ = ok.L + 0.3963377774f * ok.a + 0.2158037573f * ok.b;
+	float m_ = ok.L - 0.1055613458f * ok.a - 0.0638541728f * ok.b;
+	float s_ = ok.L - 0.0894841775f * ok.a - 1.2914855480f * ok.b;
+
+	float l = l_ * l_ * l_;
+	float m = m_ * m_ * m_;
+	float s = s_ * s_ * s_;
+
+	float lr = +4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s;
+	float lg = -1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s;
+	float lb = -0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s;
+
+	float fr = n_bmp_oklab_linear_to_srgb( fmaxf( 0.0f, fminf( 1.0f, lr ) ) ) * 255;
+	float fg = n_bmp_oklab_linear_to_srgb( fmaxf( 0.0f, fminf( 1.0f, lg ) ) ) * 255;
+	float fb = n_bmp_oklab_linear_to_srgb( fmaxf( 0.0f, fminf( 1.0f, lb ) ) ) * 255;
+
+
+	return n_bmp_argb( ok.alpha, (int) fr, (int) fg, (int) fb );
+}
+
+u32
+n_bmp_oklab_tweak( u32 color, float zero_to_one )
+{
+
+	n_bmp_oklab ok = n_bmp_oklab_rgb2oklab( color );
+
+	ok.L = zero_to_one;
+
+	return n_bmp_oklab_oklab2rgb( ok );
+}
+
+
 
 
 #endif //_H_NONNON_NEUTRAL_BMP_COLOR

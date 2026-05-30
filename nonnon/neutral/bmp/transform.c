@@ -374,13 +374,14 @@ n_bmp_scaler( n_bmp *bmp, int mode, int ratio )
 	return;
 }
 
+
+
+
 typedef struct {
 
 	n_bmp       *bmp_f, *bmp_t;
 	n_type_gfx   tsx,tsy;
-	n_type_real  ratio_x,     ratio_y;
-	n_type_real  rev_ratio_x, rev_ratio_y;
-	int          mode;
+	n_type_real  ratio_x, ratio_y;
 	u32          oy, cores;
 
 } n_bmp_resampler_thread_struct;
@@ -389,33 +390,19 @@ void
 n_bmp_resampler_thread_main( n_bmp_resampler_thread_struct *p )
 {
 
-	n_type_gfx tx = 0;
-	n_type_gfx ty = p->oy;
-	n_posix_loop
+	// [!] : Thx : DeepSeek AI
+
+	for ( int dy = 0; dy < p->tsy; dy++ )
 	{
-
-		n_type_real dx = (n_type_real) tx * p->rev_ratio_x;
-		n_type_real dy = (n_type_real) ty * p->rev_ratio_y;
-		n_type_gfx  fx = (n_type_gfx) trunc( dx );
-		n_type_gfx  fy = (n_type_gfx) trunc( dy );
-
-		if ( n_bmp_ptr_is_accessible( p->bmp_f, fx,fy ) )
+		for ( int dx = 0; dx < p->tsx; dx++ )
 		{
-			u32 color = n_bmp_bilinear_pixel( p->bmp_f, fx,fy, p->ratio_x, p->ratio_y, dx - fx, dy - fy, p->mode );
-			n_bmp_ptr_set( p->bmp_t, tx,ty, color );
+			n_type_real src_x = ( dx + 0.5 ) * p->ratio_x - 0.5;
+			n_type_real src_y = ( dy + 0.5 ) * p->ratio_y - 0.5;
+
+			u32 color = n_bmp_bicubic_pixel( p->bmp_f, src_x, src_y );
+
+			n_bmp_ptr_set( p->bmp_t, dx,dy, color );
 		}
-
-
-		tx++;
-		if ( tx >= p->tsx )
-		{
-
-			tx = 0;
-
-			ty += p->cores;
-			if ( ty >= p->tsy ) { break; }
-		}
-
 	}
 
 
@@ -431,10 +418,8 @@ n_bmp_resampler_thread( n_thread_argument p )
 	return 0;
 }
 
-#define n_bmp_resampler( b, rx,ry ) n_bmp_resampler_main( b, rx,ry, N_BMP_BILINEAR_PIXEL_ALWAYS_ENLARGE )
-
 void
-n_bmp_resampler_main( n_bmp *bmp, n_type_real ratio_x, n_type_real ratio_y, int mode )
+n_bmp_resampler( n_bmp *bmp, n_type_real ratio_x, n_type_real ratio_y )
 {
 
 	if ( n_bmp_error( bmp ) ) { return; }
@@ -472,10 +457,8 @@ n_bmp_resampler_main( n_bmp *bmp, n_type_real ratio_x, n_type_real ratio_y, int 
 	n_bmp to; n_bmp_zero( &to ); n_bmp_1st_fast( &to, tsx,tsy );
 
 
-	// [!] : a little faster
-
-	n_type_real rev_ratio_x = 1.0 / ratio_x;
-	n_type_real rev_ratio_y = 1.0 / ratio_y;
+	ratio_x = 1.0 / ratio_x;
+	ratio_y = 1.0 / ratio_y;
 
 
 	// [x] : Win9x : can run but not working
@@ -485,12 +468,14 @@ n_bmp_resampler_main( n_bmp *bmp, n_type_real ratio_x, n_type_real ratio_y, int 
 		( n_thread_onoff() )
 		&&
 		(
-			( ( fsx * fsy ) >= N_BMP_MULTITHREAD_GRANULARITY )
+			( ( fsx * fsy ) >= 10000 )//N_BMP_MULTITHREAD_GRANULARITY )
 			||
-			( ( tsx * tsy ) >= N_BMP_MULTITHREAD_GRANULARITY )
+			( ( tsx * tsy ) >= 10000 )//N_BMP_MULTITHREAD_GRANULARITY )
 		)
 	)
 	{
+
+//NSLog( @" n_bmp_resampler() multi-thread " );
 
 #ifdef N_BMP_MULTITHREAD_DEBUG
 
@@ -513,7 +498,7 @@ n_bmp_resampler_main( n_bmp *bmp, n_type_real ratio_x, n_type_real ratio_y, int 
 		n_posix_loop
 		{
 
-			n_bmp_resampler_thread_struct tmp = { bmp, &to, tsx,tsy, ratio_x,ratio_y, rev_ratio_x,rev_ratio_y, mode, i,cores };
+			n_bmp_resampler_thread_struct tmp = { bmp, &to, tsx,tsy, ratio_x,ratio_y, i,cores };
 			n_memory_copy( &tmp, &p[ i ], sizeof( n_bmp_resampler_thread_struct ) );
 
 			h[ i ] = n_thread_init( n_bmp_resampler_thread, &p[ i ] );
@@ -551,7 +536,7 @@ n_bmp_resampler_main( n_bmp *bmp, n_type_real ratio_x, n_type_real ratio_y, int 
 
 	} else {
 
-		n_bmp_resampler_thread_struct p = { bmp, &to, tsx,tsy, ratio_x,ratio_y, rev_ratio_x,rev_ratio_y, mode, 0,1 };
+		n_bmp_resampler_thread_struct p = { bmp, &to, tsx,tsy, ratio_x,ratio_y, 0,1 };
 
 		n_bmp_resampler_thread_main( &p );
 

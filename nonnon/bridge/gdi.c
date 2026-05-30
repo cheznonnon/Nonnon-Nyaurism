@@ -271,12 +271,7 @@ n_gdi_system_themed( n_bmp *bmp )
 #define N_GDI_PRESSED            ( 1 << 6 )
 #define N_GDI_SYSTEMCOLOR        ( 1 << 7 )
 #define N_GDI_LAST               N_GDI_SYSTEMCOLOR
-#define N_GDI_SHADOW             ( N_GDI_LAST << 1 )
-#define N_GDI_SHADOW_FOG         ( N_GDI_LAST << 2 )
-#define N_GDI_CONTOUR            ( N_GDI_LAST << 3 )
-#define N_GDI_CONTOUR_FOG        ( N_GDI_LAST << 4 )
-#define N_GDI_SINK               ( N_GDI_LAST << 5 )
-#define N_GDI_SMOOTH             ( N_GDI_LAST << 6 )
+#define N_GDI_SMOOTH             ( N_GDI_LAST << 1 )
 
 #define N_GDI_LAYOUT_HORIZONTAL  0
 #define N_GDI_LAYOUT_VERTICAL    1
@@ -330,7 +325,6 @@ n_gdi_system_themed( n_bmp *bmp )
 #define N_GDI_FONT_UNDERLINE     ( 1 << 2 )
 #define N_GDI_FONT_STRIKEOUT     ( 1 << 3 )
 #define N_GDI_FONT_MONOSPACE     ( 1 << 4 )
-#define N_GDI_FONT_MONOSPACE_2   ( 1 << 5 )
 
 #define N_GDI_TEXT_DEFAULT       N_GDI_FONT_DEFAULT
 #define N_GDI_TEXT_BOLD          N_GDI_FONT_BOLD
@@ -338,29 +332,17 @@ n_gdi_system_themed( n_bmp *bmp )
 #define N_GDI_TEXT_UNDERLINE     N_GDI_FONT_UNDERLINE
 #define N_GDI_TEXT_STRIKEOUT     N_GDI_FONT_STRIKEOUT
 #define N_GDI_TEXT_MONOSPACE     N_GDI_FONT_MONOSPACE
-#define N_GDI_TEXT_MONOSPACE_2   N_GDI_FONT_MONOSPACE_2
-#define N_GDI_TEXT_LAST          N_GDI_TEXT_MONOSPACE_2
-#define N_GDI_TEXT_SHADOW        ( N_GDI_TEXT_LAST <<  1 )
-#define N_GDI_TEXT_SHADOW_FOG    ( N_GDI_TEXT_LAST <<  2 )
-#define N_GDI_TEXT_CONTOUR       ( N_GDI_TEXT_LAST <<  3 )
-#define N_GDI_TEXT_CONTOUR_FOG   ( N_GDI_TEXT_LAST <<  4 )
-#define N_GDI_TEXT_SINK          ( N_GDI_TEXT_LAST <<  5 )
-#define N_GDI_TEXT_SMOOTH        ( N_GDI_TEXT_LAST <<  6 )
-#define N_GDI_TEXT_GRADIENT      ( N_GDI_TEXT_LAST <<  7 )
-#define N_GDI_TEXT_ELLIPSIS      ( N_GDI_TEXT_LAST <<  8 )
-#define N_GDI_TEXT_PRINTER       ( N_GDI_TEXT_LAST <<  9 )
-#define N_GDI_TEXT_NO_MARGIN     ( N_GDI_TEXT_LAST << 10 )
-#define N_GDI_TEXT_MAC_NO_CROP   ( N_GDI_TEXT_LAST << 11 )
-#define N_GDI_TEXT_MAC_BASELINE  ( N_GDI_TEXT_LAST << 12 )
-#define N_GDI_TEXT_POP           ( N_GDI_TEXT_LAST << 13 )
-#define N_GDI_TEXT_SYS_SMOOTH    ( N_GDI_TEXT_LAST << 14 )
+#define N_GDI_TEXT_LAST          N_GDI_TEXT_MONOSPACE
+#define N_GDI_TEXT_SMOOTH        ( N_GDI_TEXT_LAST <<  1 )
+#define N_GDI_TEXT_GRADIENT      ( N_GDI_TEXT_LAST <<  2 )
+#define N_GDI_TEXT_ELLIPSIS      ( N_GDI_TEXT_LAST <<  3 )
+#define N_GDI_TEXT_PRINTER       ( N_GDI_TEXT_LAST <<  4 )
+#define N_GDI_TEXT_NO_MARGIN     ( N_GDI_TEXT_LAST <<  5 )
+#define N_GDI_TEXT_MAC_NO_CROP   ( N_GDI_TEXT_LAST <<  6 )
+#define N_GDI_TEXT_MAC_BASELINE  ( N_GDI_TEXT_LAST <<  7 )
+#define N_GDI_TEXT_SYS_SMOOTH    ( N_GDI_TEXT_LAST <<  8 ) // [x] : unstable and has many limitations
 
 #define N_GDI_ICON_DEFAULT       N_GDI_TEXT_DEFAULT
-#define N_GDI_ICON_SHADOW        N_GDI_TEXT_SHADOW
-#define N_GDI_ICON_SHADOW_FOG    N_GDI_TEXT_SHADOW_FOG
-#define N_GDI_ICON_CONTOUR       N_GDI_TEXT_CONTOUR
-#define N_GDI_ICON_CONTOUR_FOG   N_GDI_TEXT_CONTOUR_FOG
-#define N_GDI_ICON_SINK          N_GDI_TEXT_SINK
 #define N_GDI_ICON_SMOOTH        N_GDI_TEXT_SMOOTH
 #define N_GDI_ICON_LAST          N_GDI_ICON_SMOOTH
 #define N_GDI_ICON_IMAGELOADER   ( N_GDI_ICON_LAST << 1 )
@@ -371,6 +353,15 @@ n_gdi_system_themed( n_bmp *bmp )
 #define N_GDI_ICON_SYSTEM        ( N_GDI_ICON_LAST << 6 )
 #define N_GDI_ICON_AUTOSTRETCH   ( N_GDI_ICON_LAST << 7 )
 
+
+#define N_GDI_EFFECT_MAX         ( 8 )
+
+#define N_GDI_EFFECT_NONE        ( 0 << 0 )
+#define N_GDI_EFFECT_SHADOW      ( 1 << 0 )
+#define N_GDI_EFFECT_SHADOW_FOG  ( 1 << 1 )
+#define N_GDI_EFFECT_OUTLINE     ( 1 << 2 )
+#define N_GDI_EFFECT_OUTLINE_FOG ( 1 << 3 )
+#define N_GDI_EFFECT_SINK        ( 1 << 4 )
 
 
 
@@ -389,6 +380,12 @@ n_gdi_system_themed( n_bmp *bmp )
 typedef struct {
 
 	// In
+
+#ifdef N_POSIX_PLATFORM_WINDOWS
+
+	HWND          hwnd;
+
+#endif
 
 	n_type_gfx    sx,sy;
 	n_type_real   scale;
@@ -416,12 +413,10 @@ typedef struct {
 	int           icon_rsrc;
 	int           icon_style;
 	u32           icon_color_bg;
-	u32           icon_color_shadow;
-	u32           icon_color_contour;
-	u32           icon_color_sink_tl;
-	u32           icon_color_sink_br;
-	n_type_gfx    icon_fxsize1;
-	n_type_gfx    icon_fxsize2;
+	int           icon_effect_style[ N_GDI_EFFECT_MAX ];
+	u32           icon_effect_color[ N_GDI_EFFECT_MAX ];
+	int           icon_effect_param[ N_GDI_EFFECT_MAX ];
+	n_type_gfx    icon_ui_scale;
 
 	n_posix_char *text;
 	n_posix_char *text_font;
@@ -429,12 +424,12 @@ typedef struct {
 	int           text_style;
 	u32           text_color_main;
 	u32           text_color_gradient;
-	u32           text_color_shadow;
-	u32           text_color_contour;
-	u32           text_color_sink_tl;
-	u32           text_color_sink_br;
-	n_type_gfx    text_fxsize1;
-	n_type_gfx    text_fxsize2;
+	int           text_effect_style[ N_GDI_EFFECT_MAX ];
+	u32           text_effect_color[ N_GDI_EFFECT_MAX ];
+	int           text_effect_param[ N_GDI_EFFECT_MAX ];
+
+	n_type_gfx    effect_size_sum_icon;
+	n_type_gfx    effect_size_sum_text;
 
 	BOOL          debug_output;
 
@@ -486,11 +481,6 @@ typedef struct {
 // Constants
 
 const n_type_gfx n_gdi_smoothness = 5;
-
-
-// [!] : not beautiful but GDI-independent
-
-const BOOL n_gdi_fakebold_onoff = FALSE;
 
 
 // [!] : currently hidden option
@@ -705,22 +695,15 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 	// Phase 1 : Initialization
 
-
-	// [Needed] : multi-thread : you need to manage this
-
-	BOOL p_trans_onoff = n_bmp_transparent_onoff_default;
-	if ( n_bmp_is_multithread == FALSE )
-	{
-		n_bmp_transparent_onoff_default = TRUE;
-	}
-
-
 	BOOL      onoff = ( FALSE == ( gdi->style & N_GDI_CALCONLY ) );
 	BOOL icon_onoff = ( ( FALSE == n_string_is_empty( gdi->icon ) )||( gdi->icon_in != NULL ) );
 	BOOL text_onoff = ( FALSE == n_string_is_empty( gdi->text ) );
 //NSLog( @"%s", gdi->text );
 
-	if ( ( onoff )&&( bmp == NULL ) ) { return; }
+	if ( ( onoff )&&( bmp == NULL ) )
+	{
+		return;
+	}
 
 
 	// [!] : use INI for Mac support
@@ -730,41 +713,33 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 	// Override
 
-	if ( gdi->style & N_GDI_SHADOW )
-	{
-		gdi->icon_style |= N_GDI_ICON_SHADOW;
-		gdi->text_style |= N_GDI_TEXT_SHADOW;
-	}
-
-	if ( gdi->style & N_GDI_SHADOW_FOG )
-	{
-		gdi->icon_style |= N_GDI_ICON_SHADOW_FOG;
-		gdi->text_style |= N_GDI_TEXT_SHADOW_FOG;
-	}
-
-	if ( gdi->style & N_GDI_CONTOUR )
-	{
-		gdi->icon_style |= N_GDI_ICON_CONTOUR;
-		gdi->text_style |= N_GDI_TEXT_CONTOUR;
-	}
-
-	if ( gdi->style & N_GDI_CONTOUR_FOG )
-	{
-		gdi->icon_style |= N_GDI_ICON_CONTOUR_FOG;
-		gdi->text_style |= N_GDI_TEXT_CONTOUR_FOG;
-	}
-
-	if ( gdi->style & N_GDI_SINK )
-	{
-		gdi->icon_style |= N_GDI_ICON_SINK;
-		gdi->text_style |= N_GDI_TEXT_SINK;
-	}
-
 	if ( gdi->style & N_GDI_SMOOTH )
 	{
 		gdi->icon_style |= N_GDI_ICON_SMOOTH;
 		gdi->text_style |= N_GDI_TEXT_SMOOTH;
 	}
+
+//gdi->text_style |= N_GDI_TEXT_SYS_SMOOTH;
+	if ( gdi->text_style & N_GDI_TEXT_SYS_SMOOTH )
+	{
+		gdi->text_style &= ~N_GDI_TEXT_SMOOTH;
+	}
+/*
+	if ( gdi->text_style & N_GDI_TEXT_SYS_SMOOTH )
+	{
+		gdi->text_style &= ~N_GDI_TEXT_SYS_SMOOTH;
+		gdi->text_style |= N_GDI_TEXT_SMOOTH;
+	}
+*/
+
+#ifdef N_POSIX_PLATFORM_MAC
+
+	if ( gdi->text_style & N_GDI_TEXT_SMOOTH )
+	{
+		gdi->text_style &= ~N_GDI_TEXT_SMOOTH;
+	}
+
+#endif
 
 
 	// Adjustment
@@ -772,11 +747,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 	if ( gdi->base_unit <= 0 )
 	{
 		gdi->base_unit = 64;
-	}
-
-	if ( ( n_gdi_fakebold_onoff )&&( gdi->text_style & N_GDI_TEXT_BOLD ) )
-	{
-		gdi->text_style |= N_GDI_TEXT_SMOOTH;
 	}
 
 	if ( gdi->text_font == NULL )
@@ -869,6 +839,11 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		}
 	}
 
+	if ( gdi->icon_style & N_GDI_ICON_UI )
+	{
+		if ( gdi->icon_ui_scale <= 0 ) { gdi->icon_ui_scale = 1; }
+	}
+
 
 	// Frame Border
 
@@ -901,15 +876,13 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		gdi->frame_size  = 0;
 	}
 
-	if ( gdi->text_style & N_GDI_TEXT_POP )
-	{
-		gdi->frame_size  = 4 * gdi->scale;
-	}
-
-
 
 
 	// Phase 2 : Size Calculation
+
+
+	gdi->effect_size_sum_icon = n_gdi_effect_size_sum_icon( gdi );
+	gdi->effect_size_sum_text = n_gdi_effect_size_sum_text( gdi );
 
 
 	n_type_gfx sx = 0;
@@ -943,9 +916,9 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 		if ( gdi->icon_style & N_GDI_ICON_UI )
 		{
-			gdi->icon_sx *= trunc( gdi->scale );
-			gdi->icon_sy *= trunc( gdi->scale );
-//n_log( "%d %f %f", gdi->scale, gdi->icon_sx, gdi->icon_sy );
+			gdi->icon_sx *= trunc( gdi->icon_ui_scale );
+			gdi->icon_sy *= trunc( gdi->icon_ui_scale );
+//n_log( "%d %f %f", gdi->icon_ui_scale, gdi->icon_sx, gdi->icon_sy );
 		}
 
 
@@ -1008,7 +981,9 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
-		n_gdi_text_draw( gdi, NULL, (void*) &txt, &gdi->text_sx, &gdi->text_sy );
+		n_gdi_text_draw( gdi, NULL, (void*) &txt, FALSE );
+
+//n_log( "%d %d", gdi->text_sx, gdi->text_sy );
 
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
 
@@ -1033,7 +1008,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 //NSLog( @"%d : %f %f %f", gdi->text_size, nsfont.ascender, nsfont.descender, nsfont.capHeight );
 
 		CGSize     sz = n_mac_image_text_pixelsize( s, nsfont );
-		n_type_gfx  o = n_posix_max_n_type_gfx( gdi->text_fxsize1, gdi->text_fxsize2 ) * 2;
+		n_type_gfx  o = gdi->effect_size_sum_text;
 
 
 		n_type_gfx mult = 2;
@@ -1229,13 +1204,7 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 	if ( ( sx <= 0 )||( sy <= 0 ) )
 	{
-
 		if ( text_onoff ) { n_ini_free( &txt ); }
-
-		if ( n_bmp_is_multithread == FALSE )
-		{
-			n_bmp_transparent_onoff_default = p_trans_onoff;
-		}
 
 		return;
 	}
@@ -1599,13 +1568,23 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 			if ( is_center_x )
 			{
+#ifdef N_POSIX_PLATFORM_WINDOWS
+				SIZE size = n_gdi_text_pixelsize( gdi, gdi->text, n_posix_strlen( gdi->text ) );
+				if ( gdi->text_style & N_GDI_TEXT_SMOOTH )
+				{
+					size.cx /= n_gdi_smoothness;
+				}
+
+				gdi->text_x = ( gdi->sx / 2 ) - ( size.cx / 2 );
+//n_log( "%s : %d %d", gdi->text, gdi->sx, size.cx );
+#else
 				gdi->text_x = ( gdi->sx - gdi->text_sx ) / 2;
+#endif
 			} else {
 				gdi->text_x = gdi->offset_x;
 			}
 
 			gdi->text_y = gdi->offset_y + icon_offset;
-
 		}
 
 
@@ -1622,17 +1601,12 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
-		n_gdi_text_draw( gdi, &bmp_ret, (void*) &txt, NULL,NULL );
+		n_gdi_text_draw( gdi, &bmp_ret, (void*) &txt, TRUE );
 //if ( gdi->debug_id == 1 ) { n_bmp_save_literal( &bmp_ret, "ret.bmp" ); }
 
 #else  // #ifdef N_POSIX_PLATFORM_WINDOWS
 
 //NSLog( @"%d", n_bmp_flip_onoff );
-
-		n_type_gfx fx_size = n_posix_max_n_type_gfx( gdi->text_fxsize1, gdi->text_fxsize2 );
-
-		gdi->text_x += fx_size;
-		gdi->text_y += fx_size;
 
 		n_gdi_bmp_effect_text( gdi, &bmp_ret, &bmp_text );
 
@@ -1664,13 +1638,6 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 	// Phase 5 : Cleanup
 
-/*
-	if ( gdi->text_x < 0 ) { gdi->text_sx += abs( gdi->text_x ); gdi->text_x = 0; }
-	if ( gdi->text_y < 0 ) { gdi->text_sy += abs( gdi->text_y ); gdi->text_y = 0; }
-n_bmp_box( &bmp_ret, gdi->text_x, gdi->text_y, gdi->text_sx, gdi->text_sy, n_bmp_white );
-//n_posix_debug_literal( " %d %d %d %d ", gdi->text_x, gdi->text_y, gdi->text_sx, gdi->text_sy );
-*/
-
 	if ( onoff )
 	{
 		n_bmp_free_fast( bmp );
@@ -1678,11 +1645,6 @@ n_bmp_box( &bmp_ret, gdi->text_x, gdi->text_y, gdi->text_sx, gdi->text_sy, n_bmp
 	}
 
 	if ( text_onoff ) { n_ini_free( &txt ); }
-
-	if ( n_bmp_is_multithread == FALSE )
-	{
-		n_bmp_transparent_onoff_default = p_trans_onoff;
-	}
 
 
 	return;

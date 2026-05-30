@@ -112,16 +112,70 @@ n_gdi_text_monospace_count( const n_posix_char *str )
 	return ret;
 }
 
+
+
+
+void
+n_gdi_bmp_alpha_visible(  n_bmp *bmp, u32 chroma_key )
+{
+//return;
+
+	if ( n_bmp_error( bmp ) ) { return; }
+
+
+	n_type_int c = N_BMP_SX( bmp ) * N_BMP_SY( bmp );
+	n_type_int i = 0;
+	n_posix_loop
+	{
+
+		u32 color = N_BMP_PTR( bmp )[ i ];
+		if ( color != chroma_key )
+		{
+			N_BMP_PTR( bmp )[ i ] = n_bmp_alpha_visible_pixel( color );
+		}
+
+		i++;
+		if ( i >= c ) { break; }
+	}
+
+
+	return;
+}
+
+
+
+
 // internal
 SIZE
-n_gdi_text_precalc
-(
-	      n_gdi        *gdi,
-	const n_posix_char *str,
-	      n_type_int    cch
-)
+n_gdi_text_pixelsize( n_gdi *gdi, const n_posix_char *str, n_type_int cch )
 {
 
+	// [Needed] : multi-thread
+
+	HANDLE hmutex = n_thread_mutex_init_and_wait_literal( NULL, "n_gdi_text_pixelsize()" );
+
+
+	HDC hdc = GetDC( gdi->hwnd );
+
+	HFONT hfont = SelectObject( hdc, gdi->text_cache_hfont );
+
+	SIZE size; GetTextExtentPoint32( hdc, str, (int) cch, &size );
+
+	SelectObject( hdc, hfont );
+
+	ReleaseDC( gdi->hwnd, hdc );
+
+
+	hmutex = n_thread_mutex_exit( hmutex );
+
+
+	return size;
+}
+
+// internal
+SIZE
+n_gdi_text_precalc( n_gdi *gdi, const n_posix_char *str, n_type_int cch )
+{
 
 	SIZE size = { 0, 0 };
 
@@ -134,38 +188,10 @@ n_gdi_text_precalc
 
 	if ( gdi->text_style & N_GDI_TEXT_MONOSPACE )
 	{
-
 		size.cx = gdi->text_cache_unit.cx * (n_type_gfx) n_string_cb2cch( str, cch * sizeof( n_posix_char ) );
 		size.cy = gdi->text_cache_unit.cy;
-
-	} else
-	if ( gdi->text_style & N_GDI_TEXT_MONOSPACE_2 )
-	{
-
-		size.cx = gdi->text_cache_unit.cx * (n_type_gfx) n_gdi_text_monospace_count( str );
-		size.cy = gdi->text_cache_unit.cy;
-
 	} else {
-
-		// [Needed] : multi-thread
-
-		HANDLE hmutex = n_thread_mutex_init_and_wait_literal( NULL, "n_gdi_text_precalc()" );
-
-
-		HDC hdc = GetDC( NULL );;
-
-		HFONT hfont = SelectObject( hdc, gdi->text_cache_hfont );
-
-		GetTextExtentPoint32( hdc, str, (int) cch, &size );
-		//size.cx *= 4;
-
-		SelectObject( hdc, hfont );
-
-		ReleaseDC( NULL, hdc );
-
-
-		hmutex = n_thread_mutex_exit( hmutex );
-
+		size = n_gdi_text_pixelsize( gdi, str, cch );
 	}
 
 
@@ -184,14 +210,7 @@ n_gdi_text_precalc
 	}
 
 
-	gdi->effect_margin = 0;
-
-	if ( ( n_gdi_fakebold_onoff )&&( gdi->text_style & N_GDI_TEXT_BOLD ) ) { gdi->effect_margin += 2; }
-
-	if ( gdi->text_style & N_GDI_TEXT_CONTOUR ) { gdi->effect_margin += 2 * gdi->text_fxsize2; } else
-	if ( gdi->text_style & N_GDI_TEXT_SINK    ) { gdi->effect_margin += 2 * gdi->text_fxsize2; }
-
-	if ( gdi->text_style & N_GDI_TEXT_SHADOW  ) { gdi->effect_margin += 1 * gdi->text_fxsize1; }
+	gdi->effect_margin = gdi->effect_size_sum_text;
 
 	if ( gdi->text_style & N_GDI_TEXT_ELLIPSIS )
 	{
@@ -279,58 +298,6 @@ n_gdi_text_precalc_unit( n_gdi *gdi, const n_txt *txt )
 
 		hmutex = n_thread_mutex_exit( hmutex );
 
-	} else
-	if ( gdi->text_style & N_GDI_TEXT_MONOSPACE_2 )
-	{
-
-		// [!] : TEXTMETRIC.tmMaxCharWidth will be too large with ASCII code
-		//
-		//	"W" for GetTextExtentPoint32() is not almighty
-
-
-		n_posix_char *s = txt->stream;
-		if ( n_string_is_empty( s ) ) { s = N_STRING_SPACE; }
-
-
-		// [Needed] : multi-thread
-
-		HANDLE hmutex = n_thread_mutex_init_and_wait_literal( NULL, "n_gdi_text_precalc_unit()" );
-
-
-		HDC hdc        = GetDC( NULL );
-		HDC hdc_compat = CreateCompatibleDC( hdc );
-
-		HFONT hfont = SelectObject( hdc_compat, gdi->text_cache_hfont );
-
-		n_type_int i = 0;
-		n_posix_loop
-		{
-
-			n_type_int cch = n_string_doublebyte_increment( s[ i ] );
-
-			if ( FALSE == n_gdi_text_is_fullwidth( s[ i ] ) )
-			{
-				SIZE size;
-				GetTextExtentPoint32( hdc_compat, &s[ i ], (int) cch, &size );
-
-				if ( size.cx > size_ret.cx ) { size_ret.cx = size.cx; }
-				if ( size.cy > size_ret.cy ) { size_ret.cy = size.cy; }
-			}
-
-			if ( ( cch == 2 )&&( s[ i + 1 ] == N_STRING_CHAR_NUL ) ) { break; }
-
-			i += cch;
-			if ( s[ i ] == N_STRING_CHAR_NUL ) { break; }
-		}
-
-		SelectObject( hdc_compat, hfont );
-
-		DeleteDC( hdc_compat );
-		ReleaseDC( NULL, hdc );
-
-
-		hmutex = n_thread_mutex_exit( hmutex );
-
 	} else {
 
 		size_ret = n_gdi_text_precalc( gdi, N_STRING_SPACE, 0 );
@@ -341,43 +308,8 @@ n_gdi_text_precalc_unit( n_gdi *gdi, const n_txt *txt )
 	return size_ret;
 }
 
-// internal
-void
-n_gdi_text_draw_DrawText( const n_gdi *gdi, HDC hdc_compat, const n_posix_char *str, n_type_int length, n_type_gfx x, n_type_gfx y, n_type_gfx sx, n_type_gfx sy )
-{
-
-	const int dt = DT_NOPREFIX | DT_CENTER | ( DT_SINGLELINE | DT_VCENTER );// | DT_NOCLIP;
 
 
-	n_type_gfx dx  = 0;
-	n_type_gfx dy  = 0;
-	n_type_gfx dsx = 0;
-	n_type_gfx dsy = 0;
-
-	if ( ( n_gdi_fakebold_onoff )&&( gdi->text_style & N_GDI_TEXT_BOLD ) )
-	{
-		dsx = dsy = 2;
-		if ( gdi->text_style & N_GDI_TEXT_SMOOTH ) { dx = dy = -1; }
-	}
-
-	n_type_gfx start_dx = dx;
-	n_posix_loop
-	{
-
-		RECT r = { x + dx, y + dy, x + sx + dx, y + sy + dy };
-		DrawText( hdc_compat, str, (int) length, &r, dt );
-
-		dx++;
-		if ( dx >= dsx )
-		{
-			dx = start_dx;
-			dy++;
-			if ( dy >= dsy ) { break; }
-		}
-	}
-
-	return;
-}
 
 // internal
 void
@@ -385,6 +317,7 @@ n_gdi_text_draw_line
 (
 	const n_gdi        *gdi,
 	      n_bmp        *bmp,
+	      n_bmp        *text,
 	      n_posix_char *str,
 	      n_type_int    length,
 	      n_type_gfx    sx,
@@ -399,32 +332,6 @@ n_gdi_text_draw_line
 	if ( n_string_is_empty( str ) ) { return; }
 
 
-	// [!] : n_gdi_bmp_effect_text() will shrink automatically
-
-	if ( gdi->text_style & N_GDI_TEXT_SMOOTH )
-	{
-		sx *= n_gdi_smoothness;
-		sy *= n_gdi_smoothness;
-	}
-
-
-	n_bmp text; n_bmp_zero( &text ); n_bmp_1st_fast( &text, sx,sy );
-	n_bmp_flush( &text, 0 );
-
-
-	// [!]
-	//
-	//	CreateDIBitmap()     : use HDC returned by GetDC()
-	//	GetDC()              : hbmp will be full-color bitmap
-	//	CreateCompatibleDC() : hbmp will be monochrome bitmap
-	//
-	//	GDI functions        : use HDC returned by CreateCompatibleDC()
-	//
-	//	SelectObject()       : MSDN : unselect before GetDIBits()
-	//
-	// 	GetDIBits()          : different colors are returned when color depth is not 32bit
-
-
 	{
 		// [Needed] : multi-thread
 
@@ -437,65 +344,23 @@ n_gdi_text_draw_line
 		HFONT hfont = SelectObject( hdc_compat, gdi->text_cache_hfont );
 
 
-		BITMAPINFO bi = { N_BMP_INFOH( &text ), { { 0,0,0,0 } } };
+		n_bmp_flush( text, 0 );
 
-		HBITMAP hbmp   = CreateDIBitmap( hdc, &bi.bmiHeader, CBM_INIT, N_BMP_PTR( &text ), &bi, DIB_RGB_COLORS );
-		HBITMAP p_hbmp = SelectObject( hdc_compat, hbmp );
-
-		SetBkMode   ( hdc_compat, TRANSPARENT        );
+		SetBkMode   ( hdc_compat, TRANSPARENT );
 		SetTextColor( hdc_compat, RGB( 255,255,255 ) );
+
+
+		BITMAPINFO bi = { N_BMP_INFOH( text ), { { 0,0,0,0 } } };
+
+		HBITMAP hbmp   = CreateDIBitmap( hdc, &bi.bmiHeader, CBM_INIT, N_BMP_PTR( text ), &bi, DIB_RGB_COLORS );
+		HBITMAP p_hbmp = SelectObject( hdc_compat, hbmp );
 
 
 		if ( length == 0 ) { length = n_posix_strlen( str ); }
 
 
-		// [x] : ExtTextOut() is fastest but useless here
-		//
-		//	text will be rendered top-left always
-		//	SetTextAlign( g.hdc_compat, TA_CENTER ); makes 0,0 as a center point
-		//	manual handling is needed
-		//
-		//	ExtTextOut( gdi->hdc_compat, x,y, 0, &rect, str, length, NULL );
-		//	TextOut( gdi->hdc_compat, x,y, str, length );
+		//const int dt = DT_NOPREFIX | DT_CENTER | ( DT_SINGLELINE | DT_VCENTER );// | DT_NOCLIP;
 
-		if ( gdi->text_style & N_GDI_TEXT_MONOSPACE_2 )
-		{
-
-			// [!] : forced monospace rendering
-			//
-			//	because n_win_font_logfont2hfont() is useless
-
-			n_posix_char *s = str;
-			if ( n_string_is_empty( s ) ) { s = N_STRING_SPACE; }
-
-			n_type_gfx x = gdi->effect_margin;
-			n_type_gfx y = gdi->effect_margin;
-
-			n_type_int i = 0;
-			n_posix_loop
-			{
-
-				if ( s[ i ] == N_STRING_CHAR_NUL ) { break; }
-
-
-				n_type_int cch = n_string_doublebyte_increment( s[ i ] );
-
-				n_type_gfx unit;
-				if ( n_gdi_text_is_fullwidth( s[ i ] ) )
-				{
-					unit = gdi->text_cache_unit.cx * 2;
-				} else {
-					unit = gdi->text_cache_unit.cx;
-				}
-
-				n_gdi_text_draw_DrawText( gdi, hdc_compat, &s[ i ], cch, x,y,unit,sy );
-
-				x += unit;
-				i += cch;
-
-			}
-
-		} else
 		if ( gdi->text_style & N_GDI_TEXT_MONOSPACE )
 		{
 
@@ -515,7 +380,14 @@ n_gdi_text_draw_line
 
 				n_type_int cch = n_string_doublebyte_increment( s[ i ] );
 
-				n_gdi_text_draw_DrawText( gdi, hdc_compat, &s[ i ], cch, x,y,gdi->text_cache_unit.cx,sy );
+
+				// [x] : Buggy : DrawText() has a bug at centering
+
+				//RECT r = { x,y,gdi->text_cache_unit.cx,sy };
+				//DrawText( hdc_compat, &str[ i ], cch, &r, dt );
+
+				TextOut( hdc_compat, x, y, str, n_posix_strlen( str ) );
+
 
 				x += gdi->text_cache_unit.cx;
 				if ( x >= sx ) { break; }
@@ -526,13 +398,21 @@ n_gdi_text_draw_line
 
 		} else {
 
-			n_gdi_text_draw_DrawText( gdi, hdc_compat, str, length, 0,0,sx,sy );
+			// [x] : Buggy : DrawText() has a bug at centering
+
+			//RECT r = { 0,0,sx,sy };
+			//DrawText( hdc_compat, str, length, &r, dt );
+
+			n_type_gfx x = gdi->effect_margin;
+			n_type_gfx y = gdi->effect_margin;
+
+			TextOut( hdc_compat, x, y, str, n_posix_strlen( str ) );
 
 		}
 
 
 		SelectObject( hdc_compat, p_hbmp );
-		GetDIBits( hdc_compat, hbmp, 0,N_BMP_SY( &text ), N_BMP_PTR( &text ), &bi, DIB_RGB_COLORS );
+		GetDIBits( hdc_compat, hbmp, 0,N_BMP_SY( text ), N_BMP_PTR( text ), &bi, DIB_RGB_COLORS );
 		DeleteObject( hbmp );
 
 
@@ -547,17 +427,73 @@ n_gdi_text_draw_line
 	} 
 
 
-	if ( N_BMP_ALPHA_CHANNEL_VISIBLE == 255 ) { n_bmp_alpha_visible( &text ); }
+	return;
+}
+
+// internal
+void
+n_gdi_text_draw_line_direct( const n_gdi *gdi, n_bmp *bmp, n_posix_char *str )
+{
+
+	if ( gdi == NULL ) { return; }
+
+	if ( n_bmp_error( bmp ) ) { return; }
+
+	if ( n_string_is_empty( str ) ) { return; }
 
 
-	n_gdi_bmp_effect_text( gdi, bmp, &text );
+	{
+		// [Needed] : multi-thread
+
+		HANDLE hmutex = n_thread_mutex_init_and_wait_literal( NULL, "n_gdi_text_draw_line_direct()" );
 
 
-	n_bmp_free_fast( &text );
+		HDC hdc = GetDC( NULL );
+		HDC hdc_compat = CreateCompatibleDC( hdc );
+
+		HFONT hfont = SelectObject( hdc_compat, gdi->text_cache_hfont );
+
+
+		SetBkMode( hdc_compat, TRANSPARENT );
+
+		u32 c = gdi->text_color_main;
+		SetTextColor( hdc_compat, RGB( n_bmp_r( c ),n_bmp_g( c ),n_bmp_b( c ) ) );
+
+
+		BITMAPINFO bi = { N_BMP_INFOH( bmp ), { { 0,0,0,0 } } };
+
+		HBITMAP hbmp   = CreateDIBitmap( hdc, &bi.bmiHeader, CBM_INIT, N_BMP_PTR( bmp ), &bi, DIB_RGB_COLORS );
+		HBITMAP p_hbmp = SelectObject( hdc_compat, hbmp );
+
+
+		n_type_gfx x = gdi->text_x;
+		n_type_gfx y = gdi->text_y;
+
+//n_log( "%d %d", x, y );
+
+		TextOut( hdc_compat, x, y, str, n_posix_strlen( str ) );
+
+
+		SelectObject( hdc_compat, p_hbmp );
+		GetDIBits( hdc_compat, hbmp, 0,N_BMP_SY( bmp ), N_BMP_PTR( bmp ), &bi, DIB_RGB_COLORS );
+		DeleteObject( hbmp );
+
+
+		SelectObject( hdc_compat, hfont );
+
+		DeleteDC( hdc_compat );
+		ReleaseDC( NULL, hdc );
+
+
+		hmutex = n_thread_mutex_exit( hmutex );
+	} 
 
 
 	return;
 }
+
+
+
 
 void
 n_gdi_text_cache_init( n_gdi *gdi, const n_txt *txt )
@@ -600,27 +536,10 @@ n_gdi_text_cache_exit( n_gdi *gdi )
 }
 
 void
-n_gdi_text_draw
-(
-	n_gdi      *gdi,
-	n_bmp      *bmp,
-	n_txt      *txt,
-	n_type_gfx *ret_sx,
-	n_type_gfx *ret_sy
-)
+n_gdi_text_draw( n_gdi *gdi, n_bmp *bmp, n_txt *txt, BOOL draw )
 {
 
 	// Phase 1 : initialization
-
-	BOOL draw;
-
-	if ( ( ret_sx != NULL )||( ret_sy != NULL ) )
-	{
-		draw = FALSE;
-	} else {
-		draw = TRUE;
-	}
-
 
 	if ( draw )
 	{
@@ -653,10 +572,6 @@ n_gdi_text_draw
 	}
 
 
-	if ( ret_sx != NULL ) { (*ret_sx) = 0; }
-	if ( ret_sy != NULL ) { (*ret_sy) = 0; }
-
-
 	// Phase 2 : unit size calculation
 
 
@@ -668,8 +583,10 @@ n_gdi_text_draw
 	n_type_gfx          ellipsis_max     = 0;
 	BOOL                ellipsis_onoff   = FALSE;
 
-	n_type_gfx          text_y           = gdi->text_y;
-	n_type_gfx          text_sy          = 0;
+	n_type_gfx text_x  = 0;
+	n_type_gfx text_sx = 0;
+	n_type_gfx text_y  = gdi->text_y;
+	n_type_gfx text_sy = 0;
 
 	if ( draw )
 	{
@@ -715,6 +632,8 @@ n_gdi_text_draw
 
 	// Phase 2 : main
 
+	//const n_type_real scale = n_win64_scale_factor_ui( NULL );
+
 	n_posix_char *s;
 	n_type_int    len;
 	SIZE          size;
@@ -731,7 +650,30 @@ n_gdi_text_draw
 			len  = gdi->text_cache_len [ i ];
 			size = gdi->text_cache_size[ i ];
 
-			n_gdi_text_draw_line( gdi, bmp, s, len, size.cx,size.cy );
+
+			n_type_gfx sx = size.cx;
+			n_type_gfx sy = size.cy;
+
+
+			// [!] : n_gdi_bmp_effect_text() will shrink automatically
+
+			if ( gdi->text_style & N_GDI_TEXT_SMOOTH )
+			{
+				sx *= n_gdi_smoothness;
+				sy *= n_gdi_smoothness;
+			}
+
+			n_bmp text; n_bmp_zero( &text ); n_bmp_1st_fast( &text, sx,sy );
+
+			n_gdi_text_draw_line( gdi, bmp, &text, s, len, sx,sy );
+
+			n_gdi_bmp_alpha_visible( &text, n_bmp_black );
+			//if ( N_BMP_ALPHA_CHANNEL_VISIBLE == 255 ) { n_bmp_alpha_visible( &text ); }
+
+			n_gdi_bmp_effect_text( gdi, bmp, &text );
+
+			n_bmp_free_fast( &text );
+
 
 			gdi->text_y += gdi->text_cache_size[ i ].cy;
 
@@ -813,12 +755,7 @@ n_gdi_text_draw
 			//n_memory_free( s );
 
 
-			if ( ret_sx != NULL )
-			{
-				if ( (*ret_sx) < size.cx ) { (*ret_sx) = size.cx; }
-			}
-
-			if ( ret_sy != NULL ) { (*ret_sy) += size.cy; }
+			if ( text_sx < size.cx ) { text_sx = size.cx; }
 
 
 			gdi->text_cache_len [ i ] = len;
@@ -841,7 +778,9 @@ n_gdi_text_draw
 	}
 
 
+	gdi->text_x  = text_x;
 	gdi->text_y  = text_y;
+	gdi->text_sx = text_sx;
 	gdi->text_sy = text_sy;
 
 

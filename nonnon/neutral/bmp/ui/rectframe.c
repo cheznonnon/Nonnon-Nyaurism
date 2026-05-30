@@ -121,7 +121,8 @@ n_bmp_ui_rectframe( n_bmp *bmp, int scale, u32 color[ 8 ] )
 	const s32 sy = N_BMP_SY( bmp );
 
 
-	n_bmp b; n_bmp_zero( &b ); n_bmp_1st( &b, sx,sy );
+	n_bmp b; n_bmp_zero( &b ); n_bmp_1st_fast( &b, sx,sy );
+	n_bmp_flush( &b, n_bmp_black_invisible );
 
 	n_bmp_ui_rectframe_drawedge( &b, scale, color );
 

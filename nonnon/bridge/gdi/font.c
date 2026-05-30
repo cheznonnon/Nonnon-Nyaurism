@@ -180,17 +180,13 @@ n_gdi_font_process( const n_gdi *gdi, LOGFONT *lf )
 	} else
 	if ( gdi->text_style & N_GDI_TEXT_PRINTER )
 	{
-		lf->lfQuality =    ANTIALIASED_QUALITY;
+		lf->lfQuality = ANTIALIASED_QUALITY;
 	} else {
-		lf->lfQuality = NONANTIALIASED_QUALITY;
+		lf->lfQuality = ANTIALIASED_QUALITY;
 	}
 
 
-	if ( n_gdi_fakebold_onoff == FALSE )
-	{
-		if ( gdi->text_style & N_GDI_FONT_BOLD ) { lf->lfWeight = FW_BOLD; }
-	}
-
+	if ( gdi->text_style & N_GDI_FONT_BOLD      ) { lf->lfWeight = FW_BOLD; }
 	if ( gdi->text_style & N_GDI_FONT_ITALIC    ) { lf->lfItalic    = TRUE; }
 	if ( gdi->text_style & N_GDI_FONT_UNDERLINE ) { lf->lfUnderline = TRUE; }
 	if ( gdi->text_style & N_GDI_FONT_STRIKEOUT ) { lf->lfStrikeOut = TRUE; }

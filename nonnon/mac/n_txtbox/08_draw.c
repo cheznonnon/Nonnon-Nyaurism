@@ -1884,7 +1884,8 @@ NSLog( @"%lld %lld", redraw_fy, redraw_ty );
 					{
 						if ( txtbox->search_marker[ i ] )
 						{
-							NSRect rect_local = NSMakeRect( scr_x, i * txtbox->scr.pixel_step, scrsx, 1 );
+							const CGFloat marker = txtbox->offset_y + ( i / ( (CGFloat) txtbox->txt_data->sy - 1 ) * txtbox->scr.pixel_shaft );
+							NSRect rect_local = NSMakeRect( scr_x, marker, scrsx, 1 );
 							n_mac_draw_box( N_TXTBOX_INDICATOR_SEARCH, rect_local );
 						}
 

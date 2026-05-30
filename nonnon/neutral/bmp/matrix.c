@@ -116,11 +116,14 @@ n_bmp_matrix_rotate_thread_main( n_bmp_matrix_rotate_thread_struct *p )
 
 			// [!] : use "enlarge" mode
 
-			n_type_real trunc_fx = (n_type_gfx) fx;//trunc( fx );
-			n_type_real trunc_fy = (n_type_gfx) fy;//trunc( fy );
+			//n_type_real trunc_fx = (n_type_gfx) fx;//trunc( fx );
+			//n_type_real trunc_fy = (n_type_gfx) fy;//trunc( fy );
 
-			int mode  = N_BMP_BILINEAR_PIXEL_ALWAYS_ENLARGE;
-			u32 color = n_bmp_bilinear_pixel( p->bmp_f, (n_type_gfx) fx, (n_type_gfx) fy, 2.0,2.0, fx - trunc_fx, fy - trunc_fy, mode );
+			//int mode  = N_BMP_BILINEAR_PIXEL_ALWAYS_ENLARGE;
+			//u32 color = n_bmp_bilinear_pixel( p->bmp_f, (n_type_gfx) fx, (n_type_gfx) fy, 2.0,2.0, fx - trunc_fx, fy - trunc_fy, mode );
+
+			u32 color = n_bmp_bicubic_pixel( p->bmp_f, fx, fy );
+
 			n_bmp_ptr_set( p->bmp_t, (n_type_gfx) tx, (n_type_gfx) ty, color );
 
 			if ( p->minimal_size )
@@ -253,6 +256,8 @@ n_bmp_matrix_rotate( n_bmp *bmp, int degree, u32 color_bg, BOOL minimal_size )
 
 	// [x] : Win9x : can run but not working
 
+//NSLog( @"%f %f", ( fsx * fsy ), ( tsx * tsy ) );
+
 //u32 tick = n_posix_tickcount();
 
 	if (
@@ -260,12 +265,14 @@ n_bmp_matrix_rotate( n_bmp *bmp, int degree, u32 color_bg, BOOL minimal_size )
 		( n_thread_onoff() )
 		&&
 		(
-			( ( fsx * fsy ) >= N_BMP_MULTITHREAD_GRANULARITY )
+			( ( fsx * fsy ) >= 10000 )//N_BMP_MULTITHREAD_GRANULARITY )
 			||
-			( ( tsx * tsy ) >= N_BMP_MULTITHREAD_GRANULARITY )
+			( ( tsx * tsy ) >= 10000 )//N_BMP_MULTITHREAD_GRANULARITY )
 		)
 	)
 	{
+
+//NSLog( @"n_bmp_matrix_rotate() : multi-thread" );
 
 #ifdef N_BMP_MULTITHREAD_DEBUG
 

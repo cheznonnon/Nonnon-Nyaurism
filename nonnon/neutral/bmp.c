@@ -216,7 +216,7 @@ static BOOL n_bmp_safemode_base = TRUE;
 static BOOL n_bmp_safemode      = TRUE;
 
 
-static BOOL n_bmp_transparent_onoff_default = TRUE;
+static BOOL n_bmp_transparent_onoff_default = FALSE; // [!] : Legacy : deprecated
 
 
 static BOOL n_bmp_flip_onoff = FALSE;
