@@ -463,13 +463,13 @@ typedef struct {
 
 #ifdef N_POSIX_PLATFORM_WINDOWS
 
-	BOOL          pmr_onoff;
-
 	n_type_int   *text_cache_len;
 	SIZE         *text_cache_size;
 	SIZE          text_cache_unit;
 	HFONT         text_cache_hfont;
 	n_type_real   text_cache_ratio;
+
+	BOOL          effect_no_bicubic;
 
 #endif // #ifdef N_POSIX_PLATFORM_WINDOWS
 
@@ -1014,6 +1014,9 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		n_type_gfx mult = 2;
 		if ( gdi->text_style & N_GDI_TEXT_MAC_NO_CROP ) { mult = 1; }
 
+		sz.width  += o;
+		sz.height += o;
+
 		n_bmp_new( &bmp_text, sz.width * mult, sz.height * mult );
 
 		NSImage  *img = n_mac_image_nbmp2nsimage( &bmp_text );
@@ -1047,8 +1050,8 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 
 //if ( gdi->debug_output ) { n_bmp_save( &bmp_text, "/Users/nonnon2/Desktop/ret.bmp" ); }
 
-		gdi->text_sx = N_BMP_SX( &bmp_text ) + o;
-		gdi->text_sy = N_BMP_SY( &bmp_text ) + o;
+		gdi->text_sx = N_BMP_SX( &bmp_text );
+		gdi->text_sy = N_BMP_SY( &bmp_text );
 //if ( gdi->debug_output ) { NSLog( @"%d %d %d", o, gdi->text_sx, gdi->text_sy ); }
 
 
@@ -1597,6 +1600,14 @@ n_gdi_bmp( n_gdi *gdi, n_bmp *bmp )
 		{
 			gdi->text_x += gdi->scale;
 			gdi->text_y += gdi->scale;
+		}
+
+		if ( gdi->text_style & N_GDI_TEXT_SMOOTH )
+		{
+			n_type_gfx o = gdi->effect_size_sum_text / 2;
+
+			gdi->text_x += o;
+			gdi->text_y += o;
 		}
 
 #ifdef N_POSIX_PLATFORM_WINDOWS

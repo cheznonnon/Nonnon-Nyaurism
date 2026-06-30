@@ -15,42 +15,6 @@
 
 
 void
-n_gdi_bmp_alpha_enhancer( const n_gdi *gdi, n_bmp *bmp )
-{
-//return;
-
-	if ( n_bmp_error( bmp ) ) { return; }
-
-
-	// [!] : font smoothing is not beautiful when background color is dark
-
-	u32 ahsl = n_bmp_argb2ahsl( gdi->base_color_bg );
-	if ( 64 <= n_bmp_l( ahsl ) ) { return; }
-
-
-	n_type_int c = N_BMP_SX( bmp ) * N_BMP_SY( bmp );
-	n_type_int i = 0;
-	n_posix_loop
-	{
-
-		u32 color = N_BMP_PTR( bmp )[ i ];
-		if ( color != n_bmp_black )
-		{
-			N_BMP_PTR( bmp )[ i ] = n_bmp_blend_pixel( color, n_bmp_white, 0.33 );
-		}
-
-		i++;
-		if ( i >= c ) { break; }
-	}
-
-
-	return;
-}
-
-
-
-
-void
 n_gdi_effect_fogmaker( n_bmp *bmp, n_type_real effect_count, BOOL is_icon, BOOL smooth_onoff, BOOL fog_onoff )
 {
 
@@ -201,152 +165,22 @@ n_gdi_effect_size_sum_text( const n_gdi *gdi )
 
 
 
-#define N_GDI_EFFECT_ICON 0
-#define N_GDI_EFFECT_TEXT 1
-
-#define n_gdi_bmp_effect_icon( gdi, bmp, obj ) n_gdi_bmp_effect( gdi, bmp, obj, N_GDI_EFFECT_ICON )
-#define n_gdi_bmp_effect_text( gdi, bmp, obj ) n_gdi_bmp_effect( gdi, bmp, obj, N_GDI_EFFECT_TEXT )
-
 void
-n_gdi_bmp_effect( const n_gdi *gdi, n_bmp *bmp, n_bmp *obj, int mode )
+n_gdi_bmp_effect_single
+(
+	const n_gdi *gdi,
+	n_bmp *obj,
+	n_bmp *bmp,
+	n_type_gfx x,
+	n_type_gfx y,
+	int sum,
+	const int _style[],
+	const u32 _color[],
+	const int _param[],
+	BOOL is_icon,
+	BOOL smooth_onoff
+)
 {
-
-	// [!] : TEXT : "obj" will be broken
-
-
-	if ( gdi == NULL ) { return; }
-
-	if ( n_bmp_error( bmp ) ) { return; }
-	if ( n_bmp_error( obj ) ) { return; }
-
-
-	int        style;
-	n_type_gfx x,y;
-
-	if ( mode == N_GDI_EFFECT_ICON )
-	{
-		style = gdi->icon_style;
-		x     = gdi->icon_x;
-		y     = gdi->icon_y;
-	} else {
-		style = gdi->text_style;
-		x     = gdi->text_x;
-		y     = gdi->text_y;
-	}
-
-
-	n_type_gfx sx = N_BMP_SX( obj );
-	n_type_gfx sy = N_BMP_SY( obj );
-
-	if ( mode == N_GDI_EFFECT_TEXT )
-	{
-
-		if ( style & N_GDI_TEXT_SMOOTH )
-		{
-#ifdef N_POSIX_PLATFORM_WINDOWS
-
-			//n_bmp_smoothshrink( obj, n_gdi_smoothness );
-			//n_gdi_bmp_alpha_enhancer( gdi, obj );
-
-			int i = 0;
-			n_posix_loop
-			{
-				n_bmp_flush_antialias( obj, 1.0 );
-
-				i++;
-				if ( i >= n_gdi_smoothness ) { break; }
-			}
-
-			n_type_real ratio = 1.0 / n_gdi_smoothness;
-			n_bmp_resampler( obj, ratio, ratio );
-
-//n_posix_char str[ 100 ]; n_posix_snprintf_literal( str, 100, "%08x.bmp", n_posix_tickcount() );
-//n_bmp_save( obj, str );
-
-			sx = N_BMP_SX( obj );
-			sy = N_BMP_SY( obj );
-
-#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
-		}
-
-		if (
-			( gdi->frame_style == N_GDI_FRAME_LUNA  )
-			||
-			( gdi->frame_style == N_GDI_FRAME_ROUND )
-		)
-		{
-
-			// [!] : clipping
-
-			if ( x < 0 )
-			{
-
-				n_type_gfx mx = gdi->frame_round;
-				n_type_gfx fx = abs( x );
-				n_type_gfx tx = ( fx + gdi->sx ) - mx;
-
-				n_bmp_box( obj, fx,0,mx*1,sy, n_bmp_white_invisible );
-				n_bmp_box( obj, tx,0,mx*2,sy, n_bmp_white_invisible );
-
-			}
-
-		}
-
-	}
-
-
-	// [!] : this is shared by TEXT and ICON
-
-	u32 clr_main;
-	u32 clr_grad;
-
-	if ( mode == N_GDI_EFFECT_ICON )
-	{
-		clr_main = 0;
-		clr_grad = 0;
-	} else {
-		clr_main = gdi->text_color_main;
-		clr_grad = gdi->text_color_gradient;
-	}
-
-
-	// [!] : Pop Maker
-
-	BOOL is_icon      = ( mode == N_GDI_EFFECT_ICON );
-	BOOL smooth_onoff = ( ( style & N_GDI_ICON_SMOOTH )||( style & N_GDI_TEXT_SMOOTH ) );
-
-	n_type_gfx sum;
-	if ( mode == N_GDI_EFFECT_ICON )
-	{
-		sum = gdi->effect_size_sum_icon;
-	} else {
-		sum = gdi->effect_size_sum_text;
-	}
-//NSLog( @"%d", sum );
-
-	if ( mode == N_GDI_EFFECT_ICON )
-	{
-		//
-	} else {
-		n_bmp_resizer( obj, sx + sum, sy + sum, n_bmp_black, N_BMP_RESIZER_CENTER );
-	}
-
-	n_bmp fog_base; n_bmp_carboncopy( obj, &fog_base );
-
-	int effect_style[ N_GDI_EFFECT_MAX ];
-	u32 effect_color[ N_GDI_EFFECT_MAX ];
-	int effect_param[ N_GDI_EFFECT_MAX ];
-
-	if ( mode == N_GDI_EFFECT_ICON )
-	{
-		n_memory_copy( gdi->icon_effect_style, effect_style, sizeof( int ) * N_GDI_EFFECT_MAX );
-		n_memory_copy( gdi->icon_effect_color, effect_color, sizeof( u32 ) * N_GDI_EFFECT_MAX );
-		n_memory_copy( gdi->icon_effect_param, effect_param, sizeof( int ) * N_GDI_EFFECT_MAX );
-	} else {
-		n_memory_copy( gdi->text_effect_style, effect_style, sizeof( int ) * N_GDI_EFFECT_MAX );
-		n_memory_copy( gdi->text_effect_color, effect_color, sizeof( u32 ) * N_GDI_EFFECT_MAX );
-		n_memory_copy( gdi->text_effect_param, effect_param, sizeof( int ) * N_GDI_EFFECT_MAX );
-	}
 
 	int p = sum / 2;
 	int i = N_GDI_EFFECT_MAX - 1;
@@ -355,17 +189,17 @@ n_gdi_bmp_effect( const n_gdi *gdi, n_bmp *bmp, n_bmp *obj, int mode )
 
 		if ( i < 0 ) { break; }
 
-		if ( effect_style[ i ] == N_GDI_EFFECT_NONE ) { i--; continue; }
+		if ( _style[ i ] == N_GDI_EFFECT_NONE ) { i--; continue; }
 
 
-		int style = effect_style[ i ];
-		u32 color = effect_color[ i ];
+		int style = _style[ i ];
+		u32 color = _color[ i ];
 		int param = p;
 //NSLog( @"%d %d", style, param );
 
 		BOOL fog_onoff = ( ( style & N_GDI_EFFECT_OUTLINE_FOG )||( style & N_GDI_EFFECT_SHADOW_FOG ) );
 
-		n_bmp fog; n_bmp_carboncopy( &fog_base, &fog );
+		n_bmp fog; n_bmp_carboncopy( obj, &fog );
 		n_gdi_effect_fogmaker( &fog, 9, is_icon, smooth_onoff, fog_onoff );
 
 		if ( ( style & N_GDI_EFFECT_OUTLINE )||( style & N_GDI_EFFECT_OUTLINE_FOG ) )
@@ -421,13 +255,162 @@ n_gdi_bmp_effect( const n_gdi *gdi, n_bmp *bmp, n_bmp *obj, int mode )
 
 //break;
 
-		p -= effect_param[ i ];
+		p -= _param[ i ];
 
 		i--;
 
 	}
 
-	n_bmp_free_fast( &fog_base );
+
+	return;
+}
+
+#define N_GDI_EFFECT_ICON 0
+#define N_GDI_EFFECT_TEXT 1
+
+#define n_gdi_bmp_effect_icon( gdi, bmp, obj ) n_gdi_bmp_effect( gdi, bmp, obj, N_GDI_EFFECT_ICON )
+#define n_gdi_bmp_effect_text( gdi, bmp, obj ) n_gdi_bmp_effect( gdi, bmp, obj, N_GDI_EFFECT_TEXT )
+
+void
+n_gdi_bmp_effect( const n_gdi *gdi, n_bmp *bmp, n_bmp *obj, int mode )
+{
+
+	// [!] : TEXT : "obj" will be broken
+
+
+	if ( gdi == NULL ) { return; }
+
+	if ( n_bmp_error( bmp ) ) { return; }
+	if ( n_bmp_error( obj ) ) { return; }
+
+
+	int        style;
+	n_type_gfx x,y;
+
+	if ( mode == N_GDI_EFFECT_ICON )
+	{
+		style = gdi->icon_style;
+		x     = gdi->icon_x;
+		y     = gdi->icon_y;
+	} else {
+		style = gdi->text_style;
+		x     = gdi->text_x;
+		y     = gdi->text_y;
+	}
+
+
+	n_type_gfx sx = N_BMP_SX( obj );
+	n_type_gfx sy = N_BMP_SY( obj );
+
+	if ( mode == N_GDI_EFFECT_TEXT )
+	{
+
+		if ( style & N_GDI_TEXT_SMOOTH )
+		{
+#ifdef N_POSIX_PLATFORM_WINDOWS
+
+			if ( gdi->effect_no_bicubic )
+			{
+				n_bmp_smoothshrink( obj, n_gdi_smoothness );
+			} else {
+				int i = 0;
+				n_posix_loop
+				{
+					n_bmp_flush_antialias( obj, 1.0 );
+
+					i++;
+					if ( i >= n_gdi_smoothness ) { break; }
+				}
+
+				n_type_real ratio = 1.0 / n_gdi_smoothness;
+				n_bmp_resampler( obj, ratio, ratio );
+			}
+//n_posix_char str[ 100 ]; n_posix_snprintf_literal( str, 100, "%08x.bmp", n_posix_tickcount() );
+//n_bmp_save( obj, str );
+
+			sx = N_BMP_SX( obj );
+			sy = N_BMP_SY( obj );
+
+#endif // #ifdef N_POSIX_PLATFORM_WINDOWS
+		}
+
+		if (
+			( gdi->frame_style == N_GDI_FRAME_LUNA  )
+			||
+			( gdi->frame_style == N_GDI_FRAME_ROUND )
+		)
+		{
+
+			// [!] : clipping
+
+			if ( x < 0 )
+			{
+
+				n_type_gfx mx = gdi->frame_round;
+				n_type_gfx fx = abs( x );
+				n_type_gfx tx = ( fx + gdi->sx ) - mx;
+
+				n_bmp_box( obj, fx,0,mx*1,sy, n_bmp_white_invisible );
+				n_bmp_box( obj, tx,0,mx*2,sy, n_bmp_white_invisible );
+
+			}
+
+		}
+
+	}
+
+
+	// [!] : this is shared by TEXT and ICON
+
+	u32 clr_main;
+	u32 clr_grad;
+
+	if ( mode == N_GDI_EFFECT_ICON )
+	{
+		clr_main = 0;
+		clr_grad = 0;
+	} else {
+		clr_main = gdi->text_color_main;
+		clr_grad = gdi->text_color_gradient;
+	}
+
+
+	// [!] : Pop Maker
+
+	if ( mode == N_GDI_EFFECT_ICON )
+	{
+
+		n_gdi_bmp_effect_single
+		(
+			gdi,
+			obj,
+			bmp,
+			x, y,
+			gdi->effect_size_sum_icon,
+			gdi->icon_effect_style,
+			gdi->icon_effect_color,
+			gdi->icon_effect_param,
+			TRUE,
+			( style & N_GDI_ICON_SMOOTH )
+		);
+
+	} else {
+
+		n_gdi_bmp_effect_single
+		(
+			gdi,
+			obj,
+			bmp,
+			x, y,
+			gdi->effect_size_sum_text,
+			gdi->text_effect_style,
+			gdi->text_effect_color,
+			gdi->text_effect_param,
+			FALSE,
+			( style & N_GDI_TEXT_SMOOTH )
+		);
+
+	}
 
 
 	if ( mode == N_GDI_EFFECT_ICON )

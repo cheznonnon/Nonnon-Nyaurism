@@ -83,6 +83,8 @@
 
 #define N_POSIX_PLATFORM_MAC
 
+#include <Cocoa/Cocoa.h>
+
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/param.h>
@@ -1750,17 +1752,10 @@ n_posix_cpu_count( void )
 	return ret;
 }
 
-#ifdef N_POSIX_PLATFORM_MINGW
 
-#include "../win32/sysinfo/version.c"
 
-#define n_posix_thread_is_available() n_sysinfo_version_2000_or_later()
-
-#else
 
 #define n_posix_thread_is_available() TRUE
-
-#endif
 
 
 
