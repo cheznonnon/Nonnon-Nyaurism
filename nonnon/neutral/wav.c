@@ -276,6 +276,8 @@ n_wav_precalc( n_wav *wav, n_type_int byte, int format, int channel, int bit, in
 	N_WAV_MSEC      ( wav ) = (n_type_real) N_WAV_SIZE( wav ) / N_WAV_BYTELEN( wav ) / sample_per_msec;
 	N_WAV_COUNT     ( wav ) = N_WAV_SIZE( wav ) / ( unit * N_WAV_STEREO( wav ) );
 
+//NSLog( @"%f", N_WAV_MSEC( wav ) );
+
 
 	return;
 }
@@ -1168,18 +1170,21 @@ n_wav_new_internal( n_wav *wav, u32 msec_or_sample, int mode )
 
 	const n_type_real channel         = 2;
 	const n_type_real rate            = 44100;
-	const n_type_real sample_per_msec = 44100 / 1000;
+	const n_type_real sample_per_msec = (n_type_real) 44100 / 1000;
 	const n_type_real bytealign       = channel * ( bit / 8 );
 
 
 	n_type_int byte;
 	if ( mode == 0 )
 	{
-		byte = (n_type_int) ceil( sample_per_msec * msec_or_sample * bytealign );
+		byte = ceil( (n_type_real) msec_or_sample * sample_per_msec * bytealign );
+//NSLog( @"%f", sample_per_msec );
 	} else {
 		byte = msec_or_sample * (n_type_int) bytealign;
 	}
 	if ( byte > UINT_MAX ) { return; }
+
+//NSLog( @"%d : %lld", mode, byte );
 
 
 	n_wav_free( wav );
@@ -1198,6 +1203,8 @@ n_wav_new_internal( n_wav *wav, u32 msec_or_sample, int mode )
 
 
 	n_wav_precalc( wav, byte, format, (int) channel, (int) bit, (int) rate );
+
+//NSLog( @"%f", N_WAV_MSEC( wav ) );
 
 
 	return;

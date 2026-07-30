@@ -324,10 +324,10 @@ n_mac_button_draw( n_mac_button *p, NSRect rect )
 		} else {
 			if ( p->auto_halo_onoff )
 			{
-				//n_bmp_rasterizer( &p->icon_halo, &bmp_canvas, tx,ty, p->color_bg_disabled, FALSE );
-				//n_bmp_blendcopy( &p->icon_halo, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty, 0.2 );
+				//n_bmp_rasterizer( &p->icon_halo, &bmp_canvas, tx,ty, p->color_bg_disabled );
+				n_bmp_blendcopy( &p->icon_halo, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty, 0.2 );
 			}
-			n_bmp_blendcopy( &p->icon_gray, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty, 0.2 );
+			n_bmp_blendcopy( &p->icon_gray, &bmp_canvas, 0,0,ico_sx,ico_sy, tx,ty, 0.0 );
 		}
 
 	}
