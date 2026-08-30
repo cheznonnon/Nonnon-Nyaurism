@@ -442,6 +442,10 @@
 	//if ( shaft_is_hovered ) { return; }
 
 
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE ) { return; }
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX ) { return; }
+
+
 	txtbox->smooth_wheel_delta = [theEvent deltaY];
 	if ( txtbox->smooth_wheel_delta == 0 ) { return; }
 
@@ -532,7 +536,7 @@
 {
 //NSLog( @"rightMouseUp" );
 
-	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 	{
 		if ( txtbox->find_icon_is_pressed )
 		{
@@ -593,6 +597,10 @@
 {
 //NSLog( @"otherMouseUp : %ld", (long) [theEvent buttonNumber] );
 
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE ) { return; }
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX ) { return; }
+
+
 	if ( [theEvent buttonNumber] == 2 )
 	{
 
@@ -609,6 +617,10 @@
 - (void) otherMouseDown:(NSEvent*) theEvent
 {
 //NSLog( @"otherMouseDown : %ld", (long) [theEvent buttonNumber] );
+
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE ) { return; }
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX ) { return; }
+
 
 	// [!] : Grab N Drag
 
@@ -631,6 +643,10 @@
 - (void) otherMouseDragged:(NSEvent*) theEvent
 {
 //NSLog( @"otherMouseDragged" );
+
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE ) { return; }
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX ) { return; }
+
 
 	if ( [theEvent buttonNumber] == 2 )
 	{

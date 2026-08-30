@@ -48,6 +48,7 @@
 #define N_MAC_KEYCODE_SAVE         1 // 's'
 #define N_MAC_KEYCODE_UNDO         6 // 'z'
 #define N_MAC_KEYCODE_FIND         3 // 'f'
+#define N_MAC_KEYCODE_CLOSE       12 // 'q'
 
 #define N_MAC_KEYCODE_MENU       110
 
@@ -256,6 +257,18 @@ n_mac_timer_exit( NSTimer *timer )
 	// [!] : don't call in a timer method : leak happens
 
 	[timer invalidate];
+
+	return;
+}
+
+
+
+
+void
+n_mac_quit( id self )
+{
+
+	[NSApp terminate:self];
 
 	return;
 }
