@@ -97,9 +97,9 @@
 	{
 
 		BOOL oneline = oneline_override;
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
+		if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 		{
-			if ( self.txtbox->listbox_edit_onoff ) { oneline = TRUE; } else { return; }
+			if ( txtbox->listbox_edit_onoff ) { oneline = TRUE; } else { return; }
 		}
 
 		n_posix_char *s = n_txt_get( txtbox->txt_data, txtbox->focus );
@@ -189,7 +189,7 @@
 
 	if ( delegate_option & N_MAC_TXTBOX_DELEGATE_SHIFT )
 	{
-		[self.delegate NonnonTxtbox_delegate_shift:theEvent];
+		[delegate NonnonTxtbox_delegate_shift:theEvent];
 	}
 
 }
@@ -218,9 +218,9 @@
 
 	NSString *ime_nsstr_prv = [txtbox->ime_nsstr copy];
 
-	if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
+	if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 	{
-		if ( self.txtbox->listbox_edit_onoff )
+		if ( txtbox->listbox_edit_onoff )
 		{
 			txtbox->ime = [NSTextInputContext currentInputContext];
 			[txtbox->ime handleEvent:event];
@@ -359,19 +359,19 @@
 	{
 //NSLog( @"Up" );
 
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
+		if ( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 		{
 			break;
 		} else
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE )
+		if ( txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE )
 		{
 			break;
 		} else
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
+		if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 		{
 			if ( txtbox->txt_data->readonly ) { break; }
 
-			if ( self.txtbox->listbox_edit_onoff )
+			if ( txtbox->listbox_edit_onoff )
 			{
 				//
 			} else
@@ -382,11 +382,11 @@
 				{
 					if ( delegate_option & N_MAC_TXTBOX_DELEGATE_SWAP )
 					{
-						[self.delegate NonnonTxtbox_delegate_swap:self is_up:YES];
+						[delegate NonnonTxtbox_delegate_swap:self is_up:YES];
 					}
 				} else {
 					txtbox->focus--;
-					self.txtbox->listbox_edit_onoff = FALSE;
+					txtbox->listbox_edit_onoff = FALSE;
 					[self NonnonTxtboxCaretOutOfCanvasUpDown];
 				}
 
@@ -425,19 +425,19 @@
 	{
 //NSLog( @"Down" );
 
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
+		if ( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 		{
 			break;
 		} else
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE )
+		if ( txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE )
 		{
 			break;
 		} else
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
+		if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 		{
 			if ( txtbox->txt_data->readonly ) { break; }
 
-			if ( self.txtbox->listbox_edit_onoff )
+			if ( txtbox->listbox_edit_onoff )
 			{
 				//
 			} else
@@ -448,11 +448,11 @@
 				{
 					if ( delegate_option & N_MAC_TXTBOX_DELEGATE_SWAP )
 					{
-						[self.delegate NonnonTxtbox_delegate_swap:self is_up:NO];
+						[delegate NonnonTxtbox_delegate_swap:self is_up:NO];
 					}
 				} else {
 					txtbox->focus++;
-					self.txtbox->listbox_edit_onoff = FALSE;
+					txtbox->listbox_edit_onoff = FALSE;
 					[self NonnonTxtboxCaretOutOfCanvasUpDown];
 				}
 
@@ -549,9 +549,9 @@
 		if ( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 		{
 
-			self.txtbox->is_enter_pressed = TRUE;
+			txtbox->is_enter_pressed = TRUE;
 			[self NonnonTxtboxEditedNotifyForced:TRUE];
-			self.txtbox->is_enter_pressed = FALSE;
+			txtbox->is_enter_pressed = FALSE;
 
 		} else
 		if ( txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE )
@@ -570,7 +570,7 @@
 
 				if ( delegate_option & N_MAC_TXTBOX_DELEGATE_LISTBOX_EDITED )
 				{
-					[self.delegate NonnonTxtbox_delegate_listbox_edited:txtbox->focus];
+					[delegate NonnonTxtbox_delegate_listbox_edited:txtbox->focus];
 				}
 			} else {
 //NSLog( @"3" );
@@ -586,6 +586,8 @@
 					txtbox->font_size,
 					n_posix_strlen( n_txt_get( txtbox->txt_data, txtbox->focus ) )
 				);
+
+				[self NonnonTxtboxUndo:N_TXTBOX_UNDO_REGISTER];
 			}
 
 			[self NonnonTxtboxCaretOutOfCanvasUpDown];
@@ -654,9 +656,9 @@
 
 		BOOL grow = ( txtbox->caret_fr.cch.y < txtbox->caret_to.cch.y );
 
-		if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
+		if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
 		{
-			if ( self.txtbox->listbox_edit_onoff )
+			if ( txtbox->listbox_edit_onoff )
 			{
 				n_type_int cch;
 
@@ -712,7 +714,7 @@
 		}
 
 		if (
-			( self.txtbox->mode == N_MAC_TXTBOX_MODE_EDITBOX )
+			( txtbox->mode == N_MAC_TXTBOX_MODE_EDITBOX )
 			&&
 			( txtbox->caret_fr.cch.x == 0 )
 		)
@@ -787,6 +789,11 @@
 	{
 
 		if ( txtbox->txt_data->readonly ) { break; }
+
+		if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
+		{
+			if ( txtbox->listbox_edit_onoff == FALSE ) { break; }
+		}
 
 
 		// [!] : same as Xcode
@@ -918,7 +925,14 @@
 
 		if ( event.modifierFlags & NSEventModifierFlagCommand )
 		{
+
 			if ( txtbox->txt_data->readonly ) { break; }
+
+			if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
+			{
+				if ( txtbox->listbox_edit_onoff == FALSE ) { break; }
+			}
+
 
 			[self NonnonTxtboxUndo:N_TXTBOX_UNDO_REGISTER];
 
@@ -980,6 +994,12 @@
 		{
 			if ( txtbox->txt_data->readonly ) { break; }
 
+			if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
+			{
+				if ( txtbox->listbox_edit_onoff == FALSE ) { break; }
+			}
+
+
 			[self NonnonTxtboxUndo:N_TXTBOX_UNDO_REGISTER];
 
 			[self NonnonTxtboxEditedNotify:TRUE];
@@ -1016,9 +1036,9 @@ n_posix_loop
 //NSLog( @"%lld", t.sy );
 
 			if (
-				( self.txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
+				( txtbox->mode == N_MAC_TXTBOX_MODE_FINDBOX )
 				||
-				( self.txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE )
+				( txtbox->mode == N_MAC_TXTBOX_MODE_ONELINE )
 			)
 			{
 				if ( t.sy != 1 ) { n_txt_free( &t ); break; }
@@ -1074,7 +1094,7 @@ n_posix_loop
 
 			} else {
 //break;
-				if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX ) { break; }
+				if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX ) { break; }
 
 
 				n_posix_char *line_f = n_string_carboncopy( n_txt_get( txtbox->txt_data, txtbox->focus ) );
@@ -1151,7 +1171,7 @@ n_posix_loop
 
 		if ( event.modifierFlags & NSEventModifierFlagCommand )
 		{
-			if ( self.txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX ) { break; }
+			if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX ) { break; }
 
 			[self NonnonTxtboxSelectAll:TRUE];
 		} else {
@@ -1168,11 +1188,16 @@ n_posix_loop
 		{
 			if ( txtbox->txt_data->readonly ) { break; }
 
+			if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
+			{
+				if ( txtbox->listbox_edit_onoff == FALSE ) { break; }
+			}
+
 			[self NonnonTxtboxUndo:N_TXTBOX_UNDO_RESTORE];
 
 			if ( delegate_option & N_MAC_TXTBOX_DELEGATE_UNDO )
 			{
-				[self.delegate NonnonTxtbox_delegate_undo:event];
+				[delegate NonnonTxtbox_delegate_undo:event];
 			}
 
 			[self NonnonTxtboxRedraw];
@@ -1190,7 +1215,7 @@ n_posix_loop
 		{
 			if ( delegate_option & N_MAC_TXTBOX_DELEGATE_FIND )
 			{
-				[self.delegate NonnonTxtbox_delegate_find:self];
+				[delegate NonnonTxtbox_delegate_find:self];
 			}
 		} else {
 			[self NonnonTxtboxKeyboardInputMethod:[event characters]];
@@ -1225,7 +1250,7 @@ n_posix_loop
 			{
 				is_left = NO;
 			}
-			[self.delegate NonnonTxtbox_delegate_F3:self is_left:is_left];
+			[delegate NonnonTxtbox_delegate_F3:self is_left:is_left];
 		}
 
 	}
@@ -1237,6 +1262,12 @@ n_posix_loop
 		// [x] : Command + function keys used by system globally
 
 		if ( txtbox->txt_data->readonly ) { break; }
+
+		if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
+		{
+			if ( txtbox->listbox_edit_onoff == FALSE ) { break; }
+		}
+
 
 		n_posix_char str[ 100 ];
 
@@ -1264,6 +1295,12 @@ n_posix_loop
 		if ( event.modifierFlags & NSEventModifierFlagCommand )
 		{
 			if ( txtbox->txt_data->readonly ) { break; }
+
+			if ( txtbox->mode == N_MAC_TXTBOX_MODE_LISTBOX )
+			{
+				if ( txtbox->listbox_edit_onoff == FALSE ) { break; }
+			}
+
 
 			n_posix_char str[ 100 ];
 
