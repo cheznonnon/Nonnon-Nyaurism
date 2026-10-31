@@ -235,29 +235,33 @@
 		if ( event.keyCode == N_MAC_KEYCODE_BACKSPACE )
 		{
 //NSLog( @"%@ %d : %@", ime_nsstr, (int) [ime_nsstr length], ime_nsstr_prv );
+//NSLog( @"%d", txtbox->ime_caret_offset );
 
-			NSUInteger cch = [txtbox->ime_nsstr length];
-
-			if ( ( cch == 1 )&&( [txtbox->ime_nsstr compare:ime_nsstr_prv] == 0 ) )
+			if ( txtbox->ime_caret_offset != 0 )
 			{
-				txtbox->ime_freed = TRUE;
-			}
+				NSUInteger cch = [txtbox->ime_nsstr length];
 
-			if ( txtbox->ime_freed )
-			{
-				[txtbox->ime discardMarkedText];
-				txtbox->ime_nsstr = @"";
-				txtbox->ime_onoff = FALSE;
-				txtbox->ime_freed = FALSE;
-				cch               = 0;
-			}
+				if ( ( cch == 1 )&&( [txtbox->ime_nsstr compare:ime_nsstr_prv] == 0 ) )
+				{
+					txtbox->ime_freed = TRUE;
+				}
 
-			if ( cch == 1 )
-			{
-				txtbox->ime_freed = TRUE;
-			}
+				if ( txtbox->ime_freed )
+				{
+					[txtbox->ime discardMarkedText];
+					txtbox->ime_nsstr = @"";
+					txtbox->ime_onoff = FALSE;
+					txtbox->ime_freed = FALSE;
+					cch               = 0;
+				}
 
-			[self NonnonTxtboxRedraw];
+				if ( cch == 1 )
+				{
+					txtbox->ime_freed = TRUE;
+				}
+
+				[self NonnonTxtboxRedraw];
+			}
 
 		} else
 		if ( ( event.keyCode == N_MAC_KEYCODE_RETURN )||( event.keyCode == N_MAC_KEYCODE_ENTER ) )
